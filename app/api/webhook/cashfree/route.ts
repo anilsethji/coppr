@@ -31,7 +31,10 @@ export async function POST(request: Request) {
     const orderId = order.order_id;
     const amount = order.order_amount;
 
-    // 3. UPDATE TRANSACTIONS TABLE
+    // 3. GET CUSTOMER EMAIL (For Guest Payments)
+    const customerEmail = payload.customer_details?.customer_email || payload.data?.customer_details?.customer_email;
+
+    // 4. UPDATE TRANSACTIONS TABLE
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
       .update({ 
@@ -42,27 +45,29 @@ export async function POST(request: Request) {
       .select('user_id')
       .single();
 
-    if (txError) {
-      console.error('Tx Update Error:', txError);
-      return NextResponse.json({ error: 'DB Error' }, { status: 500 });
+    // 5. RECORD GUEST PAYMENT (For Frictionless Activation)
+    if (customerEmail) {
+      console.log('📝 Recording guest payment for:', customerEmail);
+      await supabase.from('pre_paid_customers').upsert({
+        email: customerEmail,
+        order_id: orderId,
+        amount: amount,
+        status: 'paid'
+      });
     }
 
-    // 4. ACTIVATE USER PROFILE SUBSCRIPTION
+    // 6. ACTIVATE USER PROFILE (If already registered)
     if (transaction?.user_id) {
       const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 1); // 1 Month Default
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
 
-      const { error: profileError } = await supabase
+      await supabase
         .from('profiles')
         .update({
           subscription_status: 'active',
           subscription_expiry: expiryDate.toISOString(),
         })
         .eq('id', transaction.user_id);
-
-      if (profileError) {
-        console.error('Profile Update Error:', profileError);
-      }
     }
   }
 
