@@ -125,6 +125,7 @@ function RegisterForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 
+              autoComplete="new-password"
             />
           </div>
           <div>
@@ -136,6 +137,7 @@ function RegisterForm() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required 
+              autoComplete="new-password"
             />
           </div>
           
