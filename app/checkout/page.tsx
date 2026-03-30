@@ -80,9 +80,14 @@ export default function CheckoutPage() {
         mode: "sandbox", 
       });
 
+      // DYNAMIC RETURN URL BASED ON USER STATUS
+      const returnUrl = user 
+        ? `${window.location.origin}/dashboard?order_id=${data.order_id}`
+        : `${window.location.origin}/register?email=${encodeURIComponent(email)}&status=paid&order_id=${data.order_id}`;
+
       await cashfree.checkout({
         paymentSessionId: data.payment_session_id,
-        returnUrl: `${window.location.origin}/dashboard?order_id=${data.order_id}`,
+        returnUrl: returnUrl,
       });
 
     } catch (err: any) {

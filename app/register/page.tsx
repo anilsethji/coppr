@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [fullName, setFullName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
@@ -13,7 +16,14 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
+  // Pre-fill email from URL if guest just paid
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) setEmail(emailParam);
+  }, [searchParams]);
+
+  const isPrepaid = searchParams.get('status') === 'paid';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,19 +37,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // DEBUG: Verify API reachability first
-      const healthCheck = await fetch('/api/health').catch(() => null);
-      console.log('API Health Check:', healthCheck ? healthCheck.status : 'FAILED TO REACH');
-
-      const apiUrl = '/api/auth/register';
-      console.log('Sending request to:', window.location.origin + apiUrl);
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, full_name: fullName, whatsapp }),
       });
-
 
       const data = await response.json();
 
@@ -47,13 +49,10 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Redirect to checkout or dashboard
-      router.push('/checkout');
+      // After successful registration, redirect to dashboard
+      router.push('/dashboard');
     } catch (err: any) {
-      console.error('Browser Fetch Error:', err);
-      setError(err.name === 'TypeError' && err.message === 'Failed to fetch' 
-        ? "Network Error: Could not reach the server. Is npm run dev still running?" 
-        : err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -68,6 +67,13 @@ export default function RegisterPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-sm text-gray-400">Join Coppr and access live-tested EA bots.</p>
         </div>
+
+        {isPrepaid && (
+          <div className="bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] text-xs p-4 rounded-card mb-6 text-center font-bold italic">
+             🎉 Payment Successful! <br/>
+             <span className="text-[10px] opacity-80 uppercase tracking-widest mt-1 block">Finish account setup to enter the dashboard.</span>
+          </div>
+        )}
         
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-4 rounded-card mb-6 text-center animate-pulse">
@@ -102,11 +108,12 @@ export default function RegisterPage() {
             <label className="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
             <input 
               type="email" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" 
+              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none placeholder:opacity-20" 
               placeholder="you@domain.com" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required 
+              disabled={isPrepaid}
             />
           </div>
           <div>
@@ -153,5 +160,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#00E676] font-black uppercase tracking-widest animate-pulse italic">Initializing Terminal...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }
