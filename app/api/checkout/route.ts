@@ -6,14 +6,10 @@ export async function POST(request: Request) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { planId, amount, customerName, customerPhone } = await request.json();
+  const { planId, amount, customerName, customerEmail, customerPhone } = await request.json();
 
   // 1. GENERATE A UNIQUE ORDER ID
-  const orderId = `order_${Date.now()}_${user.id.slice(0, 8)}`;
+  const orderId = `order_${Date.now()}_${(user?.id || 'guest').slice(0, 8)}`;
 
   try {
     // 2. CREATE ORDER IN CASHFREE
@@ -22,10 +18,10 @@ export async function POST(request: Request) {
       order_amount: amount,
       order_currency: 'INR',
       customer_details: {
-        customer_id: user.id,
-        customer_name: customerName || user.user_metadata.full_name || 'Customer',
-        customer_email: user.email,
-        customer_phone: customerPhone || '9999999999', // Default if missing
+        customer_id: user?.id || `guest_${customerEmail?.replace(/[@.]/g, '_')}`,
+        customer_name: customerName || user?.user_metadata?.full_name || 'Customer',
+        customer_email: customerEmail || user?.email,
+        customer_phone: customerPhone || '9999999999',
       },
       order_meta: {
         return_url: `${new URL(request.url).origin}/dashboard?order_id={order_id}`,
@@ -41,7 +37,7 @@ export async function POST(request: Request) {
     const { error: dbError } = await supabase
       .from('transactions')
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null, // Allow NULL for guests
         order_id: orderId,
         amount: amount,
         status: 'pending',
