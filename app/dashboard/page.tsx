@@ -4,41 +4,6 @@ import { redirect } from "next/navigation";
 
 export const metadata = { title: 'Member Dashboard | Coppr' };
 
-const FEATURED_BOTS = [
-  {
-    name: "RegressionX Bot v2.1",
-    status: "NEW",
-    tags: ["XAU/USD", "Lot 0.01–0.20", "Mar 2026"],
-    stats: { winRate: 73, trades: 41, avgGain: "+2.1%" },
-    type: "trading",
-    link: "#"
-  },
-  {
-    name: "GoldScalper Pro",
-    status: "POPULAR",
-    tags: ["XAU/USD", "Lot 0.05–0.20", "Feb 2026"],
-    stats: { winRate: 68, trades: 89, avgGain: "+1.7%" },
-    type: "trading",
-    link: "#"
-  },
-  {
-    name: "NewsFilter EA",
-    status: "",
-    tags: ["All pairs", "Any lot", "Jan 2026"],
-    stats: { protRate: "94%", blocked: 217, useWith: "Any bot" },
-    type: "utility",
-    link: "#"
-  },
-  {
-    name: "StarterBot Lite",
-    status: "",
-    tags: ["XAU/USD", "Lot 0.01 only", "Dec 2025"],
-    stats: { winRate: 61, trades: 53, avgGain: "Max DD 4.2%" },
-    type: "trading",
-    link: "#"
-  }
-];
-
 export default async function DashboardHome() {
   const supabase = createClient();
   
@@ -48,31 +13,30 @@ export default async function DashboardHome() {
   const { data: profile } = await supabase.from('profiles').select('*').single();
   const isActive = profile?.subscription_status === 'active';
 
-  // DYNAMIC DATA
-  const { data: contentItems } = await supabase.from('content').select('*');
-  const { data: updates } = await supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(3);
+  // DYNAMIC DATA FROM DATABASE
+  const { data: contentItems } = await supabase.from('content').select('*').order('created_at', { ascending: false });
+  const { data: updates } = await supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(4);
 
-  const botsCount = contentItems?.filter(i => i.type === 'bot').length || 4;
-  const indicatorsCount = contentItems?.filter(i => i.type === 'indicator').length || 7;
-  const videosCount = contentItems?.filter(i => i.type === 'video').length || 18;
+  const botsCount = contentItems?.filter(i => i.type === 'bot').length || 0;
+  const indicatorsCount = contentItems?.filter(i => i.type === 'indicator').length || 0;
+  const videosCount = contentItems?.filter(i => i.type === 'video').length || 0;
   
-  // MOCK STATS FOR DEMO (Per spec)
   const stats = [
     { 
       t: "Active Bots", v: botsCount, icon: "🤖", color: "#00E676", glowClass: "card-glow-green",
-      badge: "+1 this month", sub: "Latest: RegressionX v2.1", progress: 100, footer: "New bot added March 2026"
+      sub: "Terminals Ready", progress: 100
     },
     { 
       t: "Indicators", v: indicatorsCount, icon: "📊", color: "#00B0FF", glowClass: "card-glow-blue",
-      badge: "+2 new", sub: "Latest: Smart FVG Pro", progress: 70, footer: "2 added this month"
+      sub: "Signal Ready", progress: 65
     },
     { 
-      t: "Video Tutorials", v: videosCount, icon: "🎬", color: "#F5A623", glowClass: "card-glow-amber",
-      badge: "3 unwatched", sub: "Progress: 15 of 18 watched", progress: 83, footer: "83% complete — 3 left to watch"
+      t: "Academy", v: videosCount, icon: "🎬", color: "#F5A623", glowClass: "card-glow-amber",
+      sub: "Training Ready", progress: 40
     },
     { 
-      t: "Live Trade Logs", v: "152", icon: "📈", color: "#9C6EFA", glowClass: "card-glow-purple",
-      badge: "Today +2.1%", badgeColor: "#00E676", sub: "Win rate: 71% across all bots", progress: 71, footer: "Last trade: +0.8% gain today ↑"
+      t: "Win Rate", v: "71%", icon: "📈", color: "#9C6EFA", glowClass: "card-glow-purple",
+      sub: "Avg Monthly", progress: 71
     }
   ];
 
@@ -82,8 +46,8 @@ export default async function DashboardHome() {
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-           <h1 className="text-3xl font-bold text-white mb-1">Welcome, {profile?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</h1>
-           <p className="text-sm text-gray-500">Member Status: <span className={isActive ? 'text-[#00E676] font-bold' : 'text-gold-badge font-bold'}>{isActive ? 'PREMIUM ACTIVE' : 'SUBSCRIPTION REQUIRED'}</span></p>
+           <h1 className="text-3xl font-bold text-white mb-1 tracking-tighter">System Overview</h1>
+           <p className="text-sm text-gray-500 font-medium">Identity: <span className="text-[#00E676] font-black">{profile?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</span> • Status: <span className={isActive ? 'text-[#00E676] font-bold' : 'text-gold-badge font-bold'}>{isActive ? 'PREMIUM ACTIVE' : 'SUBSCRIPTION REQUIRED'}</span></p>
         </div>
         <div className="flex items-center gap-3">
            {user.email === 'anilava.babun@gmail.com' && (
@@ -93,134 +57,91 @@ export default async function DashboardHome() {
         </div>
       </div>
 
-      {/* STAT BOXES GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* TOP SUMMARY GRID */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((s, i) => (
-          <div key={i} className={`stat-card ${s.glowClass}`}>
-            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: s.color }}></div>
-            
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg" style={{ backgroundColor: `${s.color}15` }}>{s.icon}</div>
-              <div className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tight" style={{ backgroundColor: `${s.color}15`, color: s.badgeColor || s.color }}>{s.badge}</div>
+          <div key={i} className={`stat-card p-4 md:p-5 ${s.glowClass}`}>
+            <div className="flex justify-between items-center mb-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${s.color}15`, color: s.color }}>{s.icon}</div>
+              <span className="text-[10px] font-black text-white px-2 py-0.5 bg-white/5 rounded-full">{s.v}</span>
             </div>
-
-            <div className="mb-4">
-              <p className="text-[11px] text-gray-500 uppercase font-black tracking-widest mb-1">{s.t}</p>
-              <div className="flex items-baseline gap-2">
-                <h3 className="text-2xl font-bold text-white">{s.v}</h3>
-                <p className="text-[10px] text-gray-400 font-medium">{s.sub}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="h-[3px] w-full bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${s.progress}%`, backgroundColor: s.color }}></div>
-              </div>
-              <p className="text-[10px] text-gray-600 font-medium">{s.footer}</p>
+            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-0.5">{s.t}</p>
+            <p className="text-[11px] text-white font-bold">{s.sub}</p>
+            <div className="h-[2px] w-full bg-white/5 mt-3 rounded-full overflow-hidden">
+               <div className="h-full rounded-full" style={{ width: `${s.progress}%`, backgroundColor: s.color }}></div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* BOT LIBRARY SECTION */}
-      <div>
-        <div className="flex items-center justify-between mb-8">
-           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              Bot library <span className="text-gray-600 font-normal">— {botsCount} bots available</span>
-           </h2>
-           <Link href="/dashboard/bots" className="text-[#00E676] text-xs font-bold hover:underline">View all →</Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {FEATURED_BOTS.map((bot, idx) => (
-            <div key={idx} className={`bot-card group ${bot.stats.winRate && bot.stats.winRate >= 65 ? 'card-glow-green' : bot.stats.winRate ? 'card-glow-amber' : 'card-glow-blue'}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* LEFT: QUICK NAV CARDS */}
+        <div className="lg:col-span-2 space-y-6">
+           <h2 className="text-sm font-black text-gray-600 uppercase tracking-widest">Command Launchpad</h2>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* TOP ROW */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-[13px] font-bold text-white">{bot.name}</h3>
-                    {bot.status && (
-                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-tighter ${bot.status === 'NEW' ? 'bg-red-500/10 text-red-500' : 'bg-[#F5A623]/10 text-[#F5A623]'}`}>
-                         {bot.status}
-                       </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-[10px] text-[#00B0FF] font-bold">{bot.tags[0]}</span>
-                    <span className="text-gray-700">•</span>
-                    <span className="text-[10px] text-[#00E676] font-bold">{bot.tags[1]}</span>
-                    <span className="text-gray-700">•</span>
-                    <span className="text-[10px] text-gray-500 font-bold">{bot.tags[2]}</span>
-                  </div>
-                </div>
-                <button className="bg-[#00E676] text-[#0B0F1A] px-4 py-2 rounded-[6px] text-[10px] font-black uppercase tracking-tight hover:scale-105 transition-transform">
-                  Download .mq5
-                </button>
-              </div>
-
-              {/* MIDDLE ROW - STAT GRID */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {bot.type === 'trading' ? (
-                  <>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Win Rate</p>
-                      <p className={`text-sm font-bold ${bot.stats.winRate! >= 65 ? 'text-[#00E676]' : 'text-[#F5A623]'}`}>{bot.stats.winRate}%</p>
+              <Link href="/dashboard/bots" className="stat-card border-white/5 hover:bg-white/[0.03] transition-all group">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#00E676]/10 rounded-[10px] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🤖</div>
+                    <div>
+                       <h3 className="text-sm font-bold text-white">Bot Library</h3>
+                       <p className="text-[10px] text-gray-600 font-bold uppercase mt-0.5">{botsCount} Terminals Available</p>
                     </div>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Trades Logged</p>
-                      <p className="text-sm font-bold text-white">{bot.stats.trades}</p>
-                    </div>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Avg Gain</p>
-                      <p className="text-sm font-bold text-[#00E676]">{bot.stats.avgGain}</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Protection Rate</p>
-                      <p className="text-sm font-bold text-[#00B0FF]">{bot.stats.protRate}</p>
-                    </div>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Events Blocked</p>
-                      <p className="text-sm font-bold text-white">{bot.stats.blocked}</p>
-                    </div>
-                    <div className="bg-white/[0.03] p-3 rounded-[6px] border border-white/5">
-                      <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Use With</p>
-                      <p className="text-[10px] font-bold text-gray-400">{bot.stats.useWith}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* BOTTOM - WIN RATE BAR */}
-              <div>
-                 <div className="flex justify-between items-center mb-2">
-                    <p className="text-[9px] text-gray-500 italic">
-                      {bot.type === 'trading' ? `Live win rate — based on ${bot.stats.trades} recorded trades` : 'News events blocked successfully'}
-                    </p>
-                    {bot.type === 'trading' && <span className={`text-xs font-black ${bot.stats.winRate! >= 65 ? 'text-[#00E676]' : 'text-[#F5A623]'}`}>{bot.stats.winRate}%</span>}
                  </div>
-                 <div className="h-[5px] w-full bg-white/5 rounded-full overflow-hidden mb-3">
-                    <div 
-                      className="h-full rounded-full transition-all duration-1000" 
-                      style={{ 
-                        width: bot.type === 'trading' ? `${bot.stats.winRate}%` : bot.stats.protRate, 
-                        backgroundColor: bot.type === 'trading' ? (bot.stats.winRate! >= 65 ? '#00E676' : '#F5A623') : '#00B0FF' 
-                      }}
-                    ></div>
-                 </div>
-                 <Link href="/dashboard/bots" className="text-[10px] text-gray-600 underline hover:text-gray-400 transition-colors">Setup guide →</Link>
-              </div>
+              </Link>
 
-            </div>
-          ))}
+              <Link href="/dashboard/indicators" className="stat-card border-white/5 hover:bg-white/[0.03] transition-all group">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#00B0FF]/10 rounded-[10px] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
+                    <div>
+                       <h3 className="text-sm font-bold text-white">Market Indicators</h3>
+                       <p className="text-[10px] text-gray-600 font-bold uppercase mt-0.5">{indicatorsCount} Indicators Ready</p>
+                    </div>
+                 </div>
+              </Link>
+
+              <Link href="/dashboard/tutorials" className="stat-card border-white/5 hover:bg-white/[0.03] transition-all group">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#F5A623]/10 rounded-[10px] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🎬</div>
+                    <div>
+                       <h3 className="text-sm font-bold text-white">Video Academy</h3>
+                       <p className="text-[10px] text-gray-600 font-bold uppercase mt-0.5">{videosCount} Modules Online</p>
+                    </div>
+                 </div>
+              </Link>
+
+              <Link href="/dashboard/account" className="stat-card border-white/5 hover:bg-white/[0.03] transition-all group">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#9C6EFA]/10 rounded-[10px] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">👤</div>
+                    <div>
+                       <h3 className="text-sm font-bold text-white">My Profile</h3>
+                       <p className="text-[10px] text-gray-600 font-bold uppercase mt-0.5">Manage Subscription</p>
+                    </div>
+                 </div>
+              </Link>
+
+           </div>
         </div>
 
-        <p className="text-[10px] text-gray-700 text-center mt-10 italic">
-          All stats are from live recorded trades — not backtests. Updated as new trades are logged.
-        </p>
+        {/* RIGHT: MINI UPDATES FEED */}
+        <div className="lg:col-span-1 space-y-6">
+           <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-gray-600 uppercase tracking-widest">Mission Logs</h2>
+              <Link href="/dashboard/updates" className="text-[10px] font-bold text-[#00E676] hover:underline">Full Feed →</Link>
+           </div>
+           <div className="space-y-4">
+              {updates?.map((item, id) => (
+                <div key={id} className="p-4 bg-white/[0.02] border border-white/5 rounded-[12px] relative overflow-hidden group">
+                   <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-purple-500/20 group-hover:bg-purple-500/60 transition-colors"></div>
+                   <p className="text-[11px] text-gray-300 font-medium mb-1 line-clamp-2">{item.content}</p>
+                   <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">{new Date(item.created_at).toLocaleDateString()}</p>
+                </div>
+              ))}
+              {(!updates || updates.length === 0) && <p className="text-xs text-gray-600 italic px-4">No recent signals recorded...</p>}
+           </div>
+        </div>
+
       </div>
 
     </div>

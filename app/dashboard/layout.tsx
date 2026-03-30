@@ -1,57 +1,77 @@
-import Link from 'next/link';
-import { Logo } from '@/components/ui/Logo';
+'use client';
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Logo } from "@/components/ui/Logo";
+
+const NAV_ITEMS = [
+  { label: "Home Overview", href: "/dashboard", icon: "🏠" },
+  { label: "EA Bots", href: "/dashboard/bots", icon: "🤖" },
+  { label: "Indicators", href: "/dashboard/indicators", icon: "📊" },
+  { label: "Video Tutorials", href: "/dashboard/tutorials", icon: "🎬" },
+  { label: "Live Updates", href: "/dashboard/updates", icon: "📡" },
+  { label: "Setup Guides", href: "/dashboard/guides", icon: "📖" },
+  { label: "Support", href: "/dashboard/support", icon: "🎧" },
+  { label: "My Account", href: "/dashboard/account", icon: "👤" },
+];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
-    <div className="min-h-screen bg-[#0A0F1E] flex flex-col md:flex-row pt-16 mt-[-64px]">
-      
-      {/* SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-navy-card border-r border-white/10 h-screen sticky top-0">
-        <div className="p-6 border-b border-white/10 mt-16 md:mt-0 pb-4">
-          <Link href="/dashboard" className="flex items-center gap-1 focus:outline-none hover:opacity-80 transition-opacity">
-            <Logo variant="dark" className="w-10 h-10 shadow-lg rounded-full" />
-            <span className="text-[1.35rem] font-bold tracking-normal text-white font-brand -translate-y-1">Member</span>
+    <div className="flex min-h-screen bg-[#0B0F1A]">
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-[#131929] border-r border-white/5 fixed h-full z-50 hidden md:block">
+        <div className="p-6">
+          <Link href="/dashboard" className="flex items-center gap-2 mb-10 group">
+             <Logo variant="dark" className="w-8 h-8 group-hover:scale-110 transition-transform" />
+             <span className="text-xl font-bold text-white font-brand">Coppr</span>
           </Link>
+
+          <nav className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-[10px] text-sm font-bold transition-all ${
+                    isActive 
+                    ? 'bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/20' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {["Home", "EA Bots", "Indicators", "Video Tutorials", "Live Updates", "Setup Guides", "Support", "My Account"].map((item) => (
-            <Link key={item} href="/dashboard" className="block px-4 py-3 rounded-card text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-medium">
-              {item}
-            </Link>
-          ))}
-        </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="p-4 bg-white/[0.02] rounded-[12px] border border-white/5 text-center">
+            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">Live Status</p>
+            <div className="flex items-center justify-center gap-2">
+               <span className="w-2 h-2 bg-[#00E676] rounded-full animate-pulse"></span>
+               <span className="text-[11px] font-bold text-white">System Active</span>
+            </div>
+          </div>
+        </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-navy-card border-t border-white/10 z-50 flex justify-around p-3 pb-safe">
-        {["Home", "EA Bots", "Videos", "Account"].map((item) => (
-          <Link key={item} href="/dashboard" className="flex flex-col items-center text-gray-400 hover:text-white text-xs gap-1">
-            <div className="w-5 h-5 bg-white/10 rounded"></div>
-            <span>{item}</span>
-          </Link>
-        ))}
-      </nav>
+      {/* MOBILE HEADER */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#131929] border-b border-white/5 z-50 flex items-center justify-between px-6">
+        <Link href="/dashboard" className="flex items-center gap-2">
+            <Logo variant="dark" className="w-8 h-8" />
+            <span className="text-xl font-bold text-white font-brand">Coppr</span>
+        </Link>
+        <button className="text-white text-2xl">☰</button>
+      </header>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-0">
-        {/* TOP BAR */}
-        <header className="h-16 bg-navy-card border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-40 mt-16 md:mt-0">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="md:hidden flex items-center gap-1">
-              <Logo variant="dark" className="w-8 h-8 shadow-sm rounded-full" />
-              <span className="text-[1.1rem] font-bold tracking-normal font-brand text-white -translate-y-0.5">Coppr</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-block px-3 py-1 bg-green-electric/20 text-green-electric text-xs font-bold rounded-badge border border-green-electric/50">ACTIVE</span>
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold text-gray-300 ring-2 ring-white/10">JD</div>
-          </div>
-        </header>
-
-        {/* CONTENT AREA */}
-        <div className="p-4 md:p-8 flex-1 overflow-x-hidden">
-          {children}
-        </div>
+      <main className="flex-1 md:ml-64 pt-20 md:pt-0">
+        {children}
       </main>
     </div>
   );
