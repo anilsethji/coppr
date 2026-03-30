@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, full_name } = await request.json();
+    const { email, password, full_name, whatsapp } = await request.json();
     console.log('📝 Attempting registration for:', email);
     
     const supabase = createClient();
@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       options: {
         data: {
           full_name: full_name,
+          whatsapp: whatsapp,
         },
         emailRedirectTo: `${new URL(request.url).origin}/api/auth/callback`,
       },
