@@ -4,10 +4,12 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
+import { createClient } from '@/lib/supabase/client';
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = createClient();
   
   const [fullName, setFullName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -47,6 +49,18 @@ function RegisterForm() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
+      }
+
+      // AUTO-LOGIN: Ensure browser gets the session immediately
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        // If auto-login fails (e.g. email confirmation required), send to login with message
+        router.push('/login?message=Check your email to confirm your account');
+        return;
       }
 
       // After successful registration, redirect to dashboard
