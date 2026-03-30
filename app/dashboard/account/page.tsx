@@ -63,7 +63,7 @@ export default async function AccountPage() {
                     <p className={`text-2xl font-black ${isActive ? 'text-[#00E676]' : 'text-[#F5A623]'}`}>
                        {isActive ? 'PREMIUM ACTIVE' : 'FREE MODE'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">Active since: {new Date(profile?.subscription_end || Date.now()).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-500 mt-2">Active since: {new Date(profile?.subscription_expiry || Date.now()).toLocaleDateString()}</p>
                  </div>
               </div>
               
