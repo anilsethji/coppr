@@ -81,7 +81,7 @@ export default function LoginPage() {
               required 
             />
             <div className="text-right mt-3">
-              <button type="button" className="text-xs text-gold-badge hover:text-white transition-colors">Forgot password? (OTP via WhatsApp)</button>
+              <Link href="/forgot-password" className="text-xs text-gold-badge hover:text-white transition-colors">Forgot password?</Link>
             </div>
           </div>
           
