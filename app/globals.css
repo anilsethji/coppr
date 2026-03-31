@@ -3,32 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --bg-midnight: #0B0F1A;
-  --card-midnight: #131929;
-  --accent-green: #00E676;
-  --accent-blue: #00B0FF;
-  --accent-amber: #F5A623;
-  --accent-purple: #9C6EFA;
+  --foreground-rgb: 255, 255, 255;
 }
 
 body {
-  background-color: var(--bg-midnight);
-  color: white;
+  color: rgb(var(--foreground-rgb));
+  background: radial-gradient(circle at top center, #112854 0%, #0A1A3A 100%);
+  background-attachment: fixed;
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
-}
-
-.card-glow-green:hover { border-color: rgba(0, 230, 118, 0.4); box-shadow: 0 0 20px rgba(0, 230, 118, 0.1); }
-.card-glow-blue:hover { border-color: rgba(0, 176, 255, 0.4); box-shadow: 0 0 20px rgba(0, 176, 255, 0.1); }
-.card-glow-amber:hover { border-color: rgba(245, 166, 35, 0.4); box-shadow: 0 0 20px rgba(245, 166, 35, 0.1); }
-.card-glow-purple:hover { border-color: rgba(156, 110, 250, 0.4); box-shadow: 0 0 20px rgba(156, 110, 250, 0.1); }
-
-.stat-card {
-  @apply bg-[#131929] border-[0.5px] border-white/10 rounded-[12px] p-5 relative overflow-hidden transition-all duration-300;
-}
-
-.bot-card {
-  @apply bg-[#131929] border-[0.5px] border-white/10 rounded-[12px] p-6 transition-all duration-300;
 }
 
 @layer components {

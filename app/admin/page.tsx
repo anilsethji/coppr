@@ -1,218 +1,125 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+export const metadata = { title: 'Admin Console | Coppr' };
 
 export default function AdminPage() {
-  const [items, setItems] = useState<any[]>([]);
-  const [title, setTitle] = useState('');
-  const [type, setType] = useState('bot');
-  const [link, setLink] = useState('');
-  
-  // NEW FIELDS
-  const [winRate, setWinRate] = useState<string>('');
-  const [tradesCount, setTradesCount] = useState<string>('');
-  const [avgGain, setAvgGain] = useState('');
-  const [setupLink, setSetupLink] = useState('');
-  const [statusBadge, setStatusBadge] = useState('');
-  const [protRate, setProtRate] = useState('');
-  const [blockedCount, setBlockedCount] = useState<string>('');
-  const [useWith, setUseWith] = useState('');
-  const [tags, setTags] = useState('');
-
-  const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user?.email === 'anilava.babun@gmail.com') {
-        fetchItems();
-      }
-    };
-    checkAuth();
-  }, []);
-
-  const fetchItems = async () => {
-    const { data } = await supabase.from('content').select('*').order('created_at', { ascending: false });
-    if (data) setItems(data);
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.from('content').insert({
-      title,
-      type,
-      external_link: link,
-      is_premium: true,
-      win_rate: winRate ? parseInt(winRate) : null,
-      trades_count: tradesCount ? parseInt(tradesCount) : null,
-      avg_gain: avgGain,
-      setup_link: setupLink,
-      status_badge: statusBadge,
-      prot_rate: protRate,
-      blocked_count: blockedCount ? parseInt(blockedCount) : null,
-      use_with: useWith,
-      description: tags // Using description field for tags for now
-    });
-
-    if (!error) {
-      setTitle('');
-      setLink('');
-      setWinRate('');
-      setTradesCount('');
-      setAvgGain('');
-      setSetupLink('');
-      setProtRate('');
-      setBlockedCount('');
-      fetchItems();
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    await supabase.from('content').delete().eq('id', id);
-    fetchItems();
-  };
-
-  if (user?.email !== 'anilava.babun@gmail.com') {
-    return <div className="p-20 text-center text-red-500 font-bold">Unauthorized Access Restricted</div>;
-  }
-
   return (
-    <div className="max-w-6xl mx-auto py-20 px-4">
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-bold text-white tracking-tighter">Coppr Admin Console</h1>
-        <div className="text-sm text-gray-400 font-medium">System Operator: <span className="text-[#00E676] font-black underline underline-offset-4 decoration-[#00E676]/30">{user?.email}</span></div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+    <div className="min-h-screen bg-[#0A0F1E] p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* LEFT COLUMN: FORMS */}
-        <div className="lg:col-span-1 space-y-8">
-          
-          {/* ASSET FORM */}
-          <div className="bot-card border-white/5 bg-[#131929]/80 backdrop-blur-md">
-            <h2 className="text-xl font-bold mb-6 text-[#00E676] font-black tracking-tight underline underline-offset-8 decoration-[#00E676]/20">Deploy New Asset</h2>
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                 <div className="col-span-2">
-                    <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Protocol Type</label>
-                    <select 
-                      className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm font-medium"
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                    >
-                      <option value="bot">Algorithmic Bot</option>
-                      <option value="indicator">Market Indicator</option>
-                      <option value="video">Tutorial Module</option>
-                    </select>
-                 </div>
-                 <div className="col-span-2">
-                    <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Asset Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm" 
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      required
-                    />
-                 </div>
-              </div>
-
-              {/* DYNAMIC FIELDS BASED ON TYPE */}
-              {type === 'bot' && (
-                <div className="grid grid-cols-2 gap-3 p-4 bg-white/[0.02] rounded-[12px] border border-white/5">
-                   <div>
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Win Rate %</label>
-                      <input type="number" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white text-xs" value={winRate} onChange={(e) => setWinRate(e.target.value)} />
-                   </div>
-                   <div>
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Trades Logged</label>
-                      <input type="number" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white text-xs" value={tradesCount} onChange={(e) => setTradesCount(e.target.value)} />
-                   </div>
-                   <div>
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Avg Gain %</label>
-                      <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white text-xs" value={avgGain} onChange={(e) => setAvgGain(e.target.value)} />
-                   </div>
-                   <div>
-                      <label className="block text-[9px] font-bold text-gray-500 uppercase mb-1">Badge</label>
-                      <select className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white text-xs" value={statusBadge} onChange={(e) => setStatusBadge(e.target.value)}>
-                         <option value="">None</option>
-                         <option value="NEW">NEW</option>
-                         <option value="POPULAR">POPULAR</option>
-                      </select>
-                   </div>
-                </div>
-              )}
-
-              {/* LINKS */}
-              <div className="space-y-3">
-                 <div>
-                    <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Download Link (.mq5)</label>
-                    <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-xs font-mono" value={link} onChange={(e) => setLink(e.target.value)} />
-                 </div>
-                 <div>
-                    <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Setup Guide URL</label>
-                    <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-xs font-mono" value={setupLink} onChange={(e) => setSetupLink(e.target.value)} />
-                 </div>
-              </div>
-
-              <button type="submit" className="w-full py-3 bg-[#00E676] text-[#0B0F1A] rounded-[6px] text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[#00E676]/10">Broadcast Asset</button>
-            </form>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-navy-card p-6 rounded-card border border-white/10 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Coppr Executive Admin</h1>
+            <p className="text-sm text-gray-400">Founder Dashboard — Welcome, Anil</p>
           </div>
-
-          {/* LIVE UPDATE FORM */}
-          <div className="bot-card border-[#F5A623]/10 bg-[#F5A623]/5 backdrop-blur-md">
-            <h2 className="text-xl font-bold mb-4 text-[#F5A623] font-black tracking-tight underline underline-offset-8 decoration-[#F5A623]/20">Flash News Update</h2>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const target = e.target as HTMLFormElement;
-              const text = (target.elements.namedItem('update') as HTMLTextAreaElement).value;
-              await supabase.from('updates').insert({ content: text });
-              target.reset();
-              window.location.reload(); 
-            }} className="space-y-4">
-              <textarea 
-                name="update"
-                className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm h-24 placeholder-gray-700 italic" 
-                placeholder="What's the signal today?"
-                required
-              />
-              <button type="submit" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-[6px] text-xs font-black uppercase tracking-widest transition-all border border-white/10">Broadcast Signal →</button>
-            </form>
+          <div className="flex gap-4">
+            <button className="px-4 py-2 bg-green-electric text-black font-bold rounded-badge text-sm transition-opacity hover:opacity-90">Post Live Update</button>
+            <button className="px-4 py-2 bg-white/10 text-white font-bold rounded-badge text-sm transition-colors hover:bg-white/20">Export CSV</button>
           </div>
+        </header>
 
+        {/* OVERVIEW STATS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[{t: "Active Subscribers", v: "842", c: "+12 this week"}, {t: "Monthly Revenue", v: "Rs. 16.8L", c: "Stable"}, {t: "Pending Renewals", v: "145", c: "Requires attention"}, {t: "Failed Payments", v: "12", c: "Win-back active"}].map((stat, i) => (
+            <div key={i} className="card p-6 shadow-lg">
+              <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">{stat.t}</p>
+              <p className="text-3xl font-black text-white mb-1">{stat.v}</p>
+              <p className="text-xs text-green-electric font-semibold">{stat.c}</p>
+            </div>
+          ))}
         </div>
 
-        {/* RIGHT COLUMN: LISTINGS */}
-        <div className="lg:col-span-2 space-y-12">
+        {/* MAIN PANELS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div>
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white font-black tracking-tight underline underline-offset-8 decoration-white/10">
-              Active Terminal Assets
-            </h2>
-            <div className="grid grid-cols-1 gap-3">
-              {items.map((item) => (
-                <div key={item.id} className="bot-card p-4 border-white/5 flex items-center justify-between group bg-[#131929] hover:border-[#00E676]/30 transition-all">
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-lg">
-                        {item.type === 'bot' ? '🤖' : item.type === 'indicator' ? '📊' : '🎬'}
-                     </div>
-                     <div>
-                        <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                        <div className="flex gap-2 items-center">
-                           <p className="text-[10px] text-gray-500 uppercase tracking-tighter">{item.type}</p>
-                           {item.win_rate && <span className="text-[9px] text-[#00E676] font-bold tracking-tighter">WR: {item.win_rate}%</span>}
-                        </div>
-                     </div>
-                  </div>
-                  <button onClick={() => handleDelete(item.id)} className="opacity-0 group-hover:opacity-100 p-2 text-red-500/50 hover:text-red-500 transition-all text-sm font-bold">DELETE</button>
-                </div>
-              ))}
-              {items.length === 0 && <p className="text-sm text-gray-600 italic">No assets broadcasted yet...</p>}
+          {/* SUBSCRIBERS */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="card p-6 h-[400px] overflow-y-auto w-full">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-white">Recent Subscribers</h2>
+                <input type="text" placeholder="Search user..." className="bg-[#0A0F1E] border border-white/10 rounded-badge px-3 py-1.5 text-sm outline-none focus:border-green-electric transition-colors" />
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-300 min-w-[500px]">
+                  <thead>
+                    <tr className="border-b border-white/10 text-gray-500">
+                      <th className="pb-3 font-semibold w-1/4">Name</th>
+                      <th className="pb-3 font-semibold w-1/4">WhatsApp</th>
+                      <th className="pb-3 font-semibold">Status</th>
+                      <th className="pb-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {[1,2,3,4,5].map(i => (
+                      <tr key={i} className="hover:bg-white/5 transition-colors">
+                        <td className="py-3">Trader {i}</td>
+                        <td className="py-3">+91 98765 0000{i}</td>
+                        <td className="py-3"><span className="px-2 py-0.5 bg-green-electric/20 text-green-electric text-[10px] uppercase font-bold rounded border border-green-electric/20">Active</span></td>
+                        <td className="py-3 text-right">
+                          <button className="text-xs font-semibold text-gold-badge hover:underline mr-4">Message</button>
+                          <button className="text-xs font-semibold text-red-500 hover:underline">Expire</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* CONTENT MANAGER */}
+            <div className="card p-6">
+              <h2 className="text-xl font-bold text-white mb-6">Content Manager</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button className="p-4 border border-dashed border-white/20 rounded-card text-gray-400 hover:text-white hover:border-white transition-colors text-sm font-semibold h-24 flex flex-col items-center justify-center gap-2 group">
+                  <span className="text-xl group-hover:scale-125 transition-transform">+</span> Upload New EA Bot
+                </button>
+                <button className="p-4 border border-dashed border-white/20 rounded-card text-gray-400 hover:text-white hover:border-white transition-colors text-sm font-semibold h-24 flex flex-col items-center justify-center gap-2 group">
+                  <span className="text-xl group-hover:scale-125 transition-transform">+</span> Upload Video Tutorial
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* SIDE PANELS */}
+          <div className="space-y-8">
+            
+            {/* NOTIFICATIONS & PAYMENTS QUICK ACTIONS */}
+            <div className="card p-6 text-sm">
+              <h2 className="text-lg font-bold text-white mb-4">Quick Actions</h2>
+              <div className="space-y-3">
+                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-green-electric transition-colors group">
+                  <strong className="text-white block group-hover:text-green-electric transition-colors">Send Push Notification</strong>
+                  <span className="text-gray-500 text-xs">Broadcast to all active members</span>
+                </button>
+                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-gold-badge transition-colors group">
+                  <strong className="text-white block group-hover:text-gold-badge transition-colors">Process Refunds</strong>
+                  <span className="text-gray-500 text-xs">2 pending requests</span>
+                </button>
+                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-white/50 transition-colors group">
+                  <strong className="text-white block">API & Gateway Settings</strong>
+                  <span className="text-gray-500 text-xs">Webhook, AiSensy, Price config</span>
+                </button>
+              </div>
+            </div>
+
+            {/* FAILED PAYMENTS */}
+            <div className="card p-6">
+              <h2 className="text-lg font-bold text-red-500 mb-4 flex items-center gap-2">
+                Failed Renewals<span className="px-2 py-0.5 bg-red-500/20 text-[10px] uppercase rounded-badge border border-red-500/20">Win-back</span>
+              </h2>
+              <div className="space-y-4">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                    <div>
+                      <p className="text-white font-medium">User {i}</p>
+                      <p className="text-xs text-gray-500">Day {i*2} Warning Sent</p>
+                    </div>
+                    <button className="px-3 py-1.5 bg-white/5 font-semibold rounded-badge text-xs hover:bg-white/10 transition-colors">Remind</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
     </div>

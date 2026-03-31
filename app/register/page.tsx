@@ -1,77 +1,9 @@
-'use client';
-
-import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
-import { createClient } from '@/lib/supabase/client';
 
-function RegisterForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = createClient();
-  
-  const [fullName, setFullName] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+export const metadata = { title: 'Register | Coppr' };
 
-  // Pre-fill email from URL if guest just paid
-  useEffect(() => {
-    const emailParam = searchParams.get('email');
-    if (emailParam) setEmail(emailParam);
-  }, [searchParams]);
-
-  const isPrepaid = searchParams.get('status') === 'paid';
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName, whatsapp }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      // AUTO-LOGIN: Ensure browser gets the session immediately
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        // If auto-login fails (e.g. email confirmation required), send to login with message
-        router.push('/login?message=Check your email to confirm your account');
-        return;
-      }
-
-      // After successful registration, redirect to dashboard
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function RegisterPage() {
   return (
     <div className="w-full min-h-[80vh] flex flex-col items-center justify-center px-4 py-20">
       <div className="w-full max-w-md card p-8 shadow-2xl relative">
@@ -81,78 +13,27 @@ function RegisterForm() {
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-sm text-gray-400">Join Coppr and access live-tested EA bots.</p>
         </div>
-
-        {isPrepaid && (
-          <div className="bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] text-xs p-4 rounded-card mb-6 text-center font-bold italic">
-             🎉 Payment Successful! <br/>
-             <span className="text-[10px] opacity-80 uppercase tracking-widest mt-1 block">Finish account setup to enter the dashboard.</span>
-          </div>
-        )}
         
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-4 rounded-card mb-6 text-center animate-pulse">
-            {error}
-          </div>
-        )}
-
-        <form className="space-y-4" onSubmit={handleRegister}>
+        <form className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Full Name</label>
-            <input 
-              type="text" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" 
-              placeholder="John Doe" 
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required 
-            />
+            <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" placeholder="John Doe" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">WhatsApp Number <span className="text-green-electric">*</span></label>
-            <input 
-              type="tel" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" 
-              placeholder="+91..." 
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              required 
-            />
+            <input type="tel" className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" placeholder="+91..." required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Email Address</label>
-            <input 
-              type="email" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none placeholder:opacity-20" 
-              placeholder="you@domain.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-              disabled={isPrepaid}
-            />
+            <input type="email" className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" placeholder="you@domain.com" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
-            <input 
-              type="password" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-              autoComplete="new-password"
-            />
+            <input type="password" className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" placeholder="••••••••" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Confirm Password</label>
-            <input 
-              type="password" 
-              className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" 
-              placeholder="••••••••" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required 
-              autoComplete="new-password"
-            />
+            <input type="password" className="w-full bg-[#0A0F1E] border border-white/10 rounded-card px-4 py-3 min-h-[48px] text-white focus:border-green-electric focus:outline-none" placeholder="••••••••" required />
           </div>
           
           <div className="flex items-start pt-2 mb-4">
@@ -162,13 +43,9 @@ function RegisterForm() {
             </label>
           </div>
           
-          <button 
-            type="submit" 
-            disabled={loading}
-            className={`btn-primary w-full shadow-[0_4px_14px_0_rgba(0,230,118,0.2)] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {loading ? 'Creating Account...' : 'Create Account & Continue'}
-          </button>
+          <Link href="/checkout" className="btn-primary w-full shadow-[0_4px_14px_0_rgba(0,230,118,0.2)]">
+            Create Account & Continue
+          </Link>
         </form>
         
         <p className="text-center text-sm text-gray-500 mt-8">
@@ -176,13 +53,5 @@ function RegisterForm() {
         </p>
       </div>
     </div>
-  );
-}
-
-export default function RegisterPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[#00E676] font-black uppercase tracking-widest animate-pulse italic">Initializing Terminal...</div>}>
-      <RegisterForm />
-    </Suspense>
   );
 }
