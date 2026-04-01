@@ -1,0 +1,20 @@
+
+> coppr@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.0
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./lib/payments/razorpay.ts:1:22
+Type error: Cannot find module 'razorpay' or its corresponding type declarations.
+
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33mRazorpay[39m [36mfrom[39m [32m'razorpay'[39m[33m;[39m[0m
+[0m [90m   |[39m                      [31m[1m^[22m[39m[0m
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mexport[39m [36mconst[39m razorpay [33m=[39m [36mnew[39m [33mRazorpay[39m({[0m
+[0m [90m 4 |[39m   key_id[33m:[39m process[33m.[39menv[33m.[39m[33mRAZORPAY_KEY_ID[39m[33m![39m[33m,[39m[0m
