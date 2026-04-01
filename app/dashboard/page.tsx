@@ -176,9 +176,13 @@ export default function DashboardHome() {
               const wrClean = parseInt(meta.winRate.replace('%','')) || 0;
               let wrColor = wrClean < 65 ? "#F5A623" : "#00E676";
               if (meta.winRate.includes('safe') || meta.winRate.includes('protect')) wrColor = "#00B0FF";
+              
+              const hasAccess = profile?.subscription_status === 'active' || !!profile?.is_admin;
+              const isLocked = bot.is_premium && !hasAccess;
+
               return (
                 <div key={bot.id} className={`flex items-start justify-between py-3 ${i !== bots.length - 1 ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                  <div className="flex-1 pr-2">
+                  <div className={`flex-1 pr-2 transition-all ${isLocked ? 'blur-[4px] opacity-40 select-none pointer-events-none' : ''}`}>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[12px] font-bold truncate max-w-[150px] sm:max-w-none">{bot.title}</span>
                       {bot.is_premium && <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-[20px] text-black tracking-widest bg-[#FFD700]">PRO</span>}
@@ -189,13 +193,17 @@ export default function DashboardHome() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end shrink-0 w-[100px] justify-between h-full gap-2 mt-0.5">
-                    <div className="flex items-center gap-2 w-full justify-end">
+                    <div className={`flex items-center gap-2 w-full justify-end ${isLocked ? 'blur-[4px] opacity-40' : ''}`}>
                       <span className="text-[12px] font-bold leading-none" style={{ color: wrColor }}>{meta.winRate}</span>
                       <div className="w-[40px] h-[4px] rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
                         <div className="h-full rounded-full" style={{ width: `${Math.min(wrClean, 100)}%`, backgroundColor: wrColor }}></div>
                       </div>
                     </div>
-                    <Link href={bot.external_link || '#'} className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-[5px] border hover:opacity-80 transition-opacity w-full text-center block" style={{ backgroundColor: 'rgba(255,215,0,0.12)', color: '#FFD700', borderColor: 'rgba(255,215,0,0.3)' }}>Download</Link>
+                    {isLocked ? (
+                      <Link href="/dashboard/marketplace" className="text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-[5px] border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 transition-all w-full text-center block">Unlock Pro</Link>
+                    ) : (
+                      <Link href={bot.external_link || '#'} className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-[5px] border hover:opacity-80 transition-opacity w-full text-center block" style={{ backgroundColor: 'rgba(255,215,0,0.12)', color: '#FFD700', borderColor: 'rgba(255,215,0,0.3)' }}>Download</Link>
+                    )}
                   </div>
                 </div>
               );
