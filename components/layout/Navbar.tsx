@@ -4,13 +4,19 @@ import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const supabase = createClient();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Hide Navbar completely on Dashboard and Admin routes
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {

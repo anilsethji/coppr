@@ -8,6 +8,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['var(--font-inter)', 'sans-serif'],
         brand: ['var(--font-montserrat)', 'sans-serif'],
       },
       colors: {
@@ -21,6 +22,14 @@ const config: Config = {
           burnished: '#B87333',
           badge: '#F5A623',
           light: '#FFF0B3'
+        },
+        brand: {
+          green: '#00E676',
+          purple: '#9C6EFA',
+          orange: '#FF6B35',
+          red: '#FF4757',
+          pine: '#00B0FF',
+          hot: '#F5A623'
         }
       },
       backgroundImage: {

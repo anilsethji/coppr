@@ -1,8 +1,16 @@
+'use client';
+
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
+import { usePathname } from 'next/navigation';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+    return null;
+  }
   return (
     <footer className="w-full bg-white/5 backdrop-blur-md border-t border-white/10 mt-20 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">

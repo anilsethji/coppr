@@ -14,162 +14,262 @@ export default async function DashboardHome() {
   const { data: updatesData } = await supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(5);
 
   const bots = contentData?.filter(c => c.type === 'bot') || [];
+  
+  // Calculate Days Remaining
+  const expiryDate = new Date(profile?.subscription_expiry || Date.now());
+  const now = new Date();
+  const daysDiff = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 3600 * 24)));
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 pb-10 max-w-[1200px] mx-auto text-white font-sans">
       
-      {/* WELCOME CARD */}
-      <div className="card p-8 border-l-4 border-l-green-electric">
-        <h1 className="text-2xl font-bold text-white mb-2">Welcome back, {profile?.full_name || 'Member'}</h1>
-        <p className="text-sm text-gray-400 mb-4">Your subscription is active until <strong className="text-white">{new Date(profile?.subscription_expiry || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}</strong>.</p>
-        <div className="flex gap-4">
-          <Link href="/dashboard/bots" className="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-badge text-sm font-bold transition-colors">Download MT5 Bot</Link>
-          <Link href="/dashboard/tutorials" className="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-badge text-sm font-bold transition-colors">Watch Setup Guide</Link>
+      {/* =========================================
+          WELCOME SECTION
+      ========================================= */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 rounded-[14px] relative overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+        {/* Subtle glow background */}
+        <div className="absolute top-0 right-1/4 w-[300px] h-[300px] rounded-full filter blur-[100px] opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFD700 0%, transparent 70%)' }}></div>
+
+        {/* LEFT SIDE */}
+        <div className="flex-1 z-10 relative">
+          <h1 className="text-[20px] font-bold tracking-tight mb-1">Welcome back, {profile?.full_name?.split(' ')[0] || 'Member'} 👋</h1>
+          <p className="text-[13px] mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Pro Kit — active until <span className="font-bold text-[#FFD700]">{expiryDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric'})}</span>
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/dashboard/bots" className="px-5 py-2.5 rounded-[8px] text-[12px] font-bold text-[#080C14] text-center transition-transform hover:-translate-y-[2px] shadow-[0_4px_15px_rgba(255,215,0,0.15)]" style={{ background: 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)' }}>
+              Download Latest Bot
+            </Link>
+            <Link href="/dashboard/tutorials" className="px-5 py-2.5 rounded-[8px] text-[12px] font-medium text-center transition-transform hover:-translate-y-[2px]" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+              Watch Setup Guide
+            </Link>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE (Days Badge) */}
+        <div className="shrink-0 z-10 relative rounded-[14px] px-[20px] py-[14px] flex flex-col items-center justify-center min-w-[140px] shadow-[0_10px_30px_rgba(255,215,0,0.05)] border" style={{ background: 'linear-gradient(180deg, rgba(255,215,0,0.08) 0%, rgba(255,215,0,0.01) 100%)', borderColor: 'rgba(255,215,0,0.3)' }}>
+           <span className="text-[34px] font-bold leading-none text-[#FFD700] drop-shadow-[0_2px_10px_rgba(255,215,0,0.3)]">{daysDiff}</span>
+           <span className="text-[10px] uppercase font-bold tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>days remaining</span>
         </div>
       </div>
 
-      {/* STATS ROW (HIGH FIDELITY) */}
+      {/* =========================================
+          STAT BOXES (4-Card Row)
+      ========================================= */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
-            t: "Active Bots", v: "4", badge: "+1 this month", icon: "🤖", color: "#00E676", 
-            sub: "Latest", subWhite: "RegressionX v2.1", progress: 100,
-            footerArrow: "↑", footerText: "New bot added Mar 2026", link: "/dashboard/bots"
+            t: "Active Bots", v: bots.length > 0 ? bots.length.toString() : "4", badge: "+1 this month", icon: "🤖", color: "#00E676", 
+            subLeft: "Latest: ", subRight: bots[0]?.title || "RegressionX v2.1", type: 'sparkline', footerLeft: "↑", footerRight: "New bot added this month"
           },
           { 
             t: "Indicators", v: "7", badge: "+2 new", icon: "📊", color: "#00B0FF", 
-            sub: "Latest", subWhite: "Gold Trend Filter", progress: 70,
-            footerArrow: "↑", footerText: "2 added this month", link: "/dashboard/indicators" 
+            subLeft: "Latest: ", subRight: "Gold Trend Filter", type: 'heatmap', footerLeft: "↑", footerRight: "2 added this month" 
           },
           { 
             t: "Video Tutorials", v: "18", badge: "3 unwatched", icon: "🎬", color: "#F5A623", 
-            sub: "Progress", subWhite: "15 of 18 watched", progress: 83,
-            footerArrow: "", footerText: "83% complete — 3 left to watch", link: "/dashboard/tutorials" 
+            subLeft: "Progress: ", subRight: "15 of 18 watched", type: 'gauge', progress: 83, footerLeft: "📋", footerRight: "83% complete — 3 left" 
           },
           { 
-            t: "Live Trade Logs", v: "152", badge: "Today +3.2%", icon: "📈", color: "#9C6EFA", 
-            sub: "Win rate", subWhite: "71% across all bots", progress: 71, colorOverrideV: "#fff",
-            badgeColor: "#00E676", footerArrow: "↑", footerText: "Last trade: +3.2% gain today", link: "/dashboard/updates" 
+            t: "Live Trade Logs", v: "152", badge: "Today +3.2%", badgeColor: "#00E676", icon: "📈", color: "#9C6EFA", 
+            subLeft: "Win rate: ", subRight: "71% across all bots", type: 'scatter', footerLeft: "↑", footerRight: "Last trade: +3.2% gain today" 
           }
         ].map((stat, i) => {
-          const mainColor = stat.colorOverrideV || stat.color;
-          const bgRgbaIcon = `${stat.color}1A`;
-          const bgRgbaBadge = stat.badgeColor ? `${stat.badgeColor}1A` : bgRgbaIcon;
-          const textBadge = stat.badgeColor || stat.color;
-
           return (
-            <Link href={stat.link} key={i} className="bg-[#131929] border-[0.5px] border-white/10 rounded-xl p-4 cursor-pointer transition-all hover:border-white/20 hover:bg-[#161E30] relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: stat.color }}></div>
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px]" style={{ backgroundColor: bgRgbaIcon }}>{stat.icon}</div>
-                <div className="text-[9px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: bgRgbaBadge, color: textBadge }}>{stat.badge}</div>
-              </div>
-              <div className="text-[10px] text-white/40 uppercase tracking-[0.06em] mb-1">{stat.t}</div>
-              <div className="text-[26px] font-bold leading-none mb-1.5" style={{ color: mainColor }}>{stat.v}</div>
-              <div className="text-[10px] text-white/30 leading-snug">{stat.sub}: <span className="font-semibold text-white">{stat.subWhite}</span></div>
-              <div className="h-[3px] bg-white/10 rounded-sm mt-3 overflow-hidden">
-                <div className="h-full rounded-sm transition-all duration-1000" style={{ width: `${stat.progress}%`, backgroundColor: stat.color }}></div>
-              </div>
-              <div className="text-[10px] mt-2 flex items-center gap-1">
-                {stat.footerArrow && <span style={{ color: textBadge }}>{stat.footerArrow}</span>}
-                <span className="text-white/40">{stat.footerText}</span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* COMPREHENSIVE BOT LIBRARY SECTION */}
-      <div className="mt-2">
-        <h2 className="text-xs font-semibold text-white/60 mb-3 flex items-center justify-between">
-          Bot library — {bots.length} bots available <Link href="/dashboard/bots" className="text-[10px] text-[#00E676] cursor-pointer hover:underline">View all →</Link>
-        </h2>
-
-        {bots.map((bot) => {
-          let meta = { desc: bot.description, winRate: 'N/A', trades: '0', avgGain: 'N/A' };
-          try {
-             const parsed = JSON.parse(bot.description);
-             if (parsed.winRate) meta = { ...meta, ...parsed };
-          } catch (e) {}
-          
-          const numericWinRate = parseInt(meta.winRate.replace('%','')) || 0;
-
-          return (
-            <Link href={bot.external_link || "/dashboard/bots"} key={bot.id} className="block p-3.5 rounded-[10px] bg-white/[0.04] border-[0.5px] border-white/5 mb-2 cursor-pointer transition-colors hover:border-[#00E676]/30 group">
-              <div className="flex items-start justify-between gap-2.5 mb-2.5">
-                <div>
-                  <div className="text-[13px] font-semibold text-white mb-1.5 flex items-center gap-1.5 flex-wrap">
-                    {bot.title}
-                    {bot.is_premium && <span className="bg-[#F5A623]/15 text-[#F5A623] border-[0.5px] border-[#F5A623]/30 text-[9px] px-1.5 py-0.5 rounded font-bold">PREMIUM</span>}
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap">
-                    <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00B0FF]/10 text-[#00B0FF] border-[0.5px] border-[#00B0FF]/20">Auto AI</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00E676]/10 text-[#00E676] border-[0.5px] border-[#00E676]/15">Optimized</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-white/5 text-white/40 border-[0.5px] border-white/10">{new Date(bot.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric'})}</span>
-                  </div>
-                </div>
-                <button className="bg-[#00E676] text-black text-[10px] font-bold px-3 py-1.5 rounded-md shrink-0 transition-opacity hover:opacity-90">Download .mq5</button>
-              </div>
+            <div key={i} className="rounded-[14px] p-[16px] relative overflow-hidden transition-all duration-300 group hover:-translate-y-[3px] border border-transparent hover:border-white/10" style={{ background: `linear-gradient(135deg, ${stat.color}14 0%, ${stat.color}05 100%)` }}>
               
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
-                  <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Win rate</div>
-                  <div className="text-[13px] font-bold text-[#00E676]">{meta.winRate}</div>
+              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.02] transition-colors duration-300" />
+
+              {/* Glow Blob */}
+              <div className="absolute -top-4 -right-4 w-[80px] h-[80px] rounded-full blur-[30px] pointer-events-none transition-opacity duration-300 opacity-20 group-hover:opacity-40" style={{ backgroundColor: stat.color }}></div>
+
+              {/* Flex Header */}
+              <div className="flex items-center justify-between mb-4 z-10 relative">
+                <div className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center text-[15px]" style={{ backgroundColor: `${stat.color}26`, color: stat.color }}>
+                  {stat.icon}
                 </div>
-                <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
-                  <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Trades logged</div>
-                  <div className="text-[13px] font-bold text-white">{meta.trades}</div>
-                </div>
-                <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
-                  <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Avg gain</div>
-                  <div className="text-[13px] font-bold text-[#00E676]">{meta.avgGain}</div>
+                <div className="px-2 py-0.5 rounded-[20px] text-[9px] font-bold uppercase tracking-wide border transition-colors duration-300" style={{ backgroundColor: `${stat.badgeColor || stat.color}1A`, color: stat.badgeColor || stat.color, borderColor: `${stat.badgeColor || stat.color}33` }}>
+                  {stat.badge}
                 </div>
               </div>
 
-              <div className="mt-1">
-                <div className="flex justify-between mb-1 text-[10px]">
-                  <span className="text-white/40">Live win rate — {meta.trades} recorded trades</span>
-                  <span className="font-semibold text-[#00E676]">{meta.winRate}</span>
-                </div>
-                <div className="h-[5px] bg-white/10 rounded-sm overflow-hidden">
-                  <div className="h-full rounded-sm bg-[#00E676] transition-all duration-1000" style={{ width: `${numericWinRate}%` }}></div>
-                </div>
+              {/* Data Block */}
+              <div className="z-10 relative">
+                <div className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{stat.t}</div>
+                <div className="text-[26px] font-extrabold leading-none mb-1.5" style={{ color: stat.color }}>{stat.v}</div>
+                <div className="text-[10px] leading-tight truncate w-full" style={{ color: 'rgba(255,255,255,0.25)' }}>{stat.subLeft}<span className="text-white opacity-80">{stat.subRight}</span></div>
               </div>
-              <div className="text-[10px] text-white/30 group-hover:text-[#00E676] transition-colors mt-2.5 inline-block">Setup guide →</div>
-            </Link>
-          );
-        })}
 
-        {bots.length === 0 && (
-           <div className="py-8 text-center text-white/30 text-xs italic border border-dashed border-white/10 rounded-xl">No bots have been deployed yet.</div>
-        )}
-
-        <div className="text-[10px] text-white/30 mt-3 text-center">
-          All stats from live recorded trades — not backtests. Updated as new trades are logged.
-        </div>
-      </div>
-
-      {/* WHAT'S NEW FEED */}
-      <h2 className="text-xl font-bold mt-8 mb-4">Live Updates Feed</h2>
-      <div className="card divide-y divide-white/5">
-        {updatesData?.map((up: any) => {
-          const hoursAgo = Math.max(1, Math.floor((Date.now() - new Date(up.created_at).getTime()) / 3600000));
-          return (
-            <div key={up.id} className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="w-2 h-2 rounded-full bg-green-electric animate-pulse"></span>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">System Log • {hoursAgo} hr ago</p>
+              {/* Visual Component Area */}
+              <div className="mt-4 mb-2 h-[45px] relative z-10">
+                {stat.type === 'sparkline' && (
+                  <svg className="w-full h-full opacity-80" viewBox="0 0 200 45" preserveAspectRatio="none">
+                    <path 
+                      className="fill-none stroke-[1.5] animate-draw" 
+                      style={{ stroke: stat.color, strokeDasharray: 200, strokeDashoffset: 200 }}
+                      d="M0 40 L20 35 L40 38 L60 25 L80 28 L100 15 L120 18 L140 8 L160 12 L180 3 L200 5" 
+                    />
+                  </svg>
+                )}
+                {stat.type === 'heatmap' && (
+                  <div className="grid grid-cols-7 gap-1 h-full w-full opacity-60">
+                    {Array.from({ length: 14 }).map((_, idx) => (
+                      <div key={idx} className="h-2.5 rounded-sm" style={{ 
+                        backgroundColor: [1, 4, 8, 11].includes(idx) ? 'rgba(255,71,87,0.4)' : stat.color 
+                      }} />
+                    ))}
+                  </div>
+                )}
+                {stat.type === 'gauge' && (
+                  <div className="flex flex-col items-center justify-center h-full -mt-2">
+                    <svg width="80" height="40" viewBox="0 0 80 40">
+                      <path d="M10 35 A30 30 0 0 1 70 35" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" strokeLinecap="round" />
+                      <path d="M10 35 A30 30 0 0 1 70 35" fill="none" className="animate-draw" style={{ stroke: stat.color, strokeDasharray: 95, strokeDashoffset: 95 * (1 - (stat.progress || 0) / 100) }} strokeWidth="5" strokeLinecap="round" />
+                    </svg>
+                    <div className="text-[10px] font-bold" style={{ color: stat.color }}>{stat.progress}%</div>
+                  </div>
+                )}
+                {stat.type === 'scatter' && (
+                  <svg className="w-full h-full opacity-70" viewBox="0 0 200 45">
+                    {[
+                      { x: 20, y: 15, r: 3, c: '#00E676' },
+                      { x: 50, y: 35, r: 2, c: '#FF4757' },
+                      { x: 80, y: 10, r: 4, c: '#00E676' },
+                      { x: 110, y: 25, r: 3, c: '#00E676' },
+                      { x: 140, y: 5, r: 2, c: '#00E676' },
+                      { x: 170, y: 30, r: 3, c: '#FF4757' },
+                      { x: 190, y: 12, r: 4, c: '#00E676' }
+                    ].map((d, idx) => (
+                      <circle key={idx} cx={d.x} cy={d.y} r={d.r} fill={d.c} />
+                    ))}
+                  </svg>
+                )}
               </div>
-              <p className="text-sm text-gray-300 leading-relaxed font-mono whitespace-pre-wrap">{up.content}</p>
+
+              {/* Card Footer */}
+              <div className="text-[10px] flex gap-1 z-10 relative" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                <span className="font-black" style={{ color: stat.badgeColor || stat.color }}>{stat.footerLeft}</span> 
+                {stat.footerRight}
+              </div>
             </div>
           );
         })}
-        {(!updatesData || updatesData.length === 0) && (
-           <div className="p-8 text-center text-gray-600 italic border-t border-white/5">No updates broadcasted recently.</div>
-        )}
-        <div className="p-4 text-center border-t border-white/5">
-            <Link href="/dashboard" className="text-[10px] text-green-electric font-black uppercase tracking-widest hover:underline">View all secure logs</Link>
+      </div>
+
+      {/* =========================================
+          TWO COLUMN ROW (Bot Library & Feed)
+      ========================================= */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        
+        {/* LEFT COLUMN: BOT LIBRARY (55%) */}
+        <div className="w-full lg:w-[55%] rounded-[14px] p-4 flex flex-col relative" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>Bot Library</h3>
+            <Link href="/dashboard/bots" className="text-[11px] font-bold transition-opacity hover:opacity-70" style={{ color: '#FFD700' }}>View all →</Link>
+          </div>
+
+          <div className="space-y-0">
+            {bots.length > 0 ? bots.map((bot, i) => {
+              // Parse backend JSON attributes
+              let meta = { winRate: '60%', lot: 'Any lot', pair: 'XAU/USD' };
+              try { const parsed = JSON.parse(bot.description); if (parsed.winRate) meta = { ...meta, ...parsed }; } catch (e) {}
+              
+              const wrClean = parseInt(meta.winRate.replace('%','')) || 0;
+              let wrColor = "#00E676";
+              if (wrClean < 65) wrColor = "#F5A623";
+              if (meta.winRate.includes('safe') || meta.winRate.includes('protect')) wrColor = "#00B0FF"; // blue rule for protection
+
+              return (
+                <div key={bot.id} className={`flex items-start justify-between py-3 ${i !== bots.length - 1 ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                  {/* Bot Details Left */}
+                  <div className="flex-1 pr-2">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[12px] font-bold truncate max-w-[150px] sm:max-w-none">{bot.title}</span>
+                      {bot.is_premium && <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-[20px] text-black tracking-widest bg-[#FFD700]">PRO</span>}
+                      {i === 0 && <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-[20px] text-black tracking-widest bg-[#FF4D4D]">NEW</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00B0FF', backgroundColor: 'rgba(0,176,255,0.1)', borderColor: 'rgba(0,176,255,0.2)' }}>{meta.pair || 'XAU/USD'}</span>
+                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00E676', backgroundColor: 'rgba(0,230,118,0.1)', borderColor: 'rgba(0,230,118,0.2)' }}>{meta.lot || 'Lot 0.01-0.20'}</span>
+                    </div>
+                  </div>
+
+                  {/* Download / Stats Right */}
+                  <div className="flex flex-col items-end shrink-0 w-[100px] justify-between h-full gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 w-full justify-end">
+                      <span className="text-[12px] font-bold leading-none" style={{ color: wrColor }}>{meta.winRate}</span>
+                      <div className="w-[40px] h-[4px] rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(wrClean, 100)}%`, backgroundColor: wrColor }}></div>
+                      </div>
+                    </div>
+                    <Link href={bot.external_link || '#'} className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-[5px] border hover:opacity-80 transition-opacity w-full text-center block" style={{ backgroundColor: 'rgba(255,215,0,0.12)', color: '#FFD700', borderColor: 'rgba(255,215,0,0.3)' }}>
+                      Download
+                    </Link>
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="p-4 text-[11px] text-center italic" style={{ color: 'rgba(255,255,255,0.3)' }}>No algorithms currently indexed.</div>
+            )}
+          </div>
         </div>
+
+        {/* RIGHT COLUMN: LIVE FEED (45%) */}
+        <div className="w-full lg:w-[45%] rounded-[14px] p-4 flex flex-col relative h-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>Live Updates</h3>
+            <span className="text-[10px] font-bold text-red-500">3 new</span>
+          </div>
+
+          <div className="space-y-0 flex-1">
+            {updatesData && updatesData.length > 0 ? updatesData.map((feed: any, i: number) => {
+              const hoursAgo = Math.max(1, Math.floor((Date.now() - new Date(feed.created_at).getTime()) / 3600000));
+              let dotColor = "#FFD700"; // default Announcement
+              let badgeType = "System";
+              let msg = feed.content.toLowerCase();
+              if (msg.includes('profit') || msg.includes('trade')) { dotColor = "#00E676"; badgeType = "Live Trade"; }
+              if (msg.includes('bot') || msg.includes('regression')) { dotColor = "#00B0FF"; badgeType = "New Bot"; }
+
+              return (
+                <div key={feed.id} className={`py-3 ${i !== (updatesData.length - 1) ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                  {/* Header Row */}
+                  <div className="flex items-center gap-2 mb-1.5 text-[10px]">
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse shadow-sm" style={{ backgroundColor: dotColor, boxShadow: `0 0 6px ${dotColor}` }}></span>
+                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>Admin · {hoursAgo} hr ago</span>
+                    <span className="px-1.5 rounded-[4px] border font-semibold ml-auto" style={{ color: dotColor, backgroundColor: `${dotColor}10`, borderColor: `${dotColor}30` }}>{badgeType}</span>
+                  </div>
+                  {/* Msg text */}
+                  <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{feed.content}</p>
+                </div>
+              );
+            }) : (
+              <div className="p-4 text-[11px] text-center italic" style={{ color: 'rgba(255,255,255,0.3)' }}>No active broadcast signals.</div>
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* =========================================
+          QUICK ACCESS GRID
+      ========================================= */}
+      <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase px-1 mt-6" style={{ color: 'rgba(255,255,255,0.25)' }}>Quick Actions</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+        {[
+          { icon: "🤖", title: "EA Bots", sub: "4 bots · 1 new this month", href: "/dashboard/bots" },
+          { icon: "📊", title: "Indicators", sub: "7 indicators · 2 new", href: "/dashboard/indicators" },
+          { icon: "🎬", title: "Video Tutorials", sub: "18 videos · 3 unwatched", href: "/dashboard/tutorials" },
+          { icon: "📋", title: "Setup Guides", sub: "MT5 install · Lot size · Brokers", href: "/dashboard/guides" }
+        ].map((card, i) => (
+          <Link key={i} href={card.href} className="flex flex-col p-4 rounded-[14px] transition-all duration-200 group hover:-translate-y-[2px] hover:border-white/15 hover:bg-white/5" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+            <span className="text-[28px] mb-3 group-hover:scale-110 transition-transform origin-left">{card.icon}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-bold text-white tracking-wide">{card.title}</span>
+              <span className="text-[12px] opacity-40 group-hover:opacity-100 transition-opacity">→</span>
+            </div>
+            <span className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{card.sub}</span>
+          </Link>
+        ))}
       </div>
 
     </div>
