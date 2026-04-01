@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
 
   // 2. PROTECT ADMIN
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user || user.email !== 'anilava.babun@gmail.com') { 
+    if (!user || (user.email !== 'anilava.babun@gmail.com' && user.email !== 'anilavababun@gmail.com')) { 
        return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
