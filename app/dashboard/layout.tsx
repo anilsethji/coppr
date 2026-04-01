@@ -3,7 +3,7 @@ import { Logo } from '@/components/ui/Logo';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0A0F1E] flex flex-col md:flex-row pt-16 mt-[-64px]">
+    <div className="min-h-screen bg-[#0A0F1E] flex flex-col md:flex-row pt-20 mt-[-80px]">
       
       {/* SIDEBAR (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 bg-navy-card border-r border-white/10 h-screen sticky top-0">
@@ -14,9 +14,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {["Home", "EA Bots", "Indicators", "Video Tutorials", "Live Updates", "Setup Guides", "Support", "My Account"].map((item) => (
-            <Link key={item} href="/dashboard" className="block px-4 py-3 rounded-card text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-medium">
-              {item}
+          {[
+            { name: "Home", href: "/dashboard" },
+            { name: "EA Bots", href: "/dashboard/bots" },
+            { name: "Indicators", href: "/dashboard/indicators" },
+            { name: "Video Tutorials", href: "/dashboard/tutorials" },
+            { name: "Live Updates", href: "/dashboard/updates" },
+            { name: "Setup Guides", href: "/dashboard/guides" },
+            { name: "Support", href: "/dashboard/support" },
+            { name: "My Account", href: "/dashboard/account" }
+          ].map((item) => (
+            <Link key={item.name} href={item.href} className="block px-4 py-3 rounded-card text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm font-medium">
+              {item.name}
             </Link>
           ))}
         </nav>
@@ -24,10 +33,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-navy-card border-t border-white/10 z-50 flex justify-around p-3 pb-safe">
-        {["Home", "EA Bots", "Videos", "Account"].map((item) => (
-          <Link key={item} href="/dashboard" className="flex flex-col items-center text-gray-400 hover:text-white text-xs gap-1">
-            <div className="w-5 h-5 bg-white/10 rounded"></div>
-            <span>{item}</span>
+        {[
+          { name: "Home", href: "/dashboard", icon: "🏠" },
+          { name: "EA Bots", href: "/dashboard/bots", icon: "🤖" },
+          { name: "Videos", href: "/dashboard/tutorials", icon: "🎬" },
+          { name: "Account", href: "/dashboard/account", icon: "👤" }
+        ].map((item) => (
+          <Link key={item.name} href={item.href} className="flex flex-col items-center text-gray-400 hover:text-white text-[10px] gap-1 px-3 py-1">
+            <span className="text-xl mb-0.5">{item.icon}</span>
+            <span className="font-bold opacity-80">{item.name}</span>
           </Link>
         ))}
       </nav>
@@ -35,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-0">
         {/* TOP BAR */}
-        <header className="h-16 bg-navy-card border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-40 mt-16 md:mt-0">
+        <header className="h-16 bg-navy-card border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-40 mt-20 md:mt-0 shadow-md">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="md:hidden flex items-center gap-1">
               <Logo variant="dark" className="w-8 h-8 shadow-sm rounded-full" />
