@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
+import { createClient } from '@/lib/supabase/server';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAdmin = user?.email === 'anilavababun@gmail.com' || user?.email === 'anilava.babun@gmail.com';
   return (
     <div className="min-h-screen bg-[#0A0F1E] flex flex-col md:flex-row pt-20 mt-[-80px]">
       
@@ -28,6 +32,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {item.name}
             </Link>
           ))}
+          
+          {isAdmin && (
+            <div className="pt-4 mt-4 border-t border-white/10">
+              <Link href="/admin" className="block px-4 py-3 rounded-card text-gold-badge bg-gold-badge/10 hover:bg-gold-badge/20 transition-colors text-sm font-black uppercase tracking-widest shrink-0 shadow-[0_0_15px_rgba(255,215,0,0.1)]">
+                Admin Console
+              </Link>
+            </div>
+          )}
         </nav>
       </aside>
 
