@@ -23,75 +23,154 @@ export default async function DashboardHome() {
         </div>
       </div>
 
-      {/* STATS ROW */}
+      {/* STATS ROW (HIGH FIDELITY) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
             t: "Active Bots", v: "4", badge: "+1 this month", icon: "🤖", color: "#00E676", 
-            sub: "Latest: RegressionX v2.1", footer: "New bot added Mar 2026", progress: 100, link: "/dashboard/bots"
+            sub: "Latest", subWhite: "RegressionX v2.1", progress: 100,
+            footerArrow: "↑", footerText: "New bot added Mar 2026", link: "/dashboard/bots"
           },
           { 
-            t: "Indicators", v: "8", badge: "+2 new", icon: "📊", color: "#00B0FF", 
-            sub: "Latest: Gold Trend Filter", footer: "2 added this month", progress: 70, link: "/dashboard/indicators" 
+            t: "Indicators", v: "7", badge: "+2 new", icon: "📊", color: "#00B0FF", 
+            sub: "Latest", subWhite: "Gold Trend Filter", progress: 70,
+            footerArrow: "↑", footerText: "2 added this month", link: "/dashboard/indicators" 
           },
           { 
-            t: "Video Tutorials", v: "15 / 18", badge: "3 unwatched", icon: "🎬", color: "#F5A623", 
-            sub: "15 of 18 watched", footer: "83% complete — 3 left", progress: 83, link: "/dashboard/tutorials" 
+            t: "Video Tutorials", v: "18", badge: "3 unwatched", icon: "🎬", color: "#F5A623", 
+            sub: "Progress", subWhite: "15 of 18 watched", progress: 83,
+            footerArrow: "", footerText: "83% complete — 3 left to watch", link: "/dashboard/tutorials" 
           },
           { 
             t: "Live Trade Logs", v: "152", badge: "Today +3.2%", icon: "📈", color: "#9C6EFA", 
-            sub: "Win rate: 71% overall", footer: "Last trade: +3.2% gain", progress: 71, link: "/dashboard/updates" 
+            sub: "Win rate", subWhite: "71% across all bots", progress: 71, colorOverrideV: "#fff",
+            badgeColor: "#00E676", footerArrow: "↑", footerText: "Last trade: +3.2% gain today", link: "/dashboard/updates" 
           }
-        ].map((stat, i) => (
-          <Link href={stat.link} key={i} className={`card p-4 relative overflow-hidden group cursor-pointer hover:bg-white/[0.04] transition-all hover:shadow-[0_0_20px_${stat.color}40]`}>
-            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: stat.color }}></div>
-            
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner" style={{ backgroundColor: `${stat.color}15`, border: `1px solid ${stat.color}30` }}>
-                {stat.icon}
+        ].map((stat, i) => {
+          const mainColor = stat.colorOverrideV || stat.color;
+          const bgRgbaIcon = `${stat.color}1A`;
+          const bgRgbaBadge = stat.badgeColor ? `${stat.badgeColor}1A` : bgRgbaIcon;
+          const textBadge = stat.badgeColor || stat.color;
+
+          return (
+            <Link href={stat.link} key={i} className="bg-[#131929] border-[0.5px] border-white/10 rounded-xl p-4 cursor-pointer transition-all hover:border-white/20 hover:bg-[#161E30] relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: stat.color }}></div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[13px]" style={{ backgroundColor: bgRgbaIcon }}>{stat.icon}</div>
+                <div className="text-[9px] px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: bgRgbaBadge, color: textBadge }}>{stat.badge}</div>
               </div>
-              <div className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: i === 3 ? 'rgba(0,230,118,0.1)' : `${stat.color}15`, color: i === 3 ? '#00E676' : stat.color }}>
-                {stat.badge}
+              <div className="text-[10px] text-white/40 uppercase tracking-[0.06em] mb-1">{stat.t}</div>
+              <div className="text-[26px] font-bold leading-none mb-1.5" style={{ color: mainColor }}>{stat.v}</div>
+              <div className="text-[10px] text-white/30 leading-snug">{stat.sub}: <span className="font-semibold text-white">{stat.subWhite}</span></div>
+              <div className="h-[3px] bg-white/10 rounded-sm mt-3 overflow-hidden">
+                <div className="h-full rounded-sm transition-all duration-1000" style={{ width: `${stat.progress}%`, backgroundColor: stat.color }}></div>
               </div>
-            </div>
-
-            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">{stat.t}</p>
-            <p className="text-2xl font-bold text-white mb-1" style={{ color: i === 3 ? '#fff' : stat.color }}>{stat.v}</p>
-            <p className="text-[10px] text-gray-400">
-              {stat.sub.split(':')[0]}: <span className="text-white font-medium">{stat.sub.split(':')[1] || stat.sub}</span>
-            </p>
-
-            <div className="h-1 w-full bg-white/5 rounded-full mt-3 overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${stat.progress}%`, backgroundColor: stat.color }}></div>
-            </div>
-
-            <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1 group-hover:text-white transition-colors">
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: stat.color }}>→</span>
-              {stat.footer}
-            </p>
-          </Link>
-        ))}
+              <div className="text-[10px] mt-2 flex items-center gap-1">
+                {stat.footerArrow && <span style={{ color: textBadge }}>{stat.footerArrow}</span>}
+                <span className="text-white/40">{stat.footerText}</span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* QUICK ACCESS CARDS */}
-      <h2 className="text-xl font-bold mt-8 mb-4">Quick Access</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link href="/dashboard/bots" className="card p-6 border border-white/5 hover:border-[#F5A623]/50 transition-all group cursor-pointer bg-[#F5A623]/5 hover:bg-[#F5A623]/10 hover:shadow-[0_0_30px_rgba(245,166,35,0.15)] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#F5A623]/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
-          <h3 className="text-lg font-bold text-gold-badge mb-2 flex items-center gap-2 relative z-10">
-            <span>RegressionX Bot v2.1</span>
-            <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-[10px] uppercase font-black rounded-badge">NEW</span>
-          </h3>
-          <p className="text-sm text-gray-400 mb-4 relative z-10">Optimized for XAU/USD. Updated lot sizing logic for high volatility news events.</p>
-          <span className="text-sm font-black text-white group-hover:text-gold-badge transition-colors relative z-10 flex items-center gap-1">Download .mq5 <span className="group-hover:translate-x-1 transition-transform">→</span></span>
+      {/* COMPREHENSIVE BOT LIBRARY SECTION */}
+      <div className="mt-2">
+        <h2 className="text-xs font-semibold text-white/60 mb-3 flex items-center justify-between">
+          Bot library — 4 bots available <Link href="/dashboard/bots" className="text-[10px] text-[#00E676] cursor-pointer hover:underline">View all →</Link>
+        </h2>
+
+        {/* BOT ITEM 1 */}
+        <Link href="/dashboard/bots" className="block p-3.5 rounded-[10px] bg-white/[0.04] border-[0.5px] border-white/5 mb-2 cursor-pointer transition-colors hover:border-[#00E676]/30 group">
+          <div className="flex items-start justify-between gap-2.5 mb-2.5">
+            <div>
+              <div className="text-[13px] font-semibold text-white mb-1.5 flex items-center gap-1.5 flex-wrap">
+                RegressionX Bot 
+                <span className="bg-red-500/15 text-red-500 border-[0.5px] border-red-500/30 text-[9px] px-1.5 py-0.5 rounded font-bold">NEW v2.1</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00B0FF]/10 text-[#00B0FF] border-[0.5px] border-[#00B0FF]/20">XAU/USD</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00E676]/10 text-[#00E676] border-[0.5px] border-[#00E676]/15">Lot 0.01–0.20</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-white/5 text-white/40 border-[0.5px] border-white/10">Mar 2026</span>
+              </div>
+            </div>
+            <button className="bg-[#00E676] text-black text-[10px] font-bold px-3 py-1.5 rounded-md shrink-0 transition-opacity hover:opacity-90">Download .mq5</button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Win rate</div>
+              <div className="text-[13px] font-bold text-[#00E676]">73%</div>
+            </div>
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Trades logged</div>
+              <div className="text-[13px] font-bold text-white">41</div>
+            </div>
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Avg gain</div>
+              <div className="text-[13px] font-bold text-[#00E676]">+2.1%</div>
+            </div>
+          </div>
+
+          <div className="mt-1">
+            <div className="flex justify-between mb-1 text-[10px]">
+              <span className="text-white/40">Live win rate — 41 recorded trades</span>
+              <span className="font-semibold text-[#00E676]">73%</span>
+            </div>
+            <div className="h-[5px] bg-white/10 rounded-sm overflow-hidden">
+              <div className="h-full rounded-sm bg-[#00E676]" style={{ width: '73%' }}></div>
+            </div>
+          </div>
+          <div className="text-[10px] text-white/30 group-hover:text-[#00E676] transition-colors mt-2.5 inline-block">Setup guide →</div>
         </Link>
-        
-        <Link href="/dashboard/tutorials" className="card p-6 border border-white/5 hover:border-[#00B0FF]/50 transition-all group cursor-pointer bg-[#00B0FF]/5 hover:bg-[#00B0FF]/10 hover:shadow-[0_0_30px_rgba(0,176,255,0.15)] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#00B0FF]/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
-          <h3 className="text-lg font-bold text-white mb-2 relative z-10">Setup Guide: $250 Account</h3>
-          <p className="text-sm text-gray-400 mb-4 relative z-10">Step-by-step video on configuring your lots and risk management for a RM/Reward mid-tier account.</p>
-          <span className="text-sm font-black text-white group-hover:text-[#00B0FF] transition-colors relative z-10 flex items-center gap-1">Watch Now <span className="group-hover:translate-x-1 transition-transform">→</span></span>
+
+        {/* BOT ITEM 2 */}
+        <Link href="/dashboard/bots" className="block p-3.5 rounded-[10px] bg-white/[0.04] border-[0.5px] border-white/5 mb-2 cursor-pointer transition-colors hover:border-[#00E676]/30 group">
+          <div className="flex items-start justify-between gap-2.5 mb-2.5">
+            <div>
+              <div className="text-[13px] font-semibold text-white mb-1.5 flex items-center gap-1.5 flex-wrap">
+                GoldScalper Pro 
+                <span className="bg-[#F5A623]/15 text-[#F5A623] border-[0.5px] border-[#F5A623]/30 text-[9px] px-1.5 py-0.5 rounded font-bold">POPULAR</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00B0FF]/10 text-[#00B0FF] border-[0.5px] border-[#00B0FF]/20">XAU/USD</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#00E676]/10 text-[#00E676] border-[0.5px] border-[#00E676]/15">Lot 0.05–0.20</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-white/5 text-white/40 border-[0.5px] border-white/10">Feb 2026</span>
+              </div>
+            </div>
+            <button className="bg-[#00E676] text-black text-[10px] font-bold px-3 py-1.5 rounded-md shrink-0 transition-opacity hover:opacity-90">Download .mq5</button>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Win rate</div>
+              <div className="text-[13px] font-bold text-[#00E676]">68%</div>
+            </div>
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Trades logged</div>
+              <div className="text-[13px] font-bold text-white">89</div>
+            </div>
+            <div className="bg-white/[0.03] rounded-md px-2.5 py-1.5 border-[0.5px] border-white/5">
+              <div className="text-[9px] text-white/40 uppercase tracking-[0.05em] mb-0.5">Avg gain</div>
+              <div className="text-[13px] font-bold text-[#00E676]">+1.7%</div>
+            </div>
+          </div>
+
+          <div className="mt-1">
+            <div className="flex justify-between mb-1 text-[10px]">
+              <span className="text-white/40">Live win rate — 89 recorded trades</span>
+              <span className="font-semibold text-[#00E676]">68%</span>
+            </div>
+            <div className="h-[5px] bg-white/10 rounded-sm overflow-hidden">
+              <div className="h-full rounded-sm bg-[#00E676]" style={{ width: '68%' }}></div>
+            </div>
+          </div>
+          <div className="text-[10px] text-white/30 group-hover:text-[#00E676] transition-colors mt-2.5 inline-block">Setup guide →</div>
         </Link>
+
+        <div className="text-[10px] text-white/30 mt-3 text-center">
+          All stats from live recorded trades — not backtests. Updated as new trades are logged.
+        </div>
       </div>
 
       {/* WHAT'S NEW FEED */}
