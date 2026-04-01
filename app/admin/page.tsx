@@ -15,6 +15,11 @@ export default function AdminPage() {
   const [desc, setDesc] = useState('');
   const [link, setLink] = useState('');
   
+  // BOT SPECIFIC STATS
+  const [winRate, setWinRate] = useState('73%');
+  const [trades, setTrades] = useState('41');
+  const [avgGain, setAvgGain] = useState('+2.1%');
+  
   const supabase = createClient();
   const router = useRouter();
 
@@ -39,10 +44,16 @@ export default function AdminPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Pack bot stats directly into description JSON string to avoid schema migrations
+    const payloadDesc = type === 'bot' 
+      ? JSON.stringify({ desc, winRate, trades, avgGain }) 
+      : desc;
+
     const { error } = await supabase.from('content').insert({
       title,
       type,
-      description: desc,
+      description: payloadDesc,
       external_link: link,
       is_premium: true
     });
@@ -51,6 +62,9 @@ export default function AdminPage() {
        setTitle('');
        setDesc('');
        setLink('');
+       setWinRate('73%');
+       setTrades('41');
+       setAvgGain('+2.1%');
        fetchContent();
     }
   };
@@ -111,7 +125,25 @@ export default function AdminPage() {
                   onChange={(e) => setLink(e.target.value)}
                 />
               </div>
-              <button type="submit" className="w-full py-3 bg-[#00E676] text-[#0B0F1A] rounded-[6px] text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[#00E676]/10">Broadcast Asset</button>
+
+              {type === 'bot' && (
+                <div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-4 mt-4">
+                   <div>
+                     <label className="block text-[10px] font-black text-[#00E676] uppercase mb-1">Win Rate</label>
+                     <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white focus:outline-none text-xs" placeholder="e.g. 73%" value={winRate} onChange={(e)=>setWinRate(e.target.value)} />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-black text-white uppercase mb-1">Trades Logged</label>
+                     <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white focus:outline-none text-xs" placeholder="e.g. 41" value={trades} onChange={(e)=>setTrades(e.target.value)} />
+                   </div>
+                   <div>
+                     <label className="block text-[10px] font-black text-[#00E676] uppercase mb-1">Avg Gain</label>
+                     <input type="text" className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-2 text-white focus:outline-none text-xs" placeholder="e.g. +2.1%" value={avgGain} onChange={(e)=>setAvgGain(e.target.value)} />
+                   </div>
+                </div>
+              )}
+
+              <button type="submit" className="w-full py-3 bg-[#00E676] text-[#0B0F1A] rounded-[6px] text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[#00E676]/10 mt-2">Broadcast Asset</button>
             </form>
           </div>
 

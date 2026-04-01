@@ -81,7 +81,7 @@ export function Navbar() {
         </button>
 
         {/* MOBILE SLIDE-IN MENU */}
-        <div className={`fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#0A0F1E] border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.8)] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-400 ease-out md:hidden z-[55] flex flex-col justify-between`}>
+        <div className={`fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#131929]/95 backdrop-blur-2xl border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.8)] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-400 ease-out md:hidden z-[55] flex flex-col justify-between`}>
           <div className="pt-28 px-8 flex flex-col gap-8 text-xl font-bold tracking-tight relative z-[60]">
             <Link href="/" onClick={() => setIsOpen(false)} className="hover:text-gray-300 transition-colors">Home</Link>
             <Link href="/about" onClick={() => setIsOpen(false)} className="hover:text-gray-300 transition-colors">About Us</Link>
