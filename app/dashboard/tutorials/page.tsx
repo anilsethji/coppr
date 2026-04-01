@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { PremiumLock } from "@/components/ui/PremiumLock";
 
 export default async function TutorialsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  const { data: profile } = await supabase.from('profiles').select('subscription_status').eq('id', user.id).single();
+  const isSubscribed = profile?.subscription_status === 'active';
 
   const { data: videos } = await supabase.from('content').select('*').eq('type', 'video').order('created_at', { ascending: false });
 
@@ -15,6 +19,7 @@ export default async function TutorialsPage() {
         <p className="text-gray-500">Master the terminal with our step-by-step training modules.</p>
       </div>
 
+      <PremiumLock isSubscribed={isSubscribed}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {videos?.map((video, idx) => (
           <div key={idx} className="stat-card card-glow-amber overflow-hidden group">
@@ -40,6 +45,7 @@ export default async function TutorialsPage() {
            </div>
         )}
       </div>
+      </PremiumLock>
     </div>
   );
 }

@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { PremiumLock } from "@/components/ui/PremiumLock";
 
 export default async function BotsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  const { data: profile } = await supabase.from('profiles').select('subscription_status').eq('id', user.id).single();
+  const isSubscribed = profile?.subscription_status === 'active';
 
   const { data: bots } = await supabase.from('content').select('*').eq('type', 'bot').order('created_at', { ascending: false });
 
@@ -22,6 +26,7 @@ export default async function BotsPage() {
         </div>
       </div>
 
+      <PremiumLock isSubscribed={isSubscribed}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {bots?.map((bot, idx) => {
           const isUtility = bot.prot_rate || bot.use_with;
@@ -117,6 +122,7 @@ export default async function BotsPage() {
           )
         })}
       </div>
+      </PremiumLock>
     </div>
   );
 }

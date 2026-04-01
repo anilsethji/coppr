@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { PremiumLock } from "@/components/ui/PremiumLock";
 
 export default async function IndicatorsPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  const { data: profile } = await supabase.from('profiles').select('subscription_status').eq('id', user.id).single();
+  const isSubscribed = profile?.subscription_status === 'active';
 
   const { data: indicators } = await supabase.from('content').select('*').eq('type', 'indicator').order('created_at', { ascending: false });
 
@@ -15,6 +19,7 @@ export default async function IndicatorsPage() {
         <p className="text-gray-500">Enhanced visual tools for MT5 to identify high-probability entries.</p>
       </div>
 
+      <PremiumLock isSubscribed={isSubscribed}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {indicators?.map((item, idx) => (
           <div key={idx} className="stat-card card-glow-blue">
@@ -42,6 +47,7 @@ export default async function IndicatorsPage() {
            </div>
         )}
       </div>
+      </PremiumLock>
     </div>
   );
 }
