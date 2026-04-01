@@ -1,21 +1,43 @@
+"use client";
+
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { motion } from "framer-motion";
 
-export const metadata = { title: 'Member Dashboard | Coppr' };
+export default function DashboardHome() {
+  const [profile, setProfile] = useState<any>(null);
+  const [contentData, setContentData] = useState<any[]>([]);
+  const [updatesData, setUpdatesData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function DashboardHome() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-  const { data: contentData } = await supabase.from('content').select('*').order('created_at', { ascending: false });
-  const { data: updatesData } = await supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(5);
+      const [pRes, cRes, uRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('content').select('*').order('created_at', { ascending: false }),
+        supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(5)
+      ]);
+
+      setProfile(pRes.data);
+      setContentData(cRes.data || []);
+      setUpdatesData(uRes.data || []);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="w-8 h-8 border-4 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin"></div>
+    </div>
+  );
 
   const bots = contentData?.filter(c => c.type === 'bot') || [];
-  
-  // Calculate Days Remaining
   const expiryDate = new Date(profile?.subscription_expiry || Date.now());
   const now = new Date();
   const daysDiff = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 3600 * 24)));
@@ -23,14 +45,10 @@ export default async function DashboardHome() {
   return (
     <div className="space-y-8 pb-10 max-w-[1200px] mx-auto text-white font-sans">
       
-      {/* =========================================
-          WELCOME SECTION
-      ========================================= */}
+      {/* WELCOME SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 rounded-[14px] relative overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
-        {/* Subtle glow background */}
         <div className="absolute top-0 right-1/4 w-[300px] h-[300px] rounded-full filter blur-[100px] opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFD700 0%, transparent 70%)' }}></div>
 
-        {/* LEFT SIDE */}
         <div className="flex-1 z-10 relative">
           <h1 className="text-[20px] font-bold tracking-tight mb-1">Welcome back, {profile?.full_name?.split(' ')[0] || 'Member'} 👋</h1>
           <p className="text-[13px] mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -46,44 +64,41 @@ export default async function DashboardHome() {
           </div>
         </div>
 
-        {/* RIGHT SIDE (Days Badge) */}
         <div className="shrink-0 z-10 relative rounded-[14px] px-[20px] py-[14px] flex flex-col items-center justify-center min-w-[140px] shadow-[0_10px_30px_rgba(255,215,0,0.05)] border" style={{ background: 'linear-gradient(180deg, rgba(255,215,0,0.08) 0%, rgba(255,215,0,0.01) 100%)', borderColor: 'rgba(255,215,0,0.3)' }}>
            <span className="text-[34px] font-bold leading-none text-[#FFD700] drop-shadow-[0_2px_10px_rgba(255,215,0,0.3)]">{daysDiff}</span>
            <span className="text-[10px] uppercase font-bold tracking-widest mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>days remaining</span>
         </div>
       </div>
 
-      {/* =========================================
-          STAT BOXES (4-Card Row)
-      ========================================= */}
+      {/* STAT BOXES */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
-            t: "Active Bots", v: bots.length > 0 ? bots.length.toString() : "4", badge: "+1 this month", icon: "🤖", color: "#00E676", 
-            subLeft: "Latest: ", subRight: bots[0]?.title || "RegressionX v2.1", type: 'sparkline', footerLeft: "↑", footerRight: "New bot added this month"
+            t: "Active Bots", v: bots.length.toString(), badge: "+1 this month", icon: "🤖", color: "#00E676", 
+            subLeft: "Latest: ", subRight: bots[0]?.title || "RegressionX v2.1", type: 'sparkline', footerLeft: "↑", footerRight: "New bot added this month",
+            href: "/dashboard/bots"
           },
           { 
             t: "Indicators", v: "7", badge: "+2 new", icon: "📊", color: "#00B0FF", 
-            subLeft: "Latest: ", subRight: "Gold Trend Filter", type: 'heatmap', footerLeft: "↑", footerRight: "2 added this month" 
+            subLeft: "Latest: ", subRight: "Gold Trend Filter", type: 'heatmap', footerLeft: "↑", footerRight: "2 added this month",
+            href: "/dashboard/indicators"
           },
           { 
             t: "Video Tutorials", v: "18", badge: "3 unwatched", icon: "🎬", color: "#F5A623", 
-            subLeft: "Progress: ", subRight: "15 of 18 watched", type: 'gauge', progress: 83, footerLeft: "📋", footerRight: "83% complete — 3 left" 
+            subLeft: "Progress: ", subRight: "15 of 18 watched", type: 'gauge', progress: 83, footerLeft: "📋", footerRight: "83% complete — 3 left",
+            href: "/dashboard/tutorials"
           },
           { 
             t: "Live Trade Logs", v: "152", badge: "Today +3.2%", badgeColor: "#00E676", icon: "📈", color: "#9C6EFA", 
-            subLeft: "Win rate: ", subRight: "71% across all bots", type: 'scatter', footerLeft: "↑", footerRight: "Last trade: +3.2% gain today" 
+            subLeft: "Win rate: ", subRight: "71% across all bots", type: 'scatter', footerLeft: "↑", footerRight: "Last trade: +3.2% gain today",
+            href: "/dashboard/updates"
           }
-        ].map((stat, i) => {
-          return (
-            <div key={i} className="rounded-[14px] p-[16px] relative overflow-hidden transition-all duration-300 group hover:-translate-y-[3px] border border-transparent hover:border-white/10" style={{ background: `linear-gradient(135deg, ${stat.color}14 0%, ${stat.color}05 100%)` }}>
-              
+        ].map((stat, i) => (
+          <motion.div key={i} whileTap={{ scale: 0.97 }} className="h-full">
+            <Link href={stat.href} className="flex flex-col h-full rounded-[14px] p-[16px] relative overflow-hidden transition-all duration-300 group border border-transparent hover:border-white/10" style={{ background: `linear-gradient(135deg, ${stat.color}14 0%, ${stat.color}05 100%)` }}>
               <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.02] transition-colors duration-300" />
-
-              {/* Glow Blob */}
               <div className="absolute -top-4 -right-4 w-[80px] h-[80px] rounded-full blur-[30px] pointer-events-none transition-opacity duration-300 opacity-20 group-hover:opacity-40" style={{ backgroundColor: stat.color }}></div>
 
-              {/* Flex Header */}
               <div className="flex items-center justify-between mb-4 z-10 relative">
                 <div className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center text-[15px]" style={{ backgroundColor: `${stat.color}26`, color: stat.color }}>
                   {stat.icon}
@@ -93,30 +108,22 @@ export default async function DashboardHome() {
                 </div>
               </div>
 
-              {/* Data Block */}
               <div className="z-10 relative">
                 <div className="text-[9px] uppercase font-bold tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{stat.t}</div>
                 <div className="text-[26px] font-extrabold leading-none mb-1.5" style={{ color: stat.color }}>{stat.v}</div>
                 <div className="text-[10px] leading-tight truncate w-full" style={{ color: 'rgba(255,255,255,0.25)' }}>{stat.subLeft}<span className="text-white opacity-80">{stat.subRight}</span></div>
               </div>
 
-              {/* Visual Component Area */}
               <div className="mt-4 mb-2 h-[45px] relative z-10">
                 {stat.type === 'sparkline' && (
                   <svg className="w-full h-full opacity-80" viewBox="0 0 200 45" preserveAspectRatio="none">
-                    <path 
-                      className="fill-none stroke-[1.5] animate-draw" 
-                      style={{ stroke: stat.color, strokeDasharray: 200, strokeDashoffset: 200 }}
-                      d="M0 40 L20 35 L40 38 L60 25 L80 28 L100 15 L120 18 L140 8 L160 12 L180 3 L200 5" 
-                    />
+                    <path className="fill-none stroke-[1.5] animate-draw" style={{ stroke: stat.color, strokeDasharray: 200, strokeDashoffset: 200 }} d="M0 40 L20 35 L40 38 L60 25 L80 28 L100 15 L120 18 L140 8 L160 12 L180 3 L200 5" />
                   </svg>
                 )}
                 {stat.type === 'heatmap' && (
                   <div className="grid grid-cols-7 gap-1 h-full w-full opacity-60">
                     {Array.from({ length: 14 }).map((_, idx) => (
-                      <div key={idx} className="h-2.5 rounded-sm" style={{ 
-                        backgroundColor: [1, 4, 8, 11].includes(idx) ? 'rgba(255,71,87,0.4)' : stat.color 
-                      }} />
+                      <div key={idx} className="h-2.5 rounded-sm" style={{ backgroundColor: [1, 4, 8, 11].includes(idx) ? 'rgba(255,71,87,0.4)' : stat.color }} />
                     ))}
                   </div>
                 )}
@@ -146,55 +153,41 @@ export default async function DashboardHome() {
                 )}
               </div>
 
-              {/* Card Footer */}
-              <div className="text-[10px] flex gap-1 z-10 relative" style={{ color: 'rgba(255,255,255,0.25)' }}>
+              <div className="text-[10px] flex gap-1 z-10 relative mt-auto" style={{ color: 'rgba(255,255,255,0.25)' }}>
                 <span className="font-black" style={{ color: stat.badgeColor || stat.color }}>{stat.footerLeft}</span> 
                 {stat.footerRight}
               </div>
-            </div>
-          );
-        })}
+            </Link>
+          </motion.div>
+        ))}
       </div>
 
-      {/* =========================================
-          TWO COLUMN ROW (Bot Library & Feed)
-      ========================================= */}
+      {/* TWO COLUMN ROW */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        
-        {/* LEFT COLUMN: BOT LIBRARY (55%) */}
         <div className="w-full lg:w-[55%] rounded-[14px] p-4 flex flex-col relative" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>Bot Library</h3>
-            <Link href="/dashboard/bots" className="text-[11px] font-bold transition-opacity hover:opacity-70" style={{ color: '#FFD700' }}>View all →</Link>
+            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/25">Bot Library</h3>
+            <Link href="/dashboard/bots" className="text-[11px] font-bold transition-opacity hover:opacity-70 text-[#FFD700]">View all →</Link>
           </div>
-
           <div className="space-y-0">
             {bots.length > 0 ? bots.map((bot, i) => {
-              // Parse backend JSON attributes
               let meta = { winRate: '60%', lot: 'Any lot', pair: 'XAU/USD' };
               try { const parsed = JSON.parse(bot.description); if (parsed.winRate) meta = { ...meta, ...parsed }; } catch (e) {}
-              
               const wrClean = parseInt(meta.winRate.replace('%','')) || 0;
-              let wrColor = "#00E676";
-              if (wrClean < 65) wrColor = "#F5A623";
-              if (meta.winRate.includes('safe') || meta.winRate.includes('protect')) wrColor = "#00B0FF"; // blue rule for protection
-
+              let wrColor = wrClean < 65 ? "#F5A623" : "#00E676";
+              if (meta.winRate.includes('safe') || meta.winRate.includes('protect')) wrColor = "#00B0FF";
               return (
                 <div key={bot.id} className={`flex items-start justify-between py-3 ${i !== bots.length - 1 ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                  {/* Bot Details Left */}
                   <div className="flex-1 pr-2">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[12px] font-bold truncate max-w-[150px] sm:max-w-none">{bot.title}</span>
                       {bot.is_premium && <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-[20px] text-black tracking-widest bg-[#FFD700]">PRO</span>}
-                      {i === 0 && <span className="text-[8px] font-bold px-1.5 py-[1px] rounded-[20px] text-black tracking-widest bg-[#FF4D4D]">NEW</span>}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00B0FF', backgroundColor: 'rgba(0,176,255,0.1)', borderColor: 'rgba(0,176,255,0.2)' }}>{meta.pair || 'XAU/USD'}</span>
-                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00E676', backgroundColor: 'rgba(0,230,118,0.1)', borderColor: 'rgba(0,230,118,0.2)' }}>{meta.lot || 'Lot 0.01-0.20'}</span>
+                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00B0FF', backgroundColor: 'rgba(0,176,255,0.1)', borderColor: 'rgba(0,176,255,0.2)' }}>{meta.pair}</span>
+                      <span className="text-[9px] px-1.5 py-[1px] rounded-[4px] border" style={{ color: '#00E676', backgroundColor: 'rgba(0,230,118,0.1)', borderColor: 'rgba(0,230,118,0.2)' }}>{meta.lot}</span>
                     </div>
                   </div>
-
-                  {/* Download / Stats Right */}
                   <div className="flex flex-col items-end shrink-0 w-[100px] justify-between h-full gap-2 mt-0.5">
                     <div className="flex items-center gap-2 w-full justify-end">
                       <span className="text-[12px] font-bold leading-none" style={{ color: wrColor }}>{meta.winRate}</span>
@@ -202,76 +195,52 @@ export default async function DashboardHome() {
                         <div className="h-full rounded-full" style={{ width: `${Math.min(wrClean, 100)}%`, backgroundColor: wrColor }}></div>
                       </div>
                     </div>
-                    <Link href={bot.external_link || '#'} className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-[5px] border hover:opacity-80 transition-opacity w-full text-center block" style={{ backgroundColor: 'rgba(255,215,0,0.12)', color: '#FFD700', borderColor: 'rgba(255,215,0,0.3)' }}>
-                      Download
-                    </Link>
+                    <Link href={bot.external_link || '#'} className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-[5px] border hover:opacity-80 transition-opacity w-full text-center block" style={{ backgroundColor: 'rgba(255,215,0,0.12)', color: '#FFD700', borderColor: 'rgba(255,215,0,0.3)' }}>Download</Link>
                   </div>
                 </div>
               );
-            }) : (
-              <div className="p-4 text-[11px] text-center italic" style={{ color: 'rgba(255,255,255,0.3)' }}>No algorithms currently indexed.</div>
-            )}
+            }) : <div className="p-4 text-[11px] text-center italic text-white/30">No bots found.</div>}
           </div>
         </div>
 
-        {/* RIGHT COLUMN: LIVE FEED (45%) */}
         <div className="w-full lg:w-[45%] rounded-[14px] p-4 flex flex-col relative h-full" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>Live Updates</h3>
-            <span className="text-[10px] font-bold text-red-500">3 new</span>
+            <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/25">Live Updates</h3>
+            <span className="text-[10px] font-bold text-red-500">New</span>
           </div>
-
           <div className="space-y-0 flex-1">
-            {updatesData && updatesData.length > 0 ? updatesData.map((feed: any, i: number) => {
-              const hoursAgo = Math.max(1, Math.floor((Date.now() - new Date(feed.created_at).getTime()) / 3600000));
-              let dotColor = "#FFD700"; // default Announcement
-              let badgeType = "System";
-              let msg = feed.content.toLowerCase();
-              if (msg.includes('profit') || msg.includes('trade')) { dotColor = "#00E676"; badgeType = "Live Trade"; }
-              if (msg.includes('bot') || msg.includes('regression')) { dotColor = "#00B0FF"; badgeType = "New Bot"; }
-
-              return (
-                <div key={feed.id} className={`py-3 ${i !== (updatesData.length - 1) ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                  {/* Header Row */}
-                  <div className="flex items-center gap-2 mb-1.5 text-[10px]">
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse shadow-sm" style={{ backgroundColor: dotColor, boxShadow: `0 0 6px ${dotColor}` }}></span>
-                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>Admin · {hoursAgo} hr ago</span>
-                    <span className="px-1.5 rounded-[4px] border font-semibold ml-auto" style={{ color: dotColor, backgroundColor: `${dotColor}10`, borderColor: `${dotColor}30` }}>{badgeType}</span>
-                  </div>
-                  {/* Msg text */}
-                  <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{feed.content}</p>
+            {updatesData.map((feed, i) => (
+              <div key={feed.id} className={`py-3 ${i !== (updatesData.length - 1) ? 'border-b' : ''}`} style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                <div className="flex items-center gap-2 mb-1.5 text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse shadow-sm" style={{ backgroundColor: '#FFD700' }}></span>
+                  <span className="text-white/40">Admin · Update</span>
                 </div>
-              );
-            }) : (
-              <div className="p-4 text-[11px] text-center italic" style={{ color: 'rgba(255,255,255,0.3)' }}>No active broadcast signals.</div>
-            )}
+                <p className="text-[11px] leading-relaxed line-clamp-2 text-white/60">{feed.content}</p>
+              </div>
+            ))}
           </div>
         </div>
-
       </div>
 
-      {/* =========================================
-          QUICK ACCESS GRID
-      ========================================= */}
-      <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase px-1 mt-6" style={{ color: 'rgba(255,255,255,0.25)' }}>Quick Actions</h3>
+      {/* QUICK ACCESS GRID */}
+      <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase px-1 mt-6 text-white/25">Quick Actions</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
         {[
-          { icon: "🤖", title: "EA Bots", sub: "4 bots · 1 new this month", href: "/dashboard/bots" },
-          { icon: "📊", title: "Indicators", sub: "7 indicators · 2 new", href: "/dashboard/indicators" },
-          { icon: "🎬", title: "Video Tutorials", sub: "18 videos · 3 unwatched", href: "/dashboard/tutorials" },
-          { icon: "📋", title: "Setup Guides", sub: "MT5 install · Lot size · Brokers", href: "/dashboard/guides" }
+          { icon: "🤖", title: "EA Bots", sub: "Bots & Algos", href: "/dashboard/bots" },
+          { icon: "📊", title: "Indicators", sub: "Premium Tools", href: "/dashboard/indicators" },
+          { icon: "🎬", title: "Tutorials", sub: "Video Guides", href: "/dashboard/tutorials" },
+          { icon: "📋", title: "Setup", sub: "Guides", href: "/dashboard/guides" }
         ].map((card, i) => (
-          <Link key={i} href={card.href} className="flex flex-col p-4 rounded-[14px] transition-all duration-200 group hover:-translate-y-[2px] hover:border-white/15 hover:bg-white/5" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
+          <Link key={i} href={card.href} className="flex flex-col p-4 rounded-[14px] transition-all duration-200 group hover:-translate-y-[2px] hover:border-white/15 hover:bg-white/5 bg-white/5 border border-white/10">
             <span className="text-[28px] mb-3 group-hover:scale-110 transition-transform origin-left">{card.icon}</span>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] font-bold text-white tracking-wide">{card.title}</span>
-              <span className="text-[12px] opacity-40 group-hover:opacity-100 transition-opacity">→</span>
+              <span className="text-[13px] font-bold tracking-wide text-white">{card.title}</span>
+              <span className="text-[12px] opacity-40 group-hover:opacity-100 transition-opacity text-white">→</span>
             </div>
-            <span className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{card.sub}</span>
+            <span className="text-[10px] mt-1 text-white/40">{card.sub}</span>
           </Link>
         ))}
       </div>
-
     </div>
   );
 }

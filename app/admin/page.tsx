@@ -38,10 +38,23 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser || authUser.email !== 'anilava.babun@gmail.com') { 
+      
+      if (!authUser) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', authUser.id)
+        .single();
+
+      if (!profile?.is_admin) { 
         router.push('/dashboard');
         return;
       }
+
       setUser(authUser);
       fetchContent();
     };

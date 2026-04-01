@@ -5,10 +5,26 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 import { createClient } from '@/lib/supabase/client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Home, 
+  Store, 
+  Bot, 
+  BarChart3, 
+  PlayCircle, 
+  Zap, 
+  LifeBuoy, 
+  MessageSquare, 
+  User, 
+  ShieldCheck, 
+  Bell 
+} from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
   const [initials, setInitials] = useState('JD');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -17,15 +33,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, is_admin')
           .eq('id', user.id)
           .single();
         
-        if (profile?.full_name) {
-          const parts = profile.full_name.split(' ');
-          const first = parts[0]?.charAt(0) || '';
-          const last = parts[parts.length - 1]?.charAt(0) || '';
-          setInitials((first + last).toUpperCase() || 'JD');
+        if (profile) {
+          setIsAdmin(!!profile.is_admin);
+          if (profile.full_name) {
+            const parts = profile.full_name.split(' ');
+            const first = parts[0]?.charAt(0) || '';
+            const last = parts[parts.length - 1]?.charAt(0) || '';
+            setInitials((first + last).toUpperCase() || 'JD');
+          }
         }
       }
     };
@@ -33,77 +52,90 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   const mainLinks = [
-    { name: 'Home', href: '/dashboard', icon: '🏠' },
-    { name: 'Marketplace', href: '/dashboard/marketplace', icon: '🏪' },
-    { name: 'EA Bots', href: '/dashboard/bots', icon: '🤖' },
-    { name: 'Indicators', href: '/dashboard/indicators', icon: '📊' },
-    { name: 'Video Tutorials', href: '/dashboard/tutorials', icon: '🎬' },
-    { name: 'Live Updates', href: '/dashboard/updates', icon: '🛰️', badge: true }
+    { name: 'Home', href: '/dashboard', icon: Home },
+    { name: 'Marketplace', href: '/dashboard/marketplace', icon: Store },
+    { name: 'EA Bots', href: '/dashboard/bots', icon: Bot },
+    { name: 'Indicators', href: '/dashboard/indicators', icon: BarChart3 },
+    { name: 'Video Tutorials', href: '/dashboard/tutorials', icon: PlayCircle },
+    { name: 'Live Updates', href: '/dashboard/updates', icon: Zap, badge: true }
   ];
 
   const supportLinks = [
-    { name: 'Setup Guides', href: '/dashboard/guides', icon: '📋' },
-    { name: 'Support', href: '/dashboard/support', icon: '💬' },
-    { name: 'My Account', href: '/dashboard/account', icon: '👤' }
+    { name: 'Setup Guides', href: '/dashboard/guides', icon: LifeBuoy },
+    { name: 'Support', href: '/dashboard/support', icon: MessageSquare },
+    { name: 'My Account', href: '/dashboard/account', icon: User }
   ];
 
+  // Logic to conditionally add Admin Console
+  const finalSupportLinks = [...supportLinks];
+  if (isAdmin) {
+    finalSupportLinks.push({ name: 'Admin Console', href: '/admin', icon: ShieldCheck });
+  }
+
   return (
-    <div className="min-h-screen bg-[#080C14] flex flex-col md:flex-row pt-[72px] md:pt-0">
+    <div className="min-h-screen bg-[#080C14] flex flex-col md:flex-row pt-[72px] md:pt-0 overflow-x-hidden">
       
       {/* GLASSSMORPHIC SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-[190px] h-screen sticky top-0 border-r" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)' }}>
+      <aside className="hidden md:flex flex-col w-[200px] h-screen sticky top-0 border-r border-white/5 z-50 overflow-y-auto no-scrollbar" style={{ backgroundColor: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(30px)' }}>
         
         {/* Logo Area */}
-        <div className="px-5 py-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Logo variant="dark" className="w-8 h-8 rounded-full shadow-[0_4px_20px_rgba(255,215,0,0.15)]" />
+        <div className="px-5 py-6 border-b border-white/5">
+          <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Logo variant="dark" className="w-8 h-8 rounded-full shadow-[0_4px_20px_rgba(255,215,0,0.2)]" />
             <span className="text-xl font-bold tracking-tight text-white font-sans">Coppr</span>
           </Link>
         </div>
 
         {/* Navigation Wrapper */}
-        <nav className="flex-1 overflow-y-auto pt-6 space-y-8 no-scrollbar pb-6">
+        <nav className="flex-1 pt-6 space-y-8 pb-6">
           
           {/* MAIN SECTION */}
           <div className="px-4">
-            <h3 className="text-[9px] uppercase font-bold tracking-[0.15em] mb-4 pl-2" style={{ color: 'rgba(255,255,255,0.25)' }}>MAIN</h3>
+            <h3 className="text-[9px] uppercase font-black tracking-[0.2em] mb-4 pl-2 text-white/20">MAIN</h3>
             <div className="space-y-1">
               {mainLinks.map((item) => {
                 const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
+                const Icon = item.icon;
                 return (
-                  <Link key={item.name} href={item.href} className={`flex flex-col items-center justify-between px-2 py-2.5 rounded-[10px] text-sm font-medium transition-all duration-200 group ${isActive ? 'text-white' : 'hover:text-white hover:bg-white/5'}`} style={
-                    isActive 
-                      ? { background: 'linear-gradient(90deg, rgba(255,215,0,0.1), transparent)', borderLeft: '2px solid #FFD700', color: '#fff' }
-                      : { color: 'rgba(255,255,255,0.4)' }
-                  }>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-[16px]">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </div>
-                    {item.badge && <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
-                  </Link>
+                  <motion.div key={item.name} whileTap={{ scale: 0.96 }}>
+                    <Link href={item.href} className={`flex items-center justify-between px-3 py-2.5 rounded-[12px] text-sm font-semibold transition-all duration-300 group ${isActive ? 'text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`} style={
+                      isActive 
+                        ? { background: 'linear-gradient(90deg, rgba(255,215,0,0.1), transparent)', borderLeft: '2px solid #FFD700' }
+                        : {}
+                    }>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-[#FFD700]' : 'text-white/20 group-hover:text-white/60'}`} />
+                        <span>{item.name}</span>
+                      </div>
+                      {item.badge && <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
+                    </Link>
+                  </motion.div>
                 );
               })}
             </div>
           </div>
 
-          {/* SUPPORT SECTION */}
+          {/* SUPPORT/ADMIN SECTION */}
           <div className="px-4">
-            <h3 className="text-[9px] uppercase font-bold tracking-[0.15em] mb-4 pl-2" style={{ color: 'rgba(255,255,255,0.25)' }}>SUPPORT</h3>
+            <h3 className="text-[9px] uppercase font-black tracking-[0.2em] mb-4 pl-2 text-white/20">SUPPORT</h3>
             <div className="space-y-1">
-              {supportLinks.map((item) => {
+              {finalSupportLinks.map((item) => {
                 const isActive = pathname.startsWith(item.href);
+                const Icon = item.icon;
+                const isSpecial = item.name === 'Admin Console';
                 return (
-                  <Link key={item.name} href={item.href} className={`flex items-center px-2 py-2.5 rounded-[10px] text-sm font-medium transition-all duration-200 group ${isActive ? 'text-white' : 'hover:text-white hover:bg-white/5'}`} style={
-                    isActive 
-                      ? { background: 'linear-gradient(90deg, rgba(255,215,0,0.1), transparent)', borderLeft: '2px solid #FFD700', color: '#fff' }
-                      : { color: 'rgba(255,255,255,0.4)' }
-                  }>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-[16px]">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </div>
-                  </Link>
+                  <motion.div key={item.name} whileTap={{ scale: 0.96 }}>
+                    <Link href={item.href} className={`flex items-center px-3 py-2.5 rounded-[12px] text-sm font-semibold transition-all duration-300 group ${isActive ? 'text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`} style={
+                      isActive 
+                        ? { background: 'linear-gradient(90deg, rgba(255,215,0,0.1), transparent)', borderLeft: '2px solid #FFD700' }
+                        : isSpecial ? { color: '#00E676' } : {}
+                    }>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-[#FFD700]' : isSpecial ? 'text-[#00E676]/60' : 'text-white/20 group-hover:text-white/60'}`} />
+                        <span>{item.name}</span>
+                      </div>
+                    </Link>
+                  </motion.div>
                 );
               })}
             </div>
@@ -113,62 +145,133 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around p-2 pb-safe border-t shadow-[0_-10px_30px_rgba(0,0,0,0.5)]" style={{ backgroundColor: 'rgba(8,12,20,0.95)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
-        {[ mainLinks[0], mainLinks[1], mainLinks[3], supportLinks[2] ].map((item) => {
+      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] z-[100] flex justify-around p-2 rounded-[28px] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden" style={{ backgroundColor: 'rgba(8,12,20,0.9)', backdropFilter: 'blur(25px)' }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-white/[0.05] to-transparent pointer-events-none" />
+        {[ mainLinks[0], mainLinks[1], mainLinks[2], supportLinks[2] ].map((item) => {
           const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
+          const Icon = item.icon;
           return (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center justify-center w-full h-[44px] transition-all" style={{ color: isActive ? '#FFD700' : 'rgba(255,255,255,0.4)' }}>
-              <span className="text-[20px] mb-1">{item.icon}</span>
+            <Link key={item.name} href={item.href} className="flex flex-col items-center justify-center p-3 transition-all relative z-10">
+              <motion.div
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 600, damping: 30 }}
+                className={`transition-colors duration-100 ${isActive ? 'text-[#FFD700]' : 'text-white/30'}`}
+              >
+                <Icon className="w-[22px] h-[22px]" />
+              </motion.div>
+              {isActive && (
+                <motion.div 
+                  layoutId="mobile-glow" 
+                  className="absolute inset-0 bg-[#FFD700]/10 blur-xl rounded-full" 
+                  initial={false}
+                  transition={{ duration: 0.2 }}
+                />
+              )}
+              {isActive && (
+                <motion.div 
+                  layoutId="mobile-dot" 
+                  className="absolute -bottom-1 w-1 h-1 rounded-full bg-[#FFD700] shadow-[0_0_8px_#FFD700]" 
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
             </Link>
           );
         })}
       </nav>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-h-screen pb-20 md:pb-0 relative overflow-x-hidden">
+      <main className="flex-1 flex flex-col min-h-screen pb-24 md:pb-0 relative overflow-x-hidden bg-[#080C14]">
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[#FFD700]/[0.03] to-transparent pointer-events-none" />
         
         {/* HIGH-END TOP BAR */}
-        <header className="h-[72px] flex items-center justify-between px-4 md:px-8 border-b fixed md:sticky top-0 left-0 w-full md:w-auto z-40 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.2)]" style={{ backgroundColor: 'rgba(8,12,20,0.85)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.07)' }}>
+        <header className="h-[72px] flex items-center justify-between px-4 md:px-8 border-b fixed md:sticky top-0 left-0 w-full z-40 transition-all shadow-[0_10px_40px_rgba(0,0,0,0.2)]" style={{ backgroundColor: 'rgba(8,12,20,0.8)', backdropFilter: 'blur(30px)', borderColor: 'rgba(255,255,255,0.04)' }}>
           
-          {/* LEFT: Live XAU/USD ticker pill */}
+          {/* LEFT: Live Ticker */}
           <div className="flex items-center">
-            <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-[20px] border" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }}>
-               <div className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_rgba(0,230,118,0.8)]"></div>
-               <span className="text-[11px] uppercase font-bold" style={{ color: 'rgba(255,255,255,0.25)' }}>XAU/USD</span>
-               <span className="text-[13px] font-bold text-white tracking-wide">2,154.30</span>
-               <span className="text-[11px] font-bold text-[#00E676] ml-1">+0.82%</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.06)' }} 
+              whileTap={{ scale: 0.99 }}
+              transition={{ duration: 0.1 }}
+              className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full border border-white/5 bg-white/[0.02] cursor-pointer transition-all"
+            >
+               <div className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_12px_rgba(0,230,118,0.8)]"></div>
+               <span className="text-[10px] uppercase font-black text-white/20 tracking-[0.2em]">XAU/USD</span>
+               <div className="flex items-baseline gap-1.5">
+                 <span className="text-[14px] font-bold text-white tracking-tight">2,154.30</span>
+                 <span className="text-[10px] font-black text-[#00E676]">+0.82%</span>
+               </div>
+            </motion.div>
             
-            {/* Mobile Logo Fallback */}
-            <Link href="/dashboard" className="md:hidden flex items-center gap-2">
-              <Logo variant="dark" className="w-7 h-7 rounded-full shadow-[0_4px_15px_rgba(255,215,0,0.2)]" />
-              <span className="text-lg font-bold text-white">Coppr</span>
+            {/* Mobile Logo */}
+            <Link href="/dashboard" className="md:hidden flex items-center gap-2.5">
+              <Logo variant="dark" className="w-8 h-8 rounded-full shadow-[0_4px_15px_rgba(255,215,0,0.3)]" />
+              <span className="text-xl font-black text-white tracking-tighter">Coppr</span>
             </Link>
           </div>
 
-          {/* RIGHT: Status Cluster */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="hidden sm:flex items-center px-3 py-1.5 rounded-[20px] border" style={{ background: 'linear-gradient(90deg, rgba(0,230,118,0.1), rgba(0,230,118,0.02))', borderColor: 'rgba(0,230,118,0.3)', boxShadow: '0 0 15px rgba(0,230,118,0.05)' }}>
-              <span className="text-[10px] font-bold text-[#00E676] tracking-widest uppercase">Active</span>
+          {/* RIGHT: User Actions */}
+          <div className="flex items-center gap-3 sm:gap-6">
+            <div className="hidden sm:flex items-center px-3 py-1 rounded-full border border-[#00E676]/30 bg-[#00E676]/5">
+              <div className="w-1 h-1 rounded-full bg-[#00E676] mr-2 shadow-[0_0_8px_#00E676]" />
+              <span className="text-[9px] font-black text-[#00E676] tracking-[0.15em] uppercase">Security Active</span>
             </div>
             
-            {/* Notification Bell */}
-            <button className="relative p-1.5 text-white/50 hover:text-white transition-colors cursor-pointer">
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              <div className="absolute top-1 right-1 w-[6px] h-[6px] rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#080C14]"></div>
-            </button>
+            {/* Notifications */}
+            <div className="relative">
+              <motion.button 
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', scale: 1.05 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ duration: 0.1 }}
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`p-2.5 rounded-xl transition-all cursor-pointer border ${isNotifOpen ? 'bg-white/10 text-white border-white/10' : 'text-white/30 border-transparent hover:text-white'}`}
+              >
+                <Bell className="w-5 h-5" />
+                <div className="absolute top-2.5 right-2.5 w-[6px] h-[6px] rounded-full bg-red-500 border-2 border-[#080C14] shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
+              </motion.button>
 
-            {/* Avatar Gradient */}
-            <Link href="/dashboard/account" className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-black border border-white/10 shadow-[0_4px_15px_rgba(255,215,0,0.2)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,215,0,0.4)] transition-all bg-gradient-to-br from-[#FFD700] to-[#FFA500]">
-              {initials}
-            </Link>
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="absolute top-[130%] right-0 w-[280px] p-5 rounded-[24px] border border-white/10 shadow-[0_30px_70px_rgba(0,0,0,0.5)] z-50 overflow-hidden"
+                    style={{ backgroundColor: 'rgba(8,12,20,0.95)', backdropFilter: 'blur(25px)' }}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-50" />
+                    <div className="w-12 h-12 rounded-2xl bg-[#FFD700]/10 flex items-center justify-center mx-auto mb-4 border border-[#FFD700]/20">
+                      <Zap className="w-6 h-6 text-[#FFD700]" />
+                    </div>
+                    <h4 className="text-[15px] font-bold text-white mb-1.5 text-center">Network Broadcast</h4>
+                    <p className="text-[11px] text-white/40 text-center leading-relaxed">
+                      You're fully synced with the mainframe. No new updates at this time.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Avatar Link */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }} transition={{ duration: 0.1 }}>
+              <Link href="/dashboard/account" className="w-10 h-10 rounded-2xl flex items-center justify-center text-[13px] font-black text-black border border-[#FFD700]/30 shadow-[0_5px_20px_rgba(255,215,0,0.2)] cursor-pointer hover:shadow-[0_8px_30px_rgba(255,215,0,0.4)] transition-all bg-gradient-to-br from-[#FFD700] via-[#FFA500] to-[#FF8C00]">
+                {initials}
+              </Link>
+            </motion.div>
           </div>
         </header>
 
         {/* CONTENT VIEWPORT */}
-        <div className="p-4 md:p-8 flex-1 w-full max-w-[1400px] mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="p-4 md:p-10 flex-1 w-full max-w-[1440px] mx-auto overflow-visible z-10"
+        >
           {children}
-        </div>
+        </motion.div>
       </main>
     </div>
   );

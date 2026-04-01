@@ -8,8 +8,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        brand: ['var(--font-montserrat)', 'sans-serif'],
+        sans: ["'Montserrat'", 'system-ui', '-apple-system', 'sans-serif'],
+        brand: ["'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         navy: {

@@ -49,8 +49,19 @@ export async function middleware(request: NextRequest) {
 
   // 2. PROTECT ADMIN
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user || (user.email !== 'anilava.babun@gmail.com' && user.email !== 'anilavababun@gmail.com')) { 
-       return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Dynamic Admin Check from Database
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.is_admin) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
