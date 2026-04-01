@@ -39,7 +39,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
         
         {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-50 relative">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-[60] relative">
           <Logo variant="dark" className="w-12 h-12 shadow-[0_0_20px_rgba(255,215,0,0.2)] rounded-full" />
           <span className="text-[1.5rem] font-bold tracking-tight hidden sm:block text-white font-brand mt-1">Coppr</span>
         </Link>
@@ -69,7 +69,7 @@ export function Navbar() {
 
         {/* MOBILE HAMBURGER TOGGLE */}
         <button 
-          className="md:hidden z-50 p-2 focus:outline-none" 
+          className="md:hidden z-[60] p-2 focus:outline-none relative" 
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle mobile menu"
         >
@@ -81,8 +81,8 @@ export function Navbar() {
         </button>
 
         {/* MOBILE SLIDE-IN MENU */}
-        <div className={`fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#050A14] border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.5)] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] md:hidden z-40 flex flex-col justify-between`}>
-          <div className="pt-28 px-8 flex flex-col gap-8 text-xl font-bold tracking-tight">
+        <div className={`fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#0A0F1E] border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.8)] transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-400 ease-out md:hidden z-[55] flex flex-col justify-between`}>
+          <div className="pt-28 px-8 flex flex-col gap-8 text-xl font-bold tracking-tight relative z-[60]">
             <Link href="/" onClick={() => setIsOpen(false)} className="hover:text-gray-300 transition-colors">Home</Link>
             <Link href="/about" onClick={() => setIsOpen(false)} className="hover:text-gray-300 transition-colors">About Us</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="hover:text-gray-300 transition-colors">Contact</Link>
@@ -118,7 +118,7 @@ export function Navbar() {
         
         {/* BACKDROP BLUR FOR MOBILE MENU */}
         <div 
-           className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+           className={`fixed inset-0 bg-black/80 backdrop-blur-md z-[50] md:hidden transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
            onClick={() => setIsOpen(false)}
         />
       </div>
