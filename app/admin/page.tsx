@@ -3,12 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { addAsset, deleteAsset, addUpdate, deleteUpdate } from './actions';
+import { addAsset, deleteAsset, updateAsset, addUpdate, deleteUpdate } from './actions';
 
 export default function AdminPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+
+  // INLINE EDIT STATE
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editLink, setEditLink] = useState('');
   
   // FORM STATE
   const [title, setTitle] = useState('');
@@ -76,6 +81,15 @@ export default function AdminPage() {
     const res = await deleteAsset(id);
     if (!res.success) alert("Failed to delete: " + res.error);
     fetchContent();
+  };
+
+  const handleEditSave = async (id: string) => {
+    const res = await updateAsset(id, { title: editTitle, external_link: editLink });
+    if (!res.success) alert("Failed to update: " + res.error);
+    else {
+      setEditId(null);
+      fetchContent();
+    }
   };
 
   if (loading) return <div className="p-20 text-center text-gray-500 italic">Authenticating Admin...</div>;
@@ -187,22 +201,44 @@ export default function AdminPage() {
             </h2>
             <div className="grid grid-cols-1 gap-3">
               {items.map((item) => (
-                <div key={item.id} className="bot-card p-4 border-white/5 flex items-center justify-between group bg-[#131929] hover:border-[#00E676]/30 transition-all">
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-lg">
-                        {item.type === 'bot' ? '🤖' : item.type === 'indicator' ? '📊' : '🎬'}
-                     </div>
-                     <div>
-                        <h3 className="font-bold text-white text-sm">{item.title}</h3>
-                        <p className="text-[10px] text-gray-500 truncate max-w-[300px]">{item.external_link || 'No link added'}</p>
-                     </div>
-                  </div>
-                  <button 
-                    onClick={() => handleDelete(item.id)}
-                    className="text-[10px] font-black text-red-500/50 hover:text-red-500 uppercase tracking-widest px-3 py-1 border border-red-500/10 rounded-badge hover:bg-red-500/5 transition-all"
-                  >
-                    Remove
-                  </button>
+                <div key={item.id} className="bot-card p-4 border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between group bg-[#131929] hover:border-[#00E676]/30 transition-all gap-4">
+                  
+                  {editId === item.id ? (
+                    <div className="flex-1 w-full space-y-2">
+                       <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-[#0A0F1E] border border-white/10 p-2 text-sm text-white rounded focus:outline-none" placeholder="Title" />
+                       <input type="text" value={editLink} onChange={e => setEditLink(e.target.value)} className="w-full bg-[#0A0F1E] border border-white/10 p-2 text-xs text-gray-400 font-mono rounded focus:outline-none" placeholder="External Link" />
+                       <div className="flex gap-2 mt-2">
+                         <button onClick={() => handleEditSave(item.id)} className="text-[10px] font-black text-[#00E676] px-3 py-1 border border-[#00E676]/20 rounded transition-all hover:bg-[#00E676]/10 uppercase tracking-widest">Save</button>
+                         <button onClick={() => setEditId(null)} className="text-[10px] font-black text-gray-500 px-3 py-1 border border-white/10 rounded transition-all hover:bg-white/5 uppercase tracking-widest">Cancel</button>
+                       </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                         <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-lg shrink-0">
+                            {item.type === 'bot' ? '🤖' : item.type === 'indicator' ? '📊' : '🎬'}
+                         </div>
+                         <div className="min-w-0">
+                            <h3 className="font-bold text-white text-sm truncate">{item.title}</h3>
+                            <p className="text-[10px] text-gray-500 truncate">{item.external_link || 'No link added'}</p>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button 
+                          onClick={() => { setEditId(item.id); setEditTitle(item.title); setEditLink(item.external_link || ''); }}
+                          className="text-[10px] font-black text-[#00B0FF]/70 hover:text-[#00B0FF] uppercase tracking-widest px-3 py-1 border border-[#00B0FF]/10 rounded-badge hover:bg-[#00B0FF]/5 transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(item.id)}
+                          className="text-[10px] font-black text-red-500/50 hover:text-red-500 uppercase tracking-widest px-3 py-1 border border-red-500/10 rounded-badge hover:bg-red-500/5 transition-all"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
               {items.length === 0 && <div className="py-10 text-center text-gray-700 italic border border-dashed border-white/5 rounded-card">No assets published yet.</div>}

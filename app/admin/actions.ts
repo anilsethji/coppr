@@ -13,6 +13,12 @@ export async function addAsset(payload: any) {
   return { success: true };
 }
 
+export async function updateAsset(id: string, payload: any) {
+  const { error } = await supabaseAdmin.from('content').update(payload).eq('id', id);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
 export async function deleteAsset(id: string) {
   const { error } = await supabaseAdmin.from('content').delete().eq('id', id);
   if (error) return { success: false, error: error.message };
