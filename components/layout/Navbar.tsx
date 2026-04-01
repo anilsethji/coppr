@@ -13,8 +13,8 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Hide Navbar completely on Dashboard and Admin routes
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
+  // Hide Navbar completely on Dashboard, Admin, and Login routes
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin') || pathname === '/login') {
     return null;
   }
 

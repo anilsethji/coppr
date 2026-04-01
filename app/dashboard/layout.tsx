@@ -17,14 +17,26 @@ import {
   MessageSquare, 
   User, 
   ShieldCheck, 
-  Bell 
+  Bell,
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
+  const router = useRouter();
   const [initials, setInitials] = useState('JD');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -76,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[#080C14] flex flex-col md:flex-row pt-[72px] md:pt-0 overflow-x-hidden">
       
       {/* GLASSSMORPHIC SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-[200px] h-screen sticky top-0 border-r border-white/5 z-50 overflow-y-auto no-scrollbar" style={{ backgroundColor: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(30px)' }}>
+      <aside className="hidden md:flex flex-col w-[200px] h-screen sticky top-0 border-r border-white/5 z-50 overflow-y-auto no-scrollbar" style={{ backgroundColor: 'rgba(8,12,20,0.4)', backdropFilter: 'blur(30px)' }}>
         
         {/* Logo Area */}
         <div className="px-5 py-6 border-b border-white/5">
@@ -142,7 +154,107 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
         </nav>
+
+        {/* LOGOUT BUTTON (Bottom) */}
+        <div className="px-4 py-6 border-t border-white/5 mt-auto">
+          <motion.button 
+            whileHover={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#FF4757' }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-sm font-semibold text-white/30 transition-all duration-300 group"
+          >
+            <LogOut className="w-[18px] h-[18px] text-white/20 group-hover:text-[#FF4757]" />
+            <span>Logout</span>
+          </motion.button>
+        </div>
       </aside>
+
+      {/* MOBILE DRAWER (Slide-out) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+            />
+            {/* Drawer */}
+            <motion.aside 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-[280px] bg-[#080C14] border-r border-white/10 z-[101] md:hidden flex flex-col pt-20 pb-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 0% 0%, rgba(255,215,0,0.05) 0%, transparent 50%)' }}
+            >
+              <div className="absolute top-6 right-6">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-white/40 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-6 space-y-10 no-scrollbar">
+                {/* Main Links */}
+                <div>
+                  <h3 className="text-[10px] uppercase font-black tracking-[0.2em] mb-6 text-white/20">Navigation</h3>
+                  <div className="space-y-2">
+                    {mainLinks.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
+                      return (
+                        <Link 
+                          key={item.name} 
+                          href={item.href} 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-4 py-3 text-lg font-bold transition-all ${isActive ? 'text-[#FFD700]' : 'text-white/40'}`}
+                        >
+                          <Icon className="w-6 h-6" />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Support/Account */}
+                <div>
+                  <h3 className="text-[10px] uppercase font-black tracking-[0.2em] mb-6 text-white/20">System</h3>
+                  <div className="space-y-2">
+                    {finalSupportLinks.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link 
+                          key={item.name} 
+                          href={item.href} 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-4 py-3 text-lg font-bold text-white/40"
+                        >
+                          <Icon className="w-6 h-6" />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Logout */}
+              <div className="px-6 border-t border-white/5 pt-8">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-4 py-4 px-6 rounded-2xl bg-red-500/10 text-red-500 font-bold text-lg"
+                >
+                  <LogOut className="w-6 h-6" />
+                  Logout Session
+                </button>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] z-[100] flex justify-around p-2 rounded-[28px] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden" style={{ backgroundColor: 'rgba(8,12,20,0.9)', backdropFilter: 'blur(25px)' }}>
@@ -204,11 +316,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                </div>
             </motion.div>
             
-            {/* Mobile Logo */}
-            <Link href="/dashboard" className="md:hidden flex items-center gap-2.5">
-              <Logo variant="dark" className="w-8 h-8 rounded-full shadow-[0_4px_15px_rgba(255,215,0,0.3)]" />
-              <span className="text-xl font-black text-white tracking-tighter">Coppr</span>
-            </Link>
+            {/* Mobile Hamburger / Logo */}
+            <div className="md:hidden flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 -ml-2 text-white/60 hover:text-white transition-colors"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <Logo variant="dark" className="w-8 h-8 rounded-full shadow-[0_4px_15px_rgba(255,215,0,0.3)]" />
+                <span className="text-xl font-black text-white tracking-tighter">Coppr</span>
+              </Link>
+            </div>
           </div>
 
           {/* RIGHT: User Actions */}
