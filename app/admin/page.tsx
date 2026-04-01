@@ -1,126 +1,217 @@
-export const metadata = { title: 'Admin Console | Coppr' };
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  
+  // FORM STATE
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState('bot');
+  const [desc, setDesc] = useState('');
+  const [link, setLink] = useState('');
+  
+  const supabase = createClient();
+  const router = useRouter();
+
+  const fetchContent = useCallback(async () => {
+    const { data } = await supabase.from('content').select('*').order('created_at', { ascending: false });
+    setItems(data || []);
+    setLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser || authUser.email !== 'anilava.babun@gmail.com') { 
+        router.push('/dashboard');
+        return;
+      }
+      setUser(authUser);
+      fetchContent();
+    };
+    checkAdmin();
+  }, [supabase, router, fetchContent]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from('content').insert({
+      title,
+      type,
+      description: desc,
+      external_link: link,
+      is_premium: true
+    });
+
+    if (!error) {
+       setTitle('');
+       setDesc('');
+       setLink('');
+       fetchContent();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await supabase.from('content').delete().eq('id', id);
+    fetchContent();
+  };
+
+  if (loading) return <div className="p-20 text-center text-gray-500 italic">Authenticating Admin...</div>;
+
   return (
-    <div className="min-h-screen bg-[#0A0F1E] p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto py-20 px-4">
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-3xl font-bold text-white tracking-tighter">Coppr Admin Console</h1>
+        <div className="text-sm text-gray-400 font-medium">System Operator: <span className="text-[#00E676] font-black underline underline-offset-4 decoration-[#00E676]/30">{user?.email}</span></div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-navy-card p-6 rounded-card border border-white/10 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Coppr Executive Admin</h1>
-            <p className="text-sm text-gray-400">Founder Dashboard — Welcome, Anil</p>
-          </div>
-          <div className="flex gap-4">
-            <button className="px-4 py-2 bg-green-electric text-black font-bold rounded-badge text-sm transition-opacity hover:opacity-90">Post Live Update</button>
-            <button className="px-4 py-2 bg-white/10 text-white font-bold rounded-badge text-sm transition-colors hover:bg-white/20">Export CSV</button>
-          </div>
-        </header>
-
-        {/* OVERVIEW STATS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[{t: "Active Subscribers", v: "842", c: "+12 this week"}, {t: "Monthly Revenue", v: "Rs. 16.8L", c: "Stable"}, {t: "Pending Renewals", v: "145", c: "Requires attention"}, {t: "Failed Payments", v: "12", c: "Win-back active"}].map((stat, i) => (
-            <div key={i} className="card p-6 shadow-lg">
-              <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">{stat.t}</p>
-              <p className="text-3xl font-black text-white mb-1">{stat.v}</p>
-              <p className="text-xs text-green-electric font-semibold">{stat.c}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* MAIN PANELS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* LEFT COLUMN: FORMS */}
+        <div className="lg:col-span-1 space-y-8">
           
-          {/* SUBSCRIBERS */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="card p-6 h-[400px] overflow-y-auto w-full">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white">Recent Subscribers</h2>
-                <input type="text" placeholder="Search user..." className="bg-[#0A0F1E] border border-white/10 rounded-badge px-3 py-1.5 text-sm outline-none focus:border-green-electric transition-colors" />
+          {/* ASSET FORM */}
+          <div className="bot-card border-white/5 bg-[#131929]/80 backdrop-blur-md">
+            <h2 className="text-xl font-bold mb-6 text-[#00E676] font-black tracking-tight underline underline-offset-8 decoration-[#00E676]/20">Deploy New Asset</h2>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Protocol Type</label>
+                <select 
+                  className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm font-medium"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                >
+                  <option value="bot">Algorithmic Bot</option>
+                  <option value="indicator">Market Indicator</option>
+                  <option value="video">Tutorial Module</option>
+                </select>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-gray-300 min-w-[500px]">
-                  <thead>
-                    <tr className="border-b border-white/10 text-gray-500">
-                      <th className="pb-3 font-semibold w-1/4">Name</th>
-                      <th className="pb-3 font-semibold w-1/4">WhatsApp</th>
-                      <th className="pb-3 font-semibold">Status</th>
-                      <th className="pb-3 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {[1,2,3,4,5].map(i => (
-                      <tr key={i} className="hover:bg-white/5 transition-colors">
-                        <td className="py-3">Trader {i}</td>
-                        <td className="py-3">+91 98765 0000{i}</td>
-                        <td className="py-3"><span className="px-2 py-0.5 bg-green-electric/20 text-green-electric text-[10px] uppercase font-bold rounded border border-green-electric/20">Active</span></td>
-                        <td className="py-3 text-right">
-                          <button className="text-xs font-semibold text-gold-badge hover:underline mr-4">Message</button>
-                          <button className="text-xs font-semibold text-red-500 hover:underline">Expire</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Asset Name</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm placeholder-gray-700" 
+                  placeholder="e.g., RegressionX v2.2"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
               </div>
-            </div>
-
-            {/* CONTENT MANAGER */}
-            <div className="card p-6">
-              <h2 className="text-xl font-bold text-white mb-6">Content Manager</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button className="p-4 border border-dashed border-white/20 rounded-card text-gray-400 hover:text-white hover:border-white transition-colors text-sm font-semibold h-24 flex flex-col items-center justify-center gap-2 group">
-                  <span className="text-xl group-hover:scale-125 transition-transform">+</span> Upload New EA Bot
-                </button>
-                <button className="p-4 border border-dashed border-white/20 rounded-card text-gray-400 hover:text-white hover:border-white transition-colors text-sm font-semibold h-24 flex flex-col items-center justify-center gap-2 group">
-                  <span className="text-xl group-hover:scale-125 transition-transform">+</span> Upload Video Tutorial
-                </button>
+              <div>
+                <label className="block text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Global Link (MT5/Storage)</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm placeholder-gray-700 font-mono" 
+                  placeholder="https://..."
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                />
               </div>
-            </div>
+              <button type="submit" className="w-full py-3 bg-[#00E676] text-[#0B0F1A] rounded-[6px] text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[#00E676]/10">Broadcast Asset</button>
+            </form>
           </div>
 
-          {/* SIDE PANELS */}
-          <div className="space-y-8">
-            
-            {/* NOTIFICATIONS & PAYMENTS QUICK ACTIONS */}
-            <div className="card p-6 text-sm">
-              <h2 className="text-lg font-bold text-white mb-4">Quick Actions</h2>
-              <div className="space-y-3">
-                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-green-electric transition-colors group">
-                  <strong className="text-white block group-hover:text-green-electric transition-colors">Send Push Notification</strong>
-                  <span className="text-gray-500 text-xs">Broadcast to all active members</span>
-                </button>
-                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-gold-badge transition-colors group">
-                  <strong className="text-white block group-hover:text-gold-badge transition-colors">Process Refunds</strong>
-                  <span className="text-gray-500 text-xs">2 pending requests</span>
-                </button>
-                <button className="w-full text-left p-3 rounded-badge bg-[#0A0F1E] border border-white/5 hover:border-white/50 transition-colors group">
-                  <strong className="text-white block">API & Gateway Settings</strong>
-                  <span className="text-gray-500 text-xs">Webhook, AiSensy, Price config</span>
-                </button>
-              </div>
-            </div>
-
-            {/* FAILED PAYMENTS */}
-            <div className="card p-6">
-              <h2 className="text-lg font-bold text-red-500 mb-4 flex items-center gap-2">
-                Failed Renewals<span className="px-2 py-0.5 bg-red-500/20 text-[10px] uppercase rounded-badge border border-red-500/20">Win-back</span>
-              </h2>
-              <div className="space-y-4">
-                {[1,2,3].map(i => (
-                  <div key={i} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
-                    <div>
-                      <p className="text-white font-medium">User {i}</p>
-                      <p className="text-xs text-gray-500">Day {i*2} Warning Sent</p>
-                    </div>
-                    <button className="px-3 py-1.5 bg-white/5 font-semibold rounded-badge text-xs hover:bg-white/10 transition-colors">Remind</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+          {/* LIVE UPDATE FORM */}
+          <div className="bot-card border-[#F5A623]/10 bg-[#F5A623]/5 backdrop-blur-md">
+            <h2 className="text-xl font-bold mb-4 text-[#F5A623] font-black tracking-tight underline underline-offset-8 decoration-[#F5A623]/20">Flash News Update</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const target = e.target as HTMLFormElement;
+              const text = (target.elements.namedItem('update') as HTMLTextAreaElement).value;
+              await supabase.from('updates').insert({ content: text });
+              target.reset();
+              window.location.reload(); 
+            }} className="space-y-4">
+              <textarea 
+                name="update"
+                className="w-full bg-[#0A0F1E] border border-white/10 rounded-[6px] p-3 text-white focus:outline-none text-sm h-24 placeholder-gray-700 italic" 
+                placeholder="What's the signal today?"
+                required
+              />
+              <button type="submit" className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-[6px] text-xs font-black uppercase tracking-widest transition-all border border-white/10">Broadcast Signal →</button>
+            </form>
           </div>
 
         </div>
+
+        {/* RIGHT COLUMN: LISTINGS */}
+        <div className="lg:col-span-2 space-y-12">
+          
+          <div>
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white font-black tracking-tight underline underline-offset-8 decoration-white/10">
+              Active Terminal Assets
+            </h2>
+            <div className="grid grid-cols-1 gap-3">
+              {items.map((item) => (
+                <div key={item.id} className="bot-card p-4 border-white/5 flex items-center justify-between group bg-[#131929] hover:border-[#00E676]/30 transition-all">
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-lg">
+                        {item.type === 'bot' ? '🤖' : item.type === 'indicator' ? '📊' : '🎬'}
+                     </div>
+                     <div>
+                        <h3 className="font-bold text-white text-sm">{item.title}</h3>
+                        <p className="text-[10px] text-gray-500 truncate max-w-[300px]">{item.external_link || 'No link added'}</p>
+                     </div>
+                  </div>
+                  <button 
+                    onClick={() => handleDelete(item.id)}
+                    className="text-[10px] font-black text-red-500/50 hover:text-red-500 uppercase tracking-widest px-3 py-1 border border-red-500/10 rounded-badge hover:bg-red-500/5 transition-all"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {items.length === 0 && <div className="py-10 text-center text-gray-700 italic border border-dashed border-white/5 rounded-card">No assets published yet.</div>}
+            </div>
+          </div>
+
+          <LiveUpdatesManager supabase={supabase} />
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function LiveUpdatesManager({ supabase }: { supabase: any }) {
+  const [updates, setUpdates] = useState<any[]>([]);
+
+  const fetchUpdates = useCallback(async () => {
+    const { data } = await supabase.from('updates').select('*').order('created_at', { ascending: false });
+    setUpdates(data || []);
+  }, [supabase]);
+
+  useEffect(() => { fetchUpdates(); }, [fetchUpdates]);
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-gold-badge">
+        <span className="w-2 h-2 bg-gold-badge rounded-full animate-ping"></span>
+        Broadcast Mission Logs
+      </h2>
+      <div className="space-y-3">
+        {updates.map((up: any) => (
+          <div key={up.id} className="card p-4 border-white/5 flex items-center justify-between group hover:bg-white/[0.02] transition-all">
+            <div className="flex-1 pr-6">
+              <p className="text-xs text-gray-400 line-clamp-2 italic leading-relaxed">"{up.content}"</p>
+              <p className="text-[9px] text-gray-600 mt-1 font-bold">{new Date(up.created_at).toLocaleString()}</p>
+            </div>
+            <button 
+              onClick={async () => {
+                await supabase.from('updates').delete().eq('id', up.id);
+                fetchUpdates();
+              }}
+              className="text-[10px] font-black text-red-500/30 hover:text-red-500 uppercase tracking-widest px-3 py-1 border border-red-500/5 hover:border-red-500/20 rounded-badge transition-all"
+            >
+              Kill Feed
+            </button>
+          </div>
+        ))}
+        {updates.length === 0 && <p className="text-xs text-gray-700 italic px-4 py-8 border border-dashed border-white/5 rounded-card text-center">No broadcast history found.</p>}
       </div>
     </div>
   );
