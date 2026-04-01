@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { addAsset, deleteAsset, addUpdate, deleteUpdate } from './actions';
 
 export default function AdminPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -50,7 +51,7 @@ export default function AdminPage() {
       ? JSON.stringify({ desc, winRate, trades, avgGain }) 
       : desc;
 
-    const { error } = await supabase.from('content').insert({
+    const res = await addAsset({
       title,
       type,
       description: payloadDesc,
@@ -58,7 +59,7 @@ export default function AdminPage() {
       is_premium: true
     });
 
-    if (!error) {
+    if (res.success) {
        setTitle('');
        setDesc('');
        setLink('');
@@ -66,11 +67,14 @@ export default function AdminPage() {
        setTrades('41');
        setAvgGain('+2.1%');
        fetchContent();
+    } else {
+       alert("Failed to deploy asset: " + res.error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('content').delete().eq('id', id);
+    const res = await deleteAsset(id);
+    if (!res.success) alert("Failed to delete: " + res.error);
     fetchContent();
   };
 
@@ -154,7 +158,11 @@ export default function AdminPage() {
               e.preventDefault();
               const target = e.target as HTMLFormElement;
               const text = (target.elements.namedItem('update') as HTMLTextAreaElement).value;
-              await supabase.from('updates').insert({ content: text });
+              const res = await addUpdate(text);
+              if (!res.success) {
+                 alert("Failed to broadcast news: " + res.error);
+                 return;
+              }
               target.reset();
               window.location.reload(); 
             }} className="space-y-4">
@@ -234,8 +242,9 @@ function LiveUpdatesManager({ supabase }: { supabase: any }) {
             </div>
             <button 
               onClick={async () => {
-                await supabase.from('updates').delete().eq('id', up.id);
-                fetchUpdates();
+                const res = await deleteUpdate(up.id);
+                if (res.success) fetchUpdates();
+                else alert("Failed to kill feed: " + res.error);
               }}
               className="text-[10px] font-black text-red-500/30 hover:text-red-500 uppercase tracking-widest px-3 py-1 border border-red-500/5 hover:border-red-500/20 rounded-badge transition-all"
             >

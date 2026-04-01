@@ -29,7 +29,7 @@ export default async function DashboardHome() {
       </div>
 
       {/* STATS ROW (HIGH FIDELITY) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
             t: "Active Bots", v: "4", badge: "+1 this month", icon: "🤖", color: "#00E676", 
