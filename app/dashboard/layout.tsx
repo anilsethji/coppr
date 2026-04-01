@@ -1,11 +1,36 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
+import { createClient } from '@/lib/supabase/client';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
+  const [initials, setInitials] = useState('JD');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.full_name) {
+          const parts = profile.full_name.split(' ');
+          const first = parts[0]?.charAt(0) || '';
+          const last = parts[parts.length - 1]?.charAt(0) || '';
+          setInitials((first + last).toUpperCase() || 'JD');
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const mainLinks = [
     { name: 'Home', href: '/dashboard', icon: '🏠' },
@@ -134,9 +159,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             {/* Avatar Gradient */}
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-black border border-white/10 shadow-[0_4px_15px_rgba(255,215,0,0.2)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,215,0,0.4)] transition-all" style={{ background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' }}>
-              JD
-            </div>
+            <Link href="/dashboard/account" className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-black border border-white/10 shadow-[0_4px_15px_rgba(255,215,0,0.2)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,215,0,0.4)] transition-all bg-gradient-to-br from-[#FFD700] to-[#FFA500]">
+              {initials}
+            </Link>
           </div>
         </header>
 
