@@ -95,6 +95,12 @@ export function Navbar() {
                   <span className="w-2 h-2 rounded-full bg-[#00E676] group-hover:animate-ping"></span>
                   Member Dashboard
                 </Link>
+                {(user?.email === 'anilavababun@gmail.com' || user?.email === 'anilava.babun@gmail.com') && (
+                  <Link href="/admin" onClick={() => setIsOpen(false)} className="text-[#F5A623] flex items-center gap-2 mt-2">
+                    <span className="text-xl -ml-1">👑</span>
+                    Admin Console
+                  </Link>
+                )}
               </>
             ) : (
               <>
