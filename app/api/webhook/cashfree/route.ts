@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   const timestamp = request.headers.get('x-webhook-timestamp');
 
   // 1. VERIFY SIGNATURE (Security)
-  // Cashfree uses a specific signature for webhooks: HMAC-SHA256
   const secretKey = process.env.CASHFREE_SECRET_KEY!;
   const rawSignature = timestamp + body;
   const expectedSignature = crypto
@@ -23,18 +22,15 @@ export async function POST(request: Request) {
 
   const payload = JSON.parse(body);
   const { data: { order, payment } } = payload;
-
   const supabase = createClient();
 
   // 2. CHECK PAYMENT STATUS
   if (payment.payment_status === 'SUCCESS') {
     const orderId = order.order_id;
     const amount = order.order_amount;
-
-    // 3. GET CUSTOMER EMAIL (For Guest Payments)
     const customerEmail = payload.customer_details?.customer_email || payload.data?.customer_details?.customer_email;
 
-    // 4. UPDATE TRANSACTIONS TABLE
+    // 3. UPDATE TRANSACTIONS TABLE
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
       .update({ 
@@ -42,32 +38,85 @@ export async function POST(request: Request) {
         payment_method: payment.payment_group 
       })
       .eq('order_id', orderId)
-      .select('user_id')
+      .select('user_id, amount')
       .single();
 
-    // 5. RECORD GUEST PAYMENT (For Frictionless Activation)
-    if (customerEmail) {
-      console.log('📝 Recording guest payment for:', customerEmail);
-      await supabase.from('pre_paid_customers').upsert({
-        email: customerEmail,
-        order_id: orderId,
-        amount: amount,
-        status: 'paid'
-      });
-    }
+    // 4. STRATEGY MODE (order_id starts with strategy_)
+    if (orderId.startsWith('strategy_')) {
+      const parts = orderId.split('_');
+      const strategyId = parts[1]; // order_strategyId_timestamp
+      
+      const userId = transaction?.user_id;
+      if (userId) {
+        // A. Activate Strategy Subscription
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
 
-    // 6. ACTIVATE USER PROFILE (If already registered)
-    if (transaction?.user_id) {
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
+        await supabase.from('user_strategies').upsert({
+          user_id: userId,
+          strategy_id: strategyId,
+          status: 'ACTIVE',
+          current_period_end: expiryDate.toISOString()
+        });
 
-      await supabase
-        .from('profiles')
-        .update({
-          subscription_status: 'active',
-          subscription_expiry: expiryDate.toISOString(),
-        })
-        .eq('id', transaction.user_id);
+        // B. Record Creator Earnings (70/30 Split)
+        const { data: strat } = await supabase
+          .from('strategies')
+          .select('creator_id')
+          .eq('id', strategyId)
+          .single();
+
+        if (strat?.creator_id) {
+          await supabase.from('creator_earnings').insert({
+            creator_id: strat.creator_id,
+            strategy_id: strategyId,
+            amount: amount * 0.7, // 70% to creator
+            status: 'PENDING_PAYOUT',
+            payment_order_id: orderId
+          });
+        }
+
+        // C. Trigger VPS Auto-Follow (MT5 Terminal)
+        // Note: Replace with your actual VPS URL
+        try {
+            await fetch('https://vps-bridge.coppr.in/mt5-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.VPS_INTERNAL_KEY}` },
+                body: JSON.stringify({
+                    action: 'START_FOLLOW',
+                    userId: userId,
+                    strategyId: strategyId,
+                    orderId: orderId,
+                    broker: 'MT5' // Simplified
+                })
+            });
+        } catch (vpsError) {
+            console.error('VPS Trigger Failed:', vpsError);
+        }
+      }
+    } else {
+      // 5. BASE SUBSCRIPTION MODE (Original Logic)
+      if (customerEmail) {
+        await supabase.from('pre_paid_customers').upsert({
+          email: customerEmail,
+          order_id: orderId,
+          amount: amount,
+          status: 'paid'
+        });
+      }
+
+      if (transaction?.user_id) {
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
+
+        await supabase
+          .from('profiles')
+          .update({
+            subscription_status: 'active',
+            subscription_expiry: expiryDate.toISOString(),
+          })
+          .eq('id', transaction.user_id);
+      }
     }
   }
 

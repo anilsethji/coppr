@@ -78,6 +78,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'My Account', href: '/dashboard/account', icon: User }
   ];
 
+  const creatorLinks = [
+    { name: 'My Algos & Indicators', href: '/dashboard/creator/submit', icon: Zap }
+  ];
+
   // Logic to conditionally add Admin Console
   const finalSupportLinks = [...supportLinks];
   if (isAdmin) {
@@ -127,7 +131,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          {/* SUPPORT/ADMIN SECTION */}
+          {/* SUPPORT SECTION */}
           <div className="px-4">
             <h3 className="text-[9px] uppercase font-black tracking-[0.2em] mb-4 pl-2 text-white/20">SUPPORT</h3>
             <div className="space-y-1">
@@ -144,6 +148,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     }>
                       <div className="flex items-center gap-3">
                         <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-[#FFD700]' : isSpecial ? 'text-[#00E676]/60' : 'text-white/20 group-hover:text-white/60'}`} />
+                        <span>{item.name}</span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CREATORS SECTION */}
+          <div className="px-4">
+            <h3 className="text-[9px] uppercase font-black tracking-[0.2em] mb-4 pl-2 text-white/20">CREATORS</h3>
+            <div className="space-y-1">
+              {creatorLinks.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <motion.div key={item.name} whileTap={{ scale: 0.96 }}>
+                    <Link href={item.href} className={`flex items-center px-3 py-2.5 rounded-[12px] text-sm font-semibold transition-all duration-300 group ${isActive ? 'text-white' : 'text-[#FFD700]/60 hover:text-[#FFD700] hover:bg-[#FFD700]/5'}`} style={
+                      isActive 
+                        ? { background: 'linear-gradient(90deg, rgba(255,215,0,0.15), transparent)', borderLeft: '2px solid #FFD700' }
+                        : { borderLeft: '2px solid transparent' }
+                    }>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-[18px] h-[18px] transition-colors ${isActive ? 'text-[#FFD700]' : 'text-[#FFD700]/30 group-hover:text-[#FFD700]/80'}`} />
                         <span>{item.name}</span>
                       </div>
                     </Link>
@@ -233,6 +262,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           className="flex items-center gap-4 py-3 text-lg font-bold text-white/40"
                         >
                           <Icon className="w-6 h-6" />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Creators */}
+                <div>
+                  <h3 className="text-[10px] uppercase font-black tracking-[0.2em] mb-6 text-white/20">Creators</h3>
+                  <div className="space-y-2">
+                    {creatorLinks.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link 
+                          key={item.name} 
+                          href={item.href} 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-4 py-3 text-lg font-bold text-[#FFD700]"
+                        >
+                          <Icon className="w-6 h-6 text-[#FFD700]/60" />
                           {item.name}
                         </Link>
                       );

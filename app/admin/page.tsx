@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { addAsset, deleteAsset, updateAsset, addUpdate, deleteUpdate } from './actions';
+import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 export default function AdminPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -207,7 +208,10 @@ export default function AdminPage() {
 
         {/* RIGHT COLUMN: LISTINGS */}
         <div className="lg:col-span-2 space-y-12">
-          
+
+          {/* PENDING MARKETPLACE APPROVALS */}
+          <PendingStrategiesPanel supabase={supabase} />
+
           <div>
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white font-black tracking-tight underline underline-offset-8 decoration-white/10">
               Active Terminal Assets
@@ -261,6 +265,97 @@ export default function AdminPage() {
           <LiveUpdatesManager supabase={supabase} />
         </div>
 
+      </div>
+    </div>
+  );
+}
+
+function PendingStrategiesPanel({ supabase }: { supabase: any }) {
+  const [pending, setPending] = useState<any[]>([]);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchPending = useCallback(async () => {
+    const { data } = await supabase
+      .from('strategies')
+      .select('*, creator_profiles(display_name, handle)')
+      .eq('status', 'PENDING')
+      .order('created_at', { ascending: false });
+    setPending(data || []);
+  }, [supabase]);
+
+  useEffect(() => { fetchPending(); }, [fetchPending]);
+
+  const handleApprove = async (id: string) => {
+    setActionLoading(id + '_approve');
+    await supabase
+      .from('strategies')
+      .update({ status: 'ACTIVE', is_public: true, is_active: true })
+      .eq('id', id);
+    await fetchPending();
+    setActionLoading(null);
+  };
+
+  const handleReject = async (id: string) => {
+    if (!confirm('Reject and delete this submission?')) return;
+    setActionLoading(id + '_reject');
+    await supabase.from('strategies').delete().eq('id', id);
+    await fetchPending();
+    setActionLoading(null);
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-[#FFD700] font-black tracking-tight">
+        <Clock className="w-5 h-5" />
+        Pending Approvals
+        {pending.length > 0 && (
+          <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] font-black">{pending.length}</span>
+        )}
+      </h2>
+      <div className="space-y-3">
+        {pending.map((s) => (
+          <div key={s.id} className="bg-[#131929] border border-[#FFD700]/10 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:border-[#FFD700]/30 transition-all">
+            {/* Theme Swatch */}
+            <div className="w-10 h-10 rounded-lg shrink-0 border border-white/10 flex items-center justify-center" style={{ backgroundColor: (s.theme_color || '#FFD700') + '20' }}>
+              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: s.theme_color || '#FFD700' }} />
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-black text-white truncate">{s.name}</h3>
+              <div className="flex flex-wrap gap-2 mt-1">
+                <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{s.type?.replace('_', ' ')}</span>
+                <span className="text-[9px] font-bold text-white/30">·</span>
+                <span className="text-[9px] font-bold text-white/30 uppercase">{s.symbol}</span>
+                <span className="text-[9px] font-bold text-white/30">·</span>
+                <span className="text-[9px] font-bold text-[#FFD700]/50">@{s.creator_profiles?.handle || 'unknown'}</span>
+              </div>
+            </div>
+            {/* Actions */}
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => handleApprove(s.id)}
+                disabled={actionLoading === s.id + '_approve'}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00E676]/10 border border-[#00E676]/30 text-[#00E676] text-[10px] font-black uppercase tracking-widest hover:bg-[#00E676]/20 transition-all disabled:opacity-40"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {actionLoading === s.id + '_approve' ? 'Approving...' : 'Approve'}
+              </button>
+              <button
+                onClick={() => handleReject(s.id)}
+                disabled={actionLoading === s.id + '_reject'}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all disabled:opacity-40"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                {actionLoading === s.id + '_reject' ? 'Rejecting...' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        ))}
+        {pending.length === 0 && (
+          <div className="py-10 text-center text-gray-700 italic border border-dashed border-[#FFD700]/10 rounded-xl">
+            No pending submissions right now.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { usePathname } from 'next/navigation';
 
-export function Footer() {
+export default function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
 

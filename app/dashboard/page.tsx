@@ -250,19 +250,19 @@ export default function DashboardHome() {
           { icon: Bot, title: "EA Bots", sub: "Bots & Algos", href: "/dashboard/bots" },
           { icon: BarChart3, title: "Indicators", sub: "Premium Tools", href: "/dashboard/indicators" },
           { icon: PlayCircle, title: "Tutorials", sub: "Video Guides", href: "/dashboard/tutorials" },
-          { icon: BookOpen, title: "Setup", sub: "Guides", href: "/dashboard/guides" }
+          { icon: Zap, title: "Share My Strategy", sub: "Submit & Earn", href: "/dashboard/creator/submit", highlight: true }
         ].map((card, i) => {
           const Icon = card.icon;
           return (
-            <Link key={i} href={card.href} className="flex flex-col p-4 rounded-[14px] transition-all duration-200 group hover:-translate-y-[2px] hover:border-white/15 hover:bg-white/5 bg-white/5 border border-white/10">
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-[#FFD700]/10 transition-all">
-                <Icon className="w-5 h-5 text-white/50 group-hover:text-[#FFD700]" />
+            <Link key={i} href={card.href} className={`flex flex-col p-4 rounded-[14px] transition-all duration-200 group hover:-translate-y-[2px] border ${card.highlight ? 'bg-[#FFD700]/5 border-[#FFD700]/20 hover:border-[#FFD700]/40' : 'bg-white/5 border-white/10 hover:border-white/15 hover:bg-white/10'}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-all ${card.highlight ? 'bg-[#FFD700]/10' : 'bg-white/5 group-hover:bg-[#FFD700]/5'}`}>
+                <Icon className={`w-5 h-5 transition-colors ${card.highlight ? 'text-[#FFD700]' : 'text-white/50 group-hover:text-[#FFD700]'}`} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-bold tracking-wide text-white">{card.title}</span>
-                <ArrowUpRight className="w-3.5 h-3.5 opacity-20 group-hover:opacity-100 transition-opacity text-[#FFD700]" />
+                <span className={`text-[13px] font-bold tracking-wide ${card.highlight ? 'text-[#FFD700]' : 'text-white'}`}>{card.title}</span>
+                <ArrowUpRight className={`w-3.5 h-3.5 transition-opacity ${card.highlight ? 'opacity-100' : 'opacity-20 group-hover:opacity-100'} text-[#FFD700]`} />
               </div>
-              <span className="text-[10px] mt-1 text-white/40">{card.sub}</span>
+              <span className={`text-[10px] mt-1 ${card.highlight ? 'text-[#FFD700]/60' : 'text-white/40'}`}>{card.sub}</span>
             </Link>
           );
         })}
