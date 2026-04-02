@@ -20,8 +20,9 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import JourneyBar from '@/components/marketplace/JourneyBar';
+import { Suspense } from 'react';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order_id');
   const strategyId = searchParams.get('strategy_id');
@@ -234,4 +235,17 @@ export default function SuccessPage() {
       </main>
     </div>
   );
+}
+
+export default function SuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#080C14] flex flex-col items-center justify-center space-y-6">
+                <Loader2 className="w-12 h-12 text-[#FFD700] animate-spin" />
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Verifying Secure Protocol...</p>
+            </div>
+        }>
+            <SuccessContent />
+        </Suspense>
+    );
 }

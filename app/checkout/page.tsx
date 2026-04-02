@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 // @ts-ignore
@@ -17,7 +17,7 @@ const brokers = [
     { id: 'other', name: 'Other (MetaTrader 5)', icon: '🤖' }
 ];
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const strategyId = searchParams.get('strategyId');
@@ -227,4 +227,16 @@ export default function CheckoutPage() {
       </div>
     </div>
   );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#080C14]">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FFD700]" />
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
+    );
 }
