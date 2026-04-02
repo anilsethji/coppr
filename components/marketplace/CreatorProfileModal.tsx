@@ -67,7 +67,7 @@ export default function CreatorProfileModal({ handle, isOpen, onClose }: Creator
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/20">ACCESSING CREATOR PROTOCOL...</span>
                 </div>
               ) : data ? (
-                <CreatorProfileContent initialData={data} isModal={true} />
+                <CreatorProfileContent initialData={data} isModal={true} onFollowToggle={() => {}} />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/20">
                     Failed to load profile.

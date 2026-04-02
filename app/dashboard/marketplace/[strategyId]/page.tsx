@@ -171,7 +171,7 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.03]">
-                                    {logs.length > 0 ? logs.map((log, i) => (
+                                    {logs.length > 0 ? logs.map((log: any, i: number) => (
                                         <tr key={log.id} className="hover:bg-white/[0.01]">
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
