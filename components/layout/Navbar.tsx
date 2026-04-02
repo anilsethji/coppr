@@ -13,10 +13,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Hide Navbar completely on Dashboard, Admin, and Login routes
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin') || pathname === '/login') {
-    return null;
-  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -32,6 +28,11 @@ export default function Navbar() {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+
+  // Hide Navbar completely on Dashboard, Admin, and Login routes
+  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin') || pathname === '/login') {
+    return null;
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
