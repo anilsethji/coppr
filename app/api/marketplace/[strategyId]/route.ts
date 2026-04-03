@@ -36,27 +36,49 @@ export async function GET(
 
     if (stratError || !strategy) throw new Error('Strategy not found');
 
-    // 2. Fetch Last 20 Signal Logs
-    const { data: logs, error: logsError } = await supabase
-      .from('signal_logs')
-      .select('*')
+    // 2. Fetch Last 20 Signal Logs (RESILLIENT)
+    let logs = [];
+    try {
+      const { data: logData, error: logsError } = await supabase
+        .from('signal_logs')
+        .select('*')
+        .eq('strategy_id', strategyId)
+        .order('timestamp', { ascending: false })
+        .limit(20);
+      if (!logsError) logs = logData || [];
+    } catch (e) {
+      console.warn('Signal logs fetch failed (likely table missing):', e);
+    }
+
+    // 3. FETCH REVIEW STATS (RESILLIENT)
+    let reviewCount = 0;
+    let avgRating = 0;
+    try {
+      const { data: reviews, error: revError } = await supabase
+        .from('strategy_reviews')
+        .select('rating')
+        .eq('strategy_id', strategyId);
+
+      if (!revError && reviews) {
+        reviewCount = reviews.length;
+        avgRating = reviewCount > 0 
+          ? reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / reviewCount 
+          : 0;
+      }
+    } catch (e) {
+      console.warn('Reviews fetch failed (likely table missing):', e);
+    }
+
+    // 4. CHECK USER SUBSCRIPTION STATUS
+    const { data: subscription, error: subError } = await supabase
+      .from('user_strategies')
+      .select('id, status, signal_key, mt5_account_number')
+      .eq('user_id', user.id)
       .eq('strategy_id', strategyId)
-      .order('timestamp', { ascending: false })
-      .limit(20);
+      .eq('status', 'ACTIVE')
+      .maybeSingle();
 
-    // 3. Fetch Review Stats
-    const { data: reviews, error: revError } = await supabase
-      .from('strategy_reviews')
-      .select('rating')
-      .eq('strategy_id', strategyId);
-
-    const reviewCount = reviews?.length || 0;
-    const avgRating = reviewCount > 0 
-      ? reviews!.reduce((acc, r) => acc + r.rating, 0) / reviewCount 
-      : 0;
-
-    // 4. PERFORMANCE BY WEEK (Mock data or aggregation logic)
-    // For now, returning a sample set for the chart
+    // 5. PERFORMANCE BY WEEK (Mock data or aggregation logic)
     const performanceByWeek = [
       { week: 'W1', gain: 2.1 },
       { week: 'W2', gain: 3.5 },
@@ -66,10 +88,12 @@ export async function GET(
 
     return NextResponse.json({
       strategy,
-      logs: logs || [],
+      logs: logs,
       reviewCount,
       avgRating,
-      performanceByWeek
+      performanceByWeek,
+      isSubscribed: !!subscription,
+      subscriptionData: subscription || null
     }, { status: 200 });
 
   } catch (error: any) {

@@ -20,7 +20,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import JourneyBar from '@/components/marketplace/JourneyBar';
-import StrategyCard from '@/components/marketplace/StrategyCard'; // For the banner visual logic
+import StrategyCard from '@/components/marketplace/StrategyCard';
+import ConnectModal from '@/components/marketplace/ConnectModal';
+import { downloadEAConfig } from '@/lib/utils/config-generator';
 
 export default function StrategyDetailPage({ params }: { params: { strategyId: string } }) {
   const router = useRouter();
@@ -29,6 +31,9 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Trade Log' | 'About' | 'Setup Guide' | 'Reviews'>('Trade Log');
   const [reviews, setReviews] = useState<any[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -36,6 +41,8 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
         const res = await fetch(`/api/marketplace/${strategyId}`);
         const data = await res.json();
         setStrategyData(data);
+        setIsSubscribed(data.isSubscribed);
+        setSubscriptionData(data.subscriptionData);
         
         const revRes = await fetch(`/api/marketplace/${strategyId}/reviews`);
         const revData = await revRes.json();
@@ -247,7 +254,7 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
 
                 <div className="space-y-3 mb-8">
                     {[
-                        "Instant .mq5 Strategy Download",
+                        "Instant .ex5 Strategy Download",
                         "Live Broker Webhook Access",
                         "Unlimited Auto-Execution",
                         "7-Day Satisfaction Refund"
@@ -259,14 +266,26 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
                     ))}
                 </div>
 
-                <motion.button 
+                {isSubscribed ? (
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setIsConnectModalOpen(true)}
+                    className="w-full py-4 rounded-2xl bg-[#00E676] text-black font-black uppercase tracking-widest text-[13px] shadow-[0_10px_30px_rgba(0,230,118,0.3)] hover:shadow-[0_12px_40px_rgba(0,230,118,0.5)] transition-all mb-4 flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    Connect EA Bot
+                  </motion.button>
+                ) : (
+                  <motion.button 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => router.push(`/checkout?strategyId=${strategyId}`)}
                     className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] text-black font-black uppercase tracking-widest text-[13px] shadow-[0_10px_30px_rgba(255,215,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,215,0,0.5)] transition-all mb-4"
-                >
+                  >
                     Subscribe Now
-                </motion.button>
+                  </motion.button>
+                )}
                 <p className="text-center text-[10px] font-bold text-white/25 uppercase tracking-wide">Cancel anytime · SECURED PAYMENTS</p>
             </div>
 
@@ -297,6 +316,13 @@ export default function StrategyDetailPage({ params }: { params: { strategyId: s
         </div>
       </div>
 
+      <ConnectModal 
+        isOpen={isConnectModalOpen} 
+        onClose={() => setIsConnectModalOpen(false)}
+        strategy={strategy}
+        subscription={subscriptionData}
+        onAccountLinked={(newId) => setSubscriptionData({...subscriptionData, mt5_account_number: newId})}
+      />
     </div>
   );
 }

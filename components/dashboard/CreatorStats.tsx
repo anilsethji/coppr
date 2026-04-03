@@ -71,11 +71,17 @@ export default function CreatorStats() {
 
         <div className="p-8 rounded-[40px] bg-white/[0.01] border border-dashed border-white/10 flex flex-col items-center justify-center text-center space-y-4">
              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                <ShieldCheck className="w-6 h-6 text-white/20" />
+                <Zap className={`w-6 h-6 ${stats?.executionMode === 'COPPR_MANAGED' ? 'text-[#00E676]' : 'text-white/20'}`} />
              </div>
              <div className="space-y-1">
-                <p className="text-[10px] font-black text-white/40 uppercase italic tracking-widest">Protocol Verified</p>
-                <p className="text-[9px] text-white/10 font-bold uppercase tracking-widest leading-loose">Automated Payouts occur on the 1st of every month.</p>
+                <p className="text-[10px] font-black text-white/40 uppercase italic tracking-widest">
+                    {stats?.executionMode === 'COPPR_MANAGED' ? 'Managed Node Active' : 'Self-Hosted Bridge'}
+                </p>
+                <p className="text-[9px] text-white/10 font-bold uppercase tracking-widest leading-loose">
+                    {stats?.executionMode === 'COPPR_MANAGED' 
+                        ? 'Your EA is running on our high-performance VPS.' 
+                        : 'Using default REST-bridge via your local terminal.'}
+                </p>
              </div>
         </div>
     </div>

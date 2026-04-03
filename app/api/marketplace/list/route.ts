@@ -32,6 +32,9 @@ export async function GET(request: Request) {
         is_active,
         theme_color,
         thumbnail_url,
+        win_rate,
+        total_trades,
+        avg_gain_pct,
         created_at,
         creator_id,
         creator_profiles (

@@ -79,7 +79,8 @@ export default function CreatorSubmitPage() {
     tier: 'PAID',
     mode: 'CLIENT_SIDE',
     theme_color: '#FFD700',
-    thumbnail_url: ''
+    thumbnail_url: '',
+    is_managed: true
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -105,8 +106,20 @@ export default function CreatorSubmitPage() {
 
     try {
         let creatorId = profile.id;
+        let eaFileUrl = '';
 
-        // 1. Create or Update Profile (if modified or new)
+        // 1. Upload EA File to Storage if Managed
+        if (strategy.is_managed && file) {
+            const fileName = `${user.id}/${Date.now()}-${file.name}`;
+            const { data: uploadData, error: uError } = await supabase.storage
+                .from('strategy-files')
+                .upload(fileName, file);
+            
+            if (uError) throw new Error("File Vault Upload Failed: " + uError.message);
+            eaFileUrl = uploadData.path;
+        }
+
+        // 2. Create or Update Profile
         const { data: prof, error: pError } = await supabase
             .from('creator_profiles')
             .upsert({
@@ -124,7 +137,7 @@ export default function CreatorSubmitPage() {
         if (pError) throw pError;
         creatorId = prof.id;
 
-        // 2. Create Strategy
+        // 3. Create Strategy with Managed Metadata
         const { error: sError } = await supabase
             .from('strategies')
             .insert({
@@ -142,6 +155,9 @@ export default function CreatorSubmitPage() {
                 mode: strategy.mode,
                 theme_color: strategy.theme_color,
                 thumbnail_url: strategy.thumbnail_url,
+                is_managed: strategy.is_managed,
+                ea_file_url: eaFileUrl,
+                execution_mode: strategy.is_managed ? 'COPPR_MANAGED' : 'SELF_HOSTED',
                 status: 'PENDING'
             });
 
@@ -374,6 +390,23 @@ export default function CreatorSubmitPage() {
                             <Upload className="w-8 h-8 text-[#FFD700]" />
                         </div>
                         
+                        <div className="max-w-sm mx-auto p-6 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-3xl mb-8 text-left">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <Bot className="w-5 h-5 text-[#FFD700]" />
+                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest">Coppr-Managed Execution</h4>
+                                </div>
+                                <button 
+                                    onClick={() => setStrategy({...strategy, is_managed: !strategy.is_managed})}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${strategy.is_managed ? 'bg-[#FFD700]' : 'bg-white/10'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-black transition-all ${strategy.is_managed ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
+                                Let Coppr host your EA on our proprietary high-speed fiber network. We handle the VPS 24/7. No manual setup required for you or your buyers.
+                            </p>
+                        </div>
                         {strategy.mode === 'VPS_MANAGED' ? (
                             <div className="space-y-4">
                                 <h3 className="text-2xl font-black text-[#FFD700]">VPS-MANAGED PROTOCOL</h3>
