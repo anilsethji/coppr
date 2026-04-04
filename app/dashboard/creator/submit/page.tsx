@@ -20,11 +20,29 @@ import CreatorStats from '@/components/dashboard/CreatorStats';
 const steps = ['Creator Profile', 'Strategy Details', 'Security Scan', 'Pricing'];
 
 export default function CreatorSubmitPage() {
+  return (
+    <div className="max-w-4xl mx-auto py-12 px-6">
+      <CreatorStats />
+      <React.Suspense fallback={
+        <div className="p-20 flex flex-col items-center justify-center gap-4">
+           <div className="w-10 h-10 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
+           <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Initializing Secure Terminal...</p>
+        </div>
+      }>
+        <SubmitFormContent />
+      </React.Suspense>
+    </div>
+  );
+}
+
+function SubmitFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [scanStatus, setScanStatus] = useState<'IDLE' | 'SCANNING' | 'CLEAN' | 'FAIL'>('IDLE');
+  
+  // ... rest of the existing page logic ...
 
   // Form State
   const [profile, setProfile] = useState({
