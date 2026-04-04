@@ -14,13 +14,14 @@ import {
   Image as LucideImage
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import CreatorStats from '@/components/dashboard/CreatorStats';
 
 const steps = ['Creator Profile', 'Strategy Details', 'Security Scan', 'Pricing'];
 
 export default function CreatorSubmitPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [scanStatus, setScanStatus] = useState<'IDLE' | 'SCANNING' | 'CLEAN' | 'FAIL'>('IDLE');
@@ -37,7 +38,7 @@ export default function CreatorSubmitPage() {
 
   const [hasProfile, setHasProfile] = useState(false);
 
-  // Fetch existing profile on mount
+  // Fetch existing profile and handle URL params
   React.useEffect(() => {
     async function loadProfile() {
         const supabase = createClient();
@@ -64,7 +65,24 @@ export default function CreatorSubmitPage() {
         }
     }
     loadProfile();
-  }, []);
+
+    // Handle Search Params for Origin restoration
+    const originParam = searchParams.get('origin');
+    if (originParam === 'OFFICIAL') {
+        setStrategy(prev => ({ 
+            ...prev, 
+            origin: 'OFFICIAL', 
+            mode: 'VPS_MANAGED', 
+            is_managed: true 
+        }));
+    } else if (originParam === 'MARKETPLACE') {
+        setStrategy(prev => ({ 
+            ...prev, 
+            origin: 'MARKETPLACE', 
+            mode: 'CLIENT_SIDE' 
+        }));
+    }
+  }, [searchParams]);
 
   const [strategy, setStrategy] = useState({
     name: '',

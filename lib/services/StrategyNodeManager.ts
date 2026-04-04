@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export interface NodeStatus {
   strategyId: string;
-  status: 'STOPPED' | 'STARTING' | 'RUNNING' | 'ERROR';
+  status: 'STOPPED' | 'STARTING' | 'RUNNING' | 'ERROR' | 'PROVISIONING';
   lastPing?: string;
   workerId?: string;
 }
@@ -10,12 +10,12 @@ export interface NodeStatus {
 export class StrategyNodeManager {
   /**
    * Activates a managed strategy node by provisioning a virtual MT5 instance.
-   * In production, this would trigger a Docker/ECS container launch.
+   * This triggers the state transition chain: STOPPED -> PROVISIONING -> RUNNING.
    */
   static async activateNode(strategyId: string): Promise<{ success: boolean; message: string }> {
     const supabase = createClient();
 
-    // 1. Verify Managed Strategy Eligibility
+    // 1. Check Strategy Managed State Eligibility
     const { data: strategy, error: sError } = await supabase
       .from('strategies')
       .select('*')
@@ -27,7 +27,7 @@ export class StrategyNodeManager {
     }
 
     if (strategy.execution_mode !== 'COPPR_MANAGED' || !strategy.is_managed) {
-      return { success: false, message: 'Strategy is not designated for Coppr Management' };
+      return { success: false, message: 'Strategy is not designated for Coppr Management (Mode: ' + strategy.execution_mode + ')' };
     }
 
     if (!strategy.ea_file_url) {
@@ -35,29 +35,41 @@ export class StrategyNodeManager {
     }
 
     try {
-      // 2. Mock Orchestration Logic (Production: Trigger ECS/Docker API)
-      console.log(`[NodeManager] Provisioning Virtual MT5 Node for strategy: ${strategyId}`);
+      // 2. Initiate Provisioning Orchestration
+      console.log(`[NodeManager] Initiating Provisioning for Virtual Node: ${strategyId}`);
       
-      // Update Status to STARTING
-      await supabase
+      // Update Status to PROVISIONING (Fulfillment phase)
+      const { error: upError } = await supabase
         .from('strategies')
-        .update({ managed_node_status: 'STARTING' })
+        .update({ 
+          managed_node_status: 'PROVISIONING',
+          is_managed_active: false 
+        })
         .eq('id', strategyId);
 
-      // 3. Simulate Node Bootstrapping (Async)
-      // In a real environment, this would be a webhook response from the worker
+      if (upError) throw upError;
+
+      // 3. Simulate Node Bootstrapping Lifecycle (Async)
+      // In production, this would trigger a Docker container in a background worker
       setTimeout(async () => {
-        const innerSupabase = createClient();
-        await innerSupabase
-          .from('strategies')
-          .update({ 
-            managed_node_status: 'RUNNING',
-            is_managed_active: true 
-          })
-          .eq('id', strategyId);
-        
-        console.log(`[NodeManager] Virtual Node LIVE for strategy: ${strategyId}`);
-      }, 5000);
+        try {
+          const innerSupabase = createClient();
+          console.log(`[NodeManager] Provisioning complete. Setting node to RUNNING: ${strategyId}`);
+          
+          await innerSupabase
+            .from('strategies')
+            .update({ 
+              managed_node_status: 'RUNNING',
+              is_managed_active: true,
+              last_node_ping: new Date().toISOString()
+            })
+            .eq('id', strategyId);
+            
+          console.log(`[NodeManager] Node LIVE on Coppr Fiber Channel: ${strategyId}`);
+        } catch (innerErr) {
+          console.error('[NodeManager] Post-Provisioning Failure:', innerErr);
+        }
+      }, 5000); // 5s mock delay for dev purposes
 
       return { 
         success: true, 
@@ -65,17 +77,17 @@ export class StrategyNodeManager {
       };
 
     } catch (err: any) {
-      console.error('[NodeManager] Error:', err);
+      console.error('[NodeManager] Provisioning Chain ERROR:', err);
       return { success: false, message: 'Internal Provisioning Error: ' + err.message };
     }
   }
 
   /**
-   * Stops a virtual execution node.
+   * Stops a virtual execution node gracefully.
    */
   static async stopNode(strategyId: string): Promise<void> {
     const supabase = createClient();
-    console.log(`[NodeManager] Stopping Virtual Node for strategy: ${strategyId}`);
+    console.log(`[NodeManager] Terminating Virtual Node: ${strategyId}`);
     
     await supabase
       .from('strategies')
