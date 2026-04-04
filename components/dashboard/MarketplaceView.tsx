@@ -5,18 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, ArrowUpDown, LayoutGrid, Search, Loader2 } from 'lucide-react';
 import JourneyBar from '@/components/marketplace/JourneyBar';
 import StrategyCard from '@/components/marketplace/StrategyCard';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 
 export function MarketplaceView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get('filter') || 'All';
   const { isSubscribed } = useSubscriptions();
   const [strategies, setStrategies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState(initialFilter);
   const [sort, setSort] = useState('winRate');
   const [search, setSearch] = useState('');
 

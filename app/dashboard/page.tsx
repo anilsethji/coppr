@@ -38,81 +38,13 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
-// MINIMALIST MOTION GRAPHICS FOR NAVIGATION GRID
-const NavAnimation = ({ type, color }: { type: string, color: string }) => {
-  if (type === 'EA Bots') {
-    return (
-      <div className="absolute inset-0 z-0 overflow-hidden opacity-20 group-hover:opacity-40 transition-opacity">
-        <motion.div 
-          animate={{ y: [0, 80, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-          className="w-full h-1" 
-          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
-        />
-        <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 flex items-center justify-center gap-1">
-           {[...Array(5)].map((_, i) => (
-             <motion.div 
-               key={i}
-               animate={{ height: [8, 20, 8], opacity: [0.3, 1, 0.3] }}
-               transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-               className="w-1 rounded-full" 
-               style={{ backgroundColor: color }}
-             />
-           ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (type === 'Indicators') {
-    return (
-      <div className="absolute inset-0 z-0 overflow-hidden opacity-20 group-hover:opacity-40 transition-opacity">
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
-          <motion.path 
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-            className="fill-none stroke-[2]" 
-            style={{ stroke: color }} 
-            d="M0 80 Q 50 20 100 80 T 200 20" 
-          />
-        </svg>
-      </div>
-    );
-  }
-
-  if (type === 'Knowledge') {
-    return (
-      <div className="absolute inset-0 z-0 overflow-hidden opacity-10 group-hover:opacity-30 transition-opacity flex items-center justify-center">
-         <motion.div 
-            animate={{ scale: [0.8, 1.2, 0.8], rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-         >
-            <BookOpen className="w-24 h-24" style={{ color }} />
-         </motion.div>
-      </div>
-    );
-  }
-
-  if (type === 'Creators') {
-    return (
-      <div className="absolute inset-0 z-0 overflow-hidden opacity-20 group-hover:opacity-40 transition-opacity flex items-center justify-center">
-        {[...Array(3)].map((_, i) => (
-          <motion.div 
-            key={i}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 2, opacity: 0 }}
-            transition={{ duration: 3, repeat: Infinity, delay: i * 1, ease: "easeOut" }}
-            className="absolute w-24 h-24 rounded-full border border-dashed"
-            style={{ borderColor: color }}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  return null;
-}
+// NAV GRID REFINEMENT (REFLECTIVE METALLIC SQUARES)
+const navCards = [
+  { icon: Bot, t: 'EA Bots', sub: 'Hub', href: '/dashboard/bots', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.25)' },
+  { icon: BarChart3, t: 'Indicators', sub: 'Suite', href: '/dashboard/indicators', color: '#00E676', glow: 'rgba(0, 230, 118, 0.25)' },
+  { icon: BookOpen, t: 'Knowledge', sub: 'Hub', href: '/dashboard/guides', color: '#00B0FF', glow: 'rgba(0, 176, 255, 0.25)' },
+  { icon: Users, t: 'Creators', sub: 'Hub', href: '/dashboard/creator', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.35)', isHighlight: true }
+];
 
 export default function DashboardHome() {
   const [profile, setProfile] = useState<any>(null);
@@ -158,21 +90,21 @@ export default function DashboardHome() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-16 pb-20 max-w-[1400px] mx-auto px-4 md:px-8"
+      className="space-y-10 pb-20 max-w-[1400px] mx-auto px-4 md:px-8"
     >
       {/* 1. COMPACT HERO: ELEGANT CONTROL CENTER (TOP) */}
-      <motion.div variants={item} className="relative p-8 md:p-10 bg-white/[0.02] border border-white/5 rounded-[40px] backdrop-blur-3xl overflow-hidden group">
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
+      <motion.div variants={item} className="relative p-6 md:p-8 bg-white/[0.02] border border-white/5 rounded-[40px] backdrop-blur-3xl overflow-hidden group">
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#FFD700]/5 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
           <div>
             <div className="flex items-center gap-3 mb-3">
               <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
               <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] font-sans">System Operational • High Uptime</p>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
-              Control Center: {profile?.full_name?.split(' ')[0] || 'Member'}
-            </h1>
+               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight uppercase italic leading-none opacity-90">
+                Control Center: <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">{profile?.full_name?.split(' ')[0] || 'Member'}</span>
+              </h1>
           </div>
 
           <div className="flex items-center gap-6 bg-black/60 p-5 rounded-3xl border border-white/5 shadow-2xl">
@@ -192,47 +124,81 @@ export default function DashboardHome() {
         </div>
       </motion.div>
 
-      {/* 2. THE NAVIGATION GRID: FOUR SQUARES (MINIMALIST ANIMATIONS) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-        {[
-          { icon: Bot, t: 'EA Bots', sub: 'Hub', latest: latestEA, href: '/dashboard/bots', color: '#FFD700' },
-          { icon: BarChart3, t: 'Indicators', sub: 'Suite', latest: latestInd, href: '/dashboard/indicators', color: '#00E676' },
-          { icon: BookOpen, t: 'Knowledge', sub: 'Hub', href: '/dashboard/guides', color: '#00B0FF' },
-          { icon: Users, t: 'Creators', sub: 'Hub', href: '/dashboard/creator', color: '#FF4757' }
-        ].map((card, i) => (
+        {navCards.map((card, i) => (
           <Link key={i} href={card.href} className="group relative">
             <motion.div 
               variants={item}
-              whileHover={{ y: -8, scale: 1.05 }}
+              whileHover="hover"
               whileTap={{ scale: 0.98 }}
-              className="relative p-8 md:p-10 rounded-[44px] bg-[#131929]/40 border border-white/5 group-hover:border-white/20 transition-all aspect-square flex flex-col justify-between overflow-hidden shadow-2xl"
-              style={{ boxShadow: `0 10px 40px -10px ${card.color}08` }}
+              className={`relative p-8 md:p-10 rounded-[44px] transition-all duration-700 aspect-square flex flex-col justify-between overflow-hidden border border-white/[0.08] shadow-2xl ${
+                card.isHighlight 
+                  ? 'bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]' 
+                  : 'bg-gradient-to-b from-[#111827] to-[#030712]'
+              }`}
             >
-              {/* MINIMALIST THEME-BASED ANIMATION */}
-              <NavAnimation type={card.t} color={card.color} />
-
-              {/* SHINE & GLOW EFFECTS */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute -top-10 -right-10 w-48 h-48 blur-[80px] opacity-10 group-hover:opacity-20 transition-all duration-700" style={{ backgroundColor: card.color }} />
-              <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              {/* METALLIC FINISH OVERLAY */}
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
               
-              <div className="w-16 h-16 rounded-[28px] bg-white/10 flex items-center justify-center border border-white/5 shadow-inner relative z-10 backdrop-blur-md">
+              {/* GLITTERING EDGES (TOP & BOTTOM LIGHT CATCHERS) */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/[0.15] to-transparent z-20" />
+              <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent z-20" />
+
+              {/* VIBRANT CONSTANT & EXPANDING BACKGROUND GLOW */}
+              <motion.div 
+                variants={{
+                  hover: { 
+                    opacity: 1, 
+                    scale: 2.2,
+                    background: `radial-gradient(circle at 30% 30%, ${card.color}50 0%, ${card.color}20 40%, transparent 80%)`
+                  }
+                }}
+                initial={{ opacity: 0.8, scale: 1.1 }}
+                className="absolute inset-0 z-0 transition-all duration-1000 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 30% 30%, ${card.color}30 0%, transparent 75%)` }}
+              />
+
+              {/* EDGE-LIT GLOW (INSET ON HOVER) */}
+              <motion.div
+                variants={{
+                  hover: { opacity: 1, borderColor: `${card.color}60` }
+                }}
+                initial={{ opacity: 0, borderColor: `${card.color}10` }}
+                className="absolute inset-0 z-10 pointer-events-none rounded-[44px] border-[2px] transition-all duration-500"
+                style={{ boxShadow: `inset 0 0 35px ${card.color}25` }}
+              />
+
+              {/* DIAGONAL REFLECTIVE SHINE (THE GLIMMER) */}
+              <motion.div 
+                variants={{
+                  hover: { x: ['-130%', '130%'], opacity: [0, 0.8, 0] }
+                }}
+                initial={{ opacity: 0 }}
+                transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
+                className="absolute inset-0 z-30 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)',
+                  transform: 'skewX(-25deg)'
+                }}
+              />
+              
+              <div className={`w-16 h-16 rounded-[28px] ${card.isHighlight ? 'bg-[#FFD700]' : 'bg-white/5'} flex items-center justify-center border border-white/10 shadow-inner relative z-40 backdrop-blur-md transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]`}>
                 <card.icon 
-                  className="w-8 h-8 transition-all duration-500 group-hover:scale-110" 
-                  style={{ color: card.color, filter: `drop-shadow(0 0 8px ${card.color}40)` }}
+                  className={`w-8 h-8 transition-all duration-500 ${card.isHighlight ? 'text-black' : ''}`} 
+                  style={{ color: card.isHighlight ? undefined : card.color, filter: card.isHighlight ? undefined : `drop-shadow(0 0 15px ${card.color})` }}
                 />
               </div>
 
-              <div className="relative z-10">
-                 <h4 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1 group-hover:text-white transition-colors">
+              <div className="relative z-40">
+                 <h4 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1">
                     {card.t === 'Knowledge' ? 'Knowledge' : card.t.split(' ')[0]}
                     {card.t === 'Knowledge' && <br />}
-                    <span className="text-white opacity-40 group-hover:opacity-100 transition-opacity">
+                    <span className={`text-white transition-opacity ${card.isHighlight ? 'opacity-80' : 'opacity-40 group-hover:opacity-100'}`}>
                        {card.t === 'Knowledge' ? 'Hub' : ` ${card.t.split(' ')[1] || ''}`}
                     </span>
                  </h4>
                  <div className="flex justify-between items-end">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans group-hover:text-white/40 transition-colors uppercase leading-none">{card.sub}</p>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans group-hover:text-white/60 transition-colors leading-none">{card.sub}</p>
                     <ArrowUpRight className="w-5 h-5 text-white/10 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                  </div>
               </div>
@@ -244,13 +210,13 @@ export default function DashboardHome() {
       {/* 3. COPPR LABS: NEW RELEASE RELEASE (FEATURED MARQUEE) */}
       <div className="space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
-           <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                 <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none">Official Direct Alpha</span>
-                 <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
-              </div>
-              <h3 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Lab</span> Release</h3>
-           </div>
+               <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                     <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full md:bg-transparent md:border-none md:p-0">Official Direct Alpha</span>
+                     <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Lab</span> Release</h3>
+               </div>
            <p className="text-[10px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right">
               Proprietary mirroring logic direct from the Coppr Labs propagation terminal.
            </p>
@@ -328,7 +294,7 @@ export default function DashboardHome() {
               <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Community <span className="text-white/40 italic">Alphas</span></h3>
               <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans">Marketplace-wide signal repositories</p>
            </div>
-           <Link href="/dashboard/marketplace" className="text-[11px] font-black text-[#FFD700] uppercase hover:underline tracking-widest italic decoration-2 underline-offset-4">Browse Hub →</Link>
+           <Link href="/dashboard/marketplace?filter=Coppr+Official" className="text-[11px] font-black text-[#FFD700] uppercase hover:underline tracking-widest italic decoration-2 underline-offset-4">Browse Hub →</Link>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

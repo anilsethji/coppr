@@ -53,6 +53,7 @@ export async function GET(request: Request) {
       if (type === 'MT5 EA') query = query.eq('type', 'MT5_EA');
       else if (type === 'Pine Script') query = query.eq('type', 'PINE_SCRIPT_WEBHOOK');
       else if (type === 'Indicators') query = query.eq('type', 'INDICATOR');
+      else if (type === 'Coppr Official') query = query.eq('is_official', true);
     }
 
     if (sort === 'newest') query = query.order('created_at', { ascending: false });
