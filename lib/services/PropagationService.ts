@@ -6,10 +6,34 @@ export class PropagationService {
      * FANS OUT A MASTER SIGNAL TO ALL SUBSCRIBERS
      * @param strategyId The strategy broadcasting
      * @param signalPayload Original signal data
+     * @param providedKey Security key from the Master Bot
      */
-    static async fanOut(strategyId: string, signalPayload: any, customClient?: any) {
+    static async fanOut(strategyId: string, signalPayload: any, providedKey?: string, customClient?: any) {
         const supabase = customClient || createClient();
-        console.log(`[PROPAGATION] Starting Fan-out for Strategy ${strategyId}`);
+        console.log(`[PROPAGATION] Starting Authorized Fan-out for Strategy ${strategyId}`);
+
+        // 0. VERIFY MASTER SECURITY KEY
+        const { data: strategy, error: sError } = await supabase
+            .from('strategies')
+            .select('master_signal_key')
+            .eq('id', strategyId)
+            .single();
+
+        if (sError || !strategy) {
+            console.error('[PROPAGATION] Security Abort: Strategy not found or unauthorized.');
+            return;
+        }
+
+        if (strategy.master_signal_key !== providedKey) {
+            console.error('[PROPAGATION] Security Alert: Invalid Master Key provided for broadcast.');
+            // Log security event
+            await supabase.from('signal_logs').insert({
+                strategy_id: strategyId,
+                status: 'REJECTED',
+                message: 'UNAUTHORIZED_BROADCAST_ATTEMPT'
+            });
+            return;
+        }
 
         // 1. Fetch Active Subscribers with their Broker Accounts
         const { data: subscribers, error } = await supabase

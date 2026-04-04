@@ -72,8 +72,8 @@ export default function VaultView() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch user_strategies joined with strategies
-    const { data, error } = await supabase
+    // 1. Fetch user_strategies (subscriptions)
+    const { data: subData } = await supabase
       .from('user_strategies')
       .select(`
         *,
@@ -81,11 +81,40 @@ export default function VaultView() {
       `)
       .eq('user_id', user.id);
 
-    if (data) {
-        setStrategies(data);
-        // Fetch existing logs for each strategy
-        data.forEach(sub => fetchLogs(sub.id));
+    // 2. Fetch owned strategies (creator bypass)
+    const { data: ownData } = await supabase
+      .from('strategies')
+      .select('*')
+      .eq('creator_id', user.id);
+
+    // 3. Merge and deduplicate
+    const merged = [...(subData || [])];
+    
+    if (ownData) {
+      ownData.forEach(strategy => {
+        // Check if already in subData to avoid duplicates
+        const exists = merged.find(m => m.strategy_id === strategy.id);
+        if (!exists) {
+          merged.push({
+            id: `own-${strategy.id}`,
+            user_id: user.id,
+            strategy_id: strategy.id,
+            sync_active: true, // Creators always have sync active for their own nodes
+            strategy: strategy
+          });
+        }
+      });
     }
+
+    setStrategies(merged);
+    
+    // Fetch logs for all visible strategies
+    merged.forEach(item => {
+        // For owned strategies, we use the strategy_id for logs
+        const logId = item.id.startsWith('own-') ? item.strategy_id : item.id;
+        fetchLogs(logId);
+    });
+    
     setLoading(false);
   };
 
