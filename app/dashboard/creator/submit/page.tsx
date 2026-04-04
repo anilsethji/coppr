@@ -120,6 +120,7 @@ function SubmitFormContent() {
   });
 
   const [file, setFile] = useState<File | null>(null);
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -143,6 +144,8 @@ function SubmitFormContent() {
     try {
         let creatorId = profile.id;
         let eaFileUrl = '';
+        const mKey = self.crypto.randomUUID();
+        setGeneratedKey(mKey);
 
         // 1. Upload EA File to Storage if Managed
         if (strategy.is_managed && file) {
@@ -194,6 +197,7 @@ function SubmitFormContent() {
                 is_managed: strategy.is_managed,
                 ea_file_url: eaFileUrl,
                 execution_mode: strategy.is_managed ? 'COPPR_MANAGED' : 'SELF_HOSTED',
+                master_webhook_key: mKey,
                 status: 'PENDING'
             });
 
@@ -553,9 +557,29 @@ function SubmitFormContent() {
                     <div className="w-24 h-24 rounded-full bg-[#00E676]/10 border border-[#00E676]/30 flex items-center justify-center mb-4">
                         <CheckCircle2 className="w-12 h-12 text-[#00E676]" strokeWidth={2.5} />
                     </div>
-                    <div className="space-y-2">
-                        <h2 className="text-3xl font-black text-white">SUBMISSION RECEIVED</h2>
-                        <p className="text-[13px] text-white/30 uppercase font-bold tracking-widest">Awaiting protocol clearance for public listing</p>
+                    <div className="space-y-4">
+                        <h2 className="text-3xl font-black text-white leading-none">SUBMISSION RECEIVED</h2>
+                        <p className="text-[13px] text-white/30 uppercase font-bold tracking-widest mb-8">Awaiting protocol clearance for public listing</p>
+                        
+                        {strategy.type === 'PINE_SCRIPT_WEBHOOK' && generatedKey && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="max-w-md mx-auto p-6 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-3xl space-y-4 text-left"
+                            >
+                                <div className="space-y-1">
+                                    <h4 className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">Master Signal Key (Secret)</h4>
+                                    <code className="block bg-black/40 p-3 rounded-xl text-[12px] text-white font-mono break-all border border-white/5">{generatedKey}</code>
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Webhook Bridge URL</h4>
+                                    <code className="block bg-black/40 p-3 rounded-xl text-[10px] text-white/60 break-all border border-white/5">
+                                        {`https://coppr.in/api/bridge/${generatedKey}`}
+                                    </code>
+                                </div>
+                                <p className="text-[9px] text-[#FFD700]/40 font-bold uppercase tracking-widest text-center mt-4 italic">Copy these to your TradingView Alert now.</p>
+                            </motion.div>
+                        )}
                     </div>
                 </motion.div>
             )}

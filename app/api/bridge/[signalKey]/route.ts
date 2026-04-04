@@ -22,13 +22,24 @@ export async function POST(
       .eq('status', 'ACTIVE')
       .single();
 
-    // 2. Fetch Payload once
-    const payload = await request.json();
-    const { action, price, symbol } = payload;
+    // 2. Fetch Payload & Intelligently Map TradingView Keys
+    const rawPayload = await request.json();
+    
+    // Normalization Mapping (TradingView -> Internal)
+    const action = rawPayload.action || rawPayload.side || rawPayload.order_action || rawPayload.direction;
+    const symbol = rawPayload.symbol || rawPayload.ticker || rawPayload.ticker_id;
+    const price = rawPayload.price || rawPayload.close || rawPayload.entry_price || 0;
 
     if (!action || !symbol) {
-        return NextResponse.json({ error: 'Malformed Signal Data' }, { status: 400 });
+        console.error('[Bridge] Malformed Signal:', rawPayload);
+        return NextResponse.json({ 
+            error: 'Malformed Signal Data', 
+            details: 'Required: action/side and symbol/ticker',
+            received: rawPayload 
+        }, { status: 400 });
     }
+
+    console.log(`[Bridge] Signal Received: ${action} ${symbol} @ ${price}`);
 
     // 🚩 STRATEGY NOT FOUND: Fallback to existing Direct Subscriber Bridge
     if (sError || !strategy) {

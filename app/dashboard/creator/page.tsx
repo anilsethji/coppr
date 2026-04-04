@@ -22,6 +22,7 @@ import {
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import CreatorStats from '@/components/dashboard/CreatorStats';
+import ManagedSignalSettings from '@/components/dashboard/ManagedSignalSettings';
 
 const container = {
   hidden: { opacity: 0 },
@@ -180,6 +181,11 @@ export default function CreatorTerminal() {
           </Link>
         </div>
       </div>
+
+      {/* 2.5 SIGNAL BRIDGE MANAGEMENT (PHASE 2) */}
+      <motion.div variants={item}>
+        <ManagedSignalSettings />
+      </motion.div>
 
       {/* 3. FOOTER LOGIC: RESTORING THE CLEAN "WHAT IT WAS" FOCUS */}
       <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-3 gap-10 pt-10">
