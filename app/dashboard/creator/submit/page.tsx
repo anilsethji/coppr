@@ -11,7 +11,9 @@ import {
   AlertTriangle,
   Loader2,
   CheckCircle2,
-  Image as LucideImage
+  Image as LucideImage,
+  Zap,
+  Sparkles
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -121,6 +123,7 @@ function SubmitFormContent() {
 
   const [file, setFile] = useState<File | null>(null);
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+  const [strategyId, setStrategyId] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -137,7 +140,8 @@ function SubmitFormContent() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        alert("Please login to submit.");
+        alert("CRITICAL: User session not found. Please re-authenticate.");
+        setLoading(false);
         return;
     }
 
@@ -147,43 +151,45 @@ function SubmitFormContent() {
         const mKey = self.crypto.randomUUID();
         setGeneratedKey(mKey);
 
-        // 1. Upload EA File to Storage if Managed
-        if (strategy.is_managed && file) {
+        // 1. Upload EA File ONLY if it's an EA and managed
+        if (strategy.type === 'MT5_EA' && strategy.is_managed && file) {
             const fileName = `${user.id}/${Date.now()}-${file.name}`;
             const { data: uploadData, error: uError } = await supabase.storage
                 .from('strategy-files')
                 .upload(fileName, file);
             
-            if (uError) throw new Error("File Vault Upload Failed: " + uError.message);
+            if (uError) throw new Error("VAULT_FAILURE: " + uError.message);
             eaFileUrl = uploadData.path;
         }
 
-        // 2. Create or Update Profile
+        // 2. Profile Sync (Ensuring creator profile exists)
         const { data: prof, error: pError } = await supabase
             .from('creator_profiles')
             .upsert({
                 ...(creatorId ? { id: creatorId } : {}),
                 user_id: user.id,
-                handle: profile.handle,
-                display_name: profile.displayName,
-                bio: profile.bio,
+                handle: profile.handle || `user_${user.id.slice(0, 5)}`,
+                display_name: profile.displayName || user.email?.split('@')[0],
+                bio: profile.bio || 'Coppr Network Creator',
                 avatar_type: profile.avatarType,
                 avatar_data: profile.avatarData
+            }, {
+                onConflict: 'user_id'
             })
             .select()
             .single();
 
-        if (pError) throw pError;
+        if (pError) throw new Error("PROFILE_SYNC_FAILURE: " + pError.message);
         creatorId = prof.id;
 
-        // 3. Create Strategy with Managed Metadata
-        const { error: sError } = await supabase
+        // 3. Strategy Injection with Protocol Clearance ('PENDING' status)
+        const { data: sData, error: sError } = await supabase
             .from('strategies')
             .insert({
                 creator_id: creatorId,
-                name: strategy.name,
+                name: strategy.name || 'Untitled Strategy',
                 type: strategy.type,
-                symbol: strategy.symbol,
+                symbol: strategy.symbol || 'UNIVERSAL',
                 timeframe: strategy.timeframe,
                 description: strategy.description,
                 monthly_price_inr: strategy.tier === 'FREE' ? 0 : strategy.price,
@@ -194,21 +200,28 @@ function SubmitFormContent() {
                 mode: strategy.mode,
                 theme_color: strategy.theme_color,
                 thumbnail_url: strategy.thumbnail_url,
-                is_managed: strategy.is_managed,
+                is_managed: strategy.type === 'PINE_SCRIPT_WEBHOOK' ? false : strategy.is_managed,
                 ea_file_url: eaFileUrl,
-                execution_mode: strategy.is_managed ? 'COPPR_MANAGED' : 'SELF_HOSTED',
-                master_webhook_key: mKey,
+                execution_mode: strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'WEBHOOK_BRIDGE' : (strategy.is_managed ? 'COPPR_MANAGED' : 'SELF_HOSTED'),
+                master_signal_key: mKey,
                 status: 'PENDING'
-            });
+            })
+            .select('id')
+            .single();
 
-        if (sError) throw sError;
+        if (sError) {
+            console.error("STRATEGY_INSERT_ERROR:", sError);
+            throw new Error(`PROTOCOL_REJECTION: ${sError.message} (Code: ${sError.code})`);
+        }
 
-        setCurrentStep(4); // Success state
-        setTimeout(() => router.push('/dashboard/marketplace'), 3000);
+        if (sData) {
+            setStrategyId(sData.id);
+            setCurrentStep(4); // Advance to Success State
+        }
 
     } catch (err: any) {
-        console.error(err);
-        alert(err.message);
+        console.error("SUBMISSION_TERMINATED:", err);
+        alert(`SUBMISSION FAILED\n\nReason: ${err.message}\n\nPlease check your strategy details and try again.`);
     } finally {
         setLoading(false);
     }
@@ -216,7 +229,6 @@ function SubmitFormContent() {
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-6">
-      <CreatorStats />
       {/* Dynamic Header */}
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -457,6 +469,21 @@ function SubmitFormContent() {
                                     <p className="text-[10px] text-white/40 font-bold uppercase">Our engineering team will initiate deployment within 24 hours.</p>
                                 </div>
                             </div>
+                        ) : strategy.type === 'PINE_SCRIPT_WEBHOOK' ? (
+                            <div className="space-y-4">
+                                <div className="w-16 h-16 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center mx-auto mb-4">
+                                    <Zap className="w-8 h-8 text-[#00E676]" />
+                                </div>
+                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Bridge Gateway Ready</h3>
+                                <p className="text-[11px] text-white/25 uppercase font-bold tracking-widest leading-loose max-w-sm mx-auto">
+                                    Your TradingView signals will be processed via our high-speed Webhook Bridge. No executable upload is necessary for this protocol.
+                                </p>
+                                <div className="p-4 bg-[#00E676]/5 rounded-2xl border border-[#00E676]/10">
+                                    <p className="text-[10px] text-[#00E676]/60 font-black uppercase tracking-widest leading-relaxed">
+                                        Handshake validation will occur after submission in the Signal Terminal.
+                                    </p>
+                                </div>
+                            </div>
                         ) : (
                             <>
                             <div className="space-y-2">
@@ -483,7 +510,7 @@ function SubmitFormContent() {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-white/20">De-compiling for heuristics...</span>
                                 </motion.div>
                             )}
-                            {scanStatus === 'CLEAN' && (
+                            {scanStatus === 'CLEAN' && strategy.type !== 'PINE_SCRIPT_WEBHOOK' && (
                                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-3 py-4">
                                      <div className="flex items-center gap-3 px-6 py-3 bg-[#00E676]/10 border border-[#00E676]/30 rounded-2xl">
                                          <ShieldCheck className="w-5 h-5 text-[#00E676]" />
@@ -495,7 +522,13 @@ function SubmitFormContent() {
                     </section>
                     <div className="flex gap-4">
                         <button onClick={() => setCurrentStep(1)} className="px-6 py-4 rounded-2xl border border-white/5 text-white/40"><ArrowLeft className="w-4 h-4" /></button>
-                        <button disabled={strategy.mode === 'CLIENT_SIDE' && scanStatus !== 'CLEAN'} onClick={() => setCurrentStep(3)} className="flex-1 py-4 rounded-2xl bg-[#FFD700] text-black font-black uppercase tracking-[0.1em] text-[11px] disabled:opacity-20 transition-opacity">Continue to Financials</button>
+                        <button 
+                            disabled={(strategy.type === 'MT5_EA' && strategy.mode === 'CLIENT_SIDE' && scanStatus !== 'CLEAN')} 
+                            onClick={() => setCurrentStep(3)} 
+                            className="flex-1 py-4 rounded-2xl bg-[#FFD700] text-black font-black uppercase tracking-[0.1em] text-[11px] disabled:opacity-20 transition-opacity"
+                        >
+                            Continue to Financials
+                        </button>
                     </div>
                 </motion.div>
             )}
@@ -565,19 +598,94 @@ function SubmitFormContent() {
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="max-w-md mx-auto p-6 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-3xl space-y-4 text-left"
+                                className="max-w-xl mx-auto space-y-6 text-left"
                             >
-                                <div className="space-y-1">
-                                    <h4 className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">Master Signal Key (Secret)</h4>
-                                    <code className="block bg-black/40 p-3 rounded-xl text-[12px] text-white font-mono break-all border border-white/5">{generatedKey}</code>
+                                {/* SIMPLIFIED VIBE-CODER INSTRUCTIONS */}
+                                <div className="p-8 bg-white/[0.04] border border-[#00E676]/30 rounded-[40px] space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E676]/10 blur-[60px]" />
+                                    
+                                    <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                                       <div className="w-12 h-12 rounded-2xl bg-[#00E676]/10 flex items-center justify-center border border-[#00E676]/20">
+                                          <Zap className="w-6 h-6 text-[#00E676]" />
+                                       </div>
+                                       <div>
+                                          <h4 className="text-xl font-black text-white uppercase italic tracking-tight leading-none italic">Fast Link Protocol</h4>
+                                          <p className="text-[10px] font-black text-[#00E676]/60 uppercase tracking-widest mt-1">Zero-Code Handshake Active</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="space-y-6 relative z-10">
+                                       <div className="space-y-4">
+                                          <div className="flex items-center justify-between">
+                                             <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Step 1: Webhook URL</label>
+                                             <span className="text-[8px] font-black text-[#FFD700] uppercase italic">TradingView Alerts</span>
+                                          </div>
+                                          <div className="bg-black/60 p-4 rounded-2xl border border-white/5 group transition-all hover:border-[#FFD700]/30 shadow-inner">
+                                             <code className="text-[10px] text-white/60 font-mono break-all">{`https://coppr.in/api/bridge/${generatedKey}`}</code>
+                                          </div>
+                                       </div>
+
+                                       <div className="space-y-4">
+                                          <div className="flex items-center justify-between">
+                                             <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Step 2: Message Template</label>
+                                             <span className="text-[8px] font-black text-[#00E676] uppercase italic">Standard Connector</span>
+                                          </div>
+                                          <div className="bg-black/60 p-4 rounded-2xl border border-white/5 shadow-inner">
+                                             <pre className="text-[11px] text-[#00E676]/60 font-mono">
+{`{
+  "side": "{{strategy.order.action}}",
+  "symbol": "{{ticker}}",
+  "id": "${strategyId}"
+}`}
+                                             </pre>
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <div className="pt-10 border-t border-white/5 space-y-10">
+                                       <div className="space-y-4">
+                                          <div className="flex items-center gap-3">
+                                             <Sparkles className="w-5 h-5 text-[#FFD700]" />
+                                             <h4 className="text-[14px] font-black text-white uppercase italic tracking-tighter">Migration to Live: Next Steps</h4>
+                                          </div>
+                                          
+                                          <div className="grid grid-cols-1 gap-6">
+                                             {[
+                                                { step: '01', title: 'TradingView Alert', desc: 'Go to your BTCUSD chart, create an Alert, and paste your Webhook URL + Message Template.' },
+                                                { step: '02', title: 'Trigger Pulse', desc: 'Trigger a signal (manual or auto) and verify the "Handshake" in your Signal Bridge Terminal.' },
+                                                { step: '03', title: 'Admin Clearance', desc: 'Once verified, Anil will approve your listing. Your bridge will then switch from "Pending" to "Active".' }
+                                             ].map((s, i) => (
+                                                <div key={i} className="flex gap-6 items-start group p-4 rounded-2xl transition-all hover:bg-white/[0.02]">
+                                                   <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center font-black text-[14px] italic text-white/20 group-hover:bg-[#FFD700]/10 group-hover:text-[#FFD700] transition-all">
+                                                      {s.step}
+                                                   </div>
+                                                   <div className="space-y-1">
+                                                      <h5 className="text-[11px] font-black text-white uppercase italic">{s.title}</h5>
+                                                      <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed">{s.desc}</p>
+                                                   </div>
+                                                </div>
+                                             ))}
+                                          </div>
+                                       </div>
+
+                                       <div className="p-4 bg-[#FFD700]/5 border border-[#FFD700]/20 rounded-2xl flex items-center gap-4">
+                                          <ShieldCheck className="w-5 h-5 text-[#FFD700]" />
+                                          <div className="flex-1">
+                                             <p className="text-[10px] text-[#FFD700] font-black uppercase tracking-widest leading-none">PROTOCOL STATUS: PENDING CLEARANCE</p>
+                                             <p className="text-[8px] text-[#FFD700]/40 font-bold uppercase mt-1">Our Admin team will review your bridge logic within 24 hours.</p>
+                                          </div>
+                                       </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Webhook Bridge URL</h4>
-                                    <code className="block bg-black/40 p-3 rounded-xl text-[10px] text-white/60 break-all border border-white/5">
-                                        {`https://coppr.in/api/bridge/${generatedKey}`}
-                                    </code>
+
+                                <div className="text-center">
+                                    <button 
+                                      onClick={() => router.push('/dashboard/creator')}
+                                      className="px-10 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all shadow-2xl shadow-[#FFD700]/10 italic tracking-tighter"
+                                    >
+                                       GO TO SIGNAL TERMINAL <ChevronRight className="w-5 h-5 inline-block" />
+                                    </button>
                                 </div>
-                                <p className="text-[9px] text-[#FFD700]/40 font-bold uppercase tracking-widest text-center mt-4 italic">Copy these to your TradingView Alert now.</p>
                             </motion.div>
                         )}
                     </div>

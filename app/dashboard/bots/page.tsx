@@ -12,7 +12,7 @@ export default function BotsPage() {
         animate={{ opacity: 1 }}
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
       >
-        <VaultView />
+        <VaultView typeFilter="MT5_EA" />
       </motion.div>
     </div>
   );

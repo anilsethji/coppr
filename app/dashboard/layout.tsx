@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Logic to conditionally add Admin Console
   const finalSupportLinks = [...supportLinks];
   if (isAdmin) {
-    finalSupportLinks.push({ name: 'Admin Console', href: '/admin', icon: ShieldCheck });
+    finalSupportLinks.push({ name: 'Admin Console', href: '/dashboard/admin', icon: ShieldCheck });
   }
 
   return (

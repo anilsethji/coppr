@@ -20,13 +20,15 @@ import {
   Check,
   ChevronRight,
   LayoutGrid,
-  Activity
+  Activity,
+  BarChart3
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import TerminalLog from './TerminalLog';
 import ManagedNodeMonitor from './ManagedNodeMonitor';
+import QuickStartJourney from './QuickStartJourney';
 
-export default function VaultView() {
+export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK' }) {
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<any[]>([]);
   const [linkingId, setLinkingId] = useState<string | null>(null);
@@ -34,6 +36,7 @@ export default function VaultView() {
   const [brokerData, setBrokerData] = useState({ accountId: '', apiKey: '', apiSecret: '' });
   const [activating, setActivating] = useState(false);
   const [logs, setLogs] = useState<Record<string, any[]>>({});
+  const [activeTab, setActiveTab] = useState<'MT5_EA' | 'PINE_SCRIPT_WEBHOOK'>(typeFilter || 'MT5_EA');
 
   useEffect(() => {
     fetchVault();
@@ -65,7 +68,7 @@ export default function VaultView() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [activeTab]);
 
   const fetchVault = async () => {
     const supabase = createClient();
@@ -102,7 +105,11 @@ export default function VaultView() {
       });
     }
 
-    setStrategies(merged);
+    const filtered = merged.filter(item => {
+        return item.strategy.type === activeTab;
+    });
+
+    setStrategies(filtered);
     
     merged.forEach(item => {
         const logId = item.id.startsWith('own-') ? item.strategy_id : item.id;
@@ -176,9 +183,27 @@ export default function VaultView() {
   return (
     <div className="space-y-16 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
-        <div>
-            <h2 className="text-3xl font-black text-white mb-2 italic uppercase tracking-tighter">Signal Sync Vault</h2>
-            <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">DIRECT CLOUD MIRRORING INFRASTRUCTURE</p>
+        <div className="space-y-4">
+            <div>
+              <h2 className="text-3xl font-black text-white mb-2 italic uppercase tracking-tighter">Signal Sync Vault</h2>
+              <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">DIRECT CLOUD MIRRORING INFRASTRUCTURE</p>
+            </div>
+            
+            {/* Tab Switcher */}
+            <div className="flex items-center gap-1.5 p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-fit">
+              <button 
+                onClick={() => setActiveTab('MT5_EA')}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-xl shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}
+              >
+                Managed EA Hub
+              </button>
+              <button 
+                onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-xl shadow-[#00E676]/10' : 'text-white/20 hover:text-white/40'}`}
+              >
+                TradingView Indicators
+              </button>
+            </div>
         </div>
         <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-3 italic">
              <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
@@ -186,34 +211,57 @@ export default function VaultView() {
         </div>
       </div>
 
-      {strategies.length === 0 ? (
-          <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[40px] p-20 text-center space-y-8">
-              <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto border border-white/10">
-                    <Lock className="w-8 h-8 text-white/10" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-black text-white uppercase italic tracking-[0.1em]">No Active Alphas Detected</p>
-                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Connect to the Coppr Grid to begin cloud mirroring</p>
-              </div>
-              <button 
-                onClick={() => window.location.href = '/dashboard/marketplace'} 
-                className="px-10 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-xl shadow-[#FFD700]/10"
-              >
-                Browse Official Alphas
-              </button>
+      {activeTab === 'PINE_SCRIPT_WEBHOOK' && strategies.length === 0 && (
+          <div className="space-y-12">
+            <QuickStartJourney type="subscriber" />
+            <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[40px] p-20 text-center space-y-8">
+                <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto border border-white/10">
+                      <BarChart3 className="w-8 h-8 text-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-black text-white uppercase italic tracking-[0.1em]">No Indicators Connected</p>
+                  <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Connect your TradingView alerts to the Coppr bridge to begin mirroring</p>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/dashboard/marketplace?filter=Pine+Script'} 
+                  className="px-10 py-4 bg-[#00E676] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-xl shadow-[#00E676]/10"
+                >
+                  Explore TradingView Alphas
+                </button>
+            </div>
           </div>
-      ) : (
+      )}
+
+      {strategies.length === 0 && activeTab === 'MT5_EA' ? (
+          <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[40px] p-20 text-center space-y-12">
+              <div className="space-y-8">
+                <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto border border-white/10">
+                      <Lock className="w-8 h-8 text-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-black text-white uppercase italic tracking-[0.1em]">No Active Alphas Detected</p>
+                  <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Connect to the Coppr Grid to begin cloud mirroring</p>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/dashboard/marketplace'} 
+                  className="px-10 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-xl shadow-[#FFD700]/10"
+                >
+                  Browse Official Alphas
+                </button>
+              </div>
+          </div>
+      ) : strategies.length > 0 && (
           <div className="space-y-20">
-            {/* 1. COPPR OFFICIAL HUB */}
+            {/* 1. OFFICIAL HUB */}
             <div className="space-y-10">
               <div className="flex items-center justify-between border-b border-[#FFD700]/10 pb-6 px-2">
                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-[#FFD700]/10 rounded-xl flex items-center justify-center border border-[#FFD700]/20">
-                       <ShieldCheck className="w-6 h-6 text-[#FFD700]" />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${activeTab === 'MT5_EA' ? 'bg-[#FFD700]/10 border-[#FFD700]/20' : 'bg-[#00E676]/10 border-[#00E676]/20'}`}>
+                       <ShieldCheck className={`w-6 h-6 ${activeTab === 'MT5_EA' ? 'text-[#FFD700]' : 'text-[#00E676]'}`} />
                     </div>
-                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Official <span className="text-[#FFD700]">High-Performance</span> Hub</h3>
+                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Official <span className={activeTab === 'MT5_EA' ? 'text-[#FFD700]' : 'text-[#00E676]'}>{activeTab === 'MT5_EA' ? 'High-Performance' : 'Validated Signal'}</span> Hub</h3>
                  </div>
-                 <span className="text-[10px] font-black text-[#FFD700]/60 uppercase tracking-[0.2em] font-sans italic">Priority Execution</span>
+                 <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-sans italic ${activeTab === 'MT5_EA' ? 'text-[#FFD700]/60' : 'text-[#00E676]/60'}`}>Priority Execution</span>
               </div>
 
               <div className="space-y-8">
@@ -235,25 +283,6 @@ export default function VaultView() {
                         fetchLogs={fetchLogs} 
                     />
                 ))}
-                {officialBots.length === 0 && (
-                   <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-10 bg-gradient-to-r from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden relative group"
-                   >
-                      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#FFD700]/20 to-transparent" />
-                      <div className="flex items-center gap-8 relative z-10">
-                         <div className="w-16 h-16 bg-[#FFD700]/10 rounded-2xl flex items-center justify-center border border-[#FFD700]/20 group-hover:scale-105 transition-transform">
-                            <Bot className="w-8 h-8 text-[#FFD700]" />
-                         </div>
-                         <div>
-                            <h4 className="text-lg font-black text-white uppercase italic tracking-widest leading-none mb-2">Coppr Labs: Official Upgrade</h4>
-                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.1em] font-sans italic">Proprietary logic optimized for 99.9% heartbeat reliability and low-latency execution.</p>
-                         </div>
-                      </div>
-                      <Link href="/dashboard/marketplace" className="px-8 py-4 bg-[#FFD700] text-black text-[11px] font-black uppercase tracking-[0.2em] rounded-xl hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10 relative z-10">Explore Alphas</Link>
-                   </motion.div>
-                )}
               </div>
             </div>
 
@@ -293,7 +322,8 @@ export default function VaultView() {
           </div>
       )}
 
-      {/* Pine Script Leg Teaser */}
+      {/* Signal Fan-Out Infrastructure */}
+      {activeTab === 'MT5_EA' && (
       <div className="p-10 rounded-[48px] bg-[#00B0FF]/5 border border-[#00B0FF]/10 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-tr from-[#00B0FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="w-16 h-16 rounded-[28px] bg-[#00B0FF]/10 flex items-center justify-center shrink-0 border border-[#00B0FF]/20 group-hover:scale-105 transition-transform">
@@ -301,17 +331,21 @@ export default function VaultView() {
             </div>
             <div className="flex-1 space-y-2 relative z-10">
                 <h4 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-3">
-                    Signal Fan-Out Infrastructure
-                    <span className="text-[9px] bg-[#00B0FF] text-black px-2 py-0.5 rounded font-black uppercase">Phase 2</span>
+                    TradingView Webhook Integration
+                    <span className="text-[9px] bg-[#00E676] text-black px-2 py-0.5 rounded font-black uppercase">Active</span>
                 </h4>
                 <p className="text-[11px] text-white/30 font-bold uppercase leading-loose font-sans italic">
-                    We are finalizing our high-performance webhook bridge. Soon you'll be able to link TradingView indicators directly to our broker network.
+                    Switch to the TradingView Indicators tab to link your PineScript signals directly to our broker network.
                 </p>
             </div>
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/10 group-hover:text-[#00B0FF] transition-colors relative z-10">
+            <button 
+              onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')}
+              className="p-4 bg-white/5 rounded-2xl border border-white/10 group-hover:border-[#00E676]/40 group-hover:text-[#00E676] transition-all relative z-10"
+            >
                 <ChevronRight className="w-6 h-6" />
-            </div>
+            </button>
       </div>
+      )}
     </div>
   );
 }
@@ -333,7 +367,7 @@ function StrategyCard({ sub, isOfficial, linkingId, setLinkingId, toggleSync, br
                     
                     <div className="flex justify-between items-start relative z-10">
                         <div className="flex items-center gap-6">
-                            <div className={`w-16 h-16 rounded-[28px] flex items-center justify-center border transition-all ${isOfficial ? 'bg-[#FFD700]/10 border-[#FFD700]/20 group-hover:scale-105' : 'bg-white/5 border-white/5'}`}>
+                            <div className={`w-16 h-16 rounded-[28px] flex items-center justify-center border transition-all ${isOfficial ? 'bg-[#FFD700]/10 border-[#FFD700]/20' : 'bg-white/5 border-white/5'}`}>
                                 <Zap className={`w-8 h-8 ${isOfficial ? 'text-[#FFD700]' : 'text-white/20'}`} />
                             </div>
                             <div>
