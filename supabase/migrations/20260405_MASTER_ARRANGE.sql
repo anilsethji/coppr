@@ -17,7 +17,7 @@ ALTER TABLE strategies ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'PENDING'; -
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS script_code TEXT; -- For Pine Script logic
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS ea_file_url TEXT; -- For EX5 Binary path
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS video_url TEXT; -- For Educational guides
-ALTER TABLE strategies ADD COLUMN IF NOT EXISTS master_signal_key UUID DEFAULT gen_random_uuid();
+ALTER TABLE strategies ADD COLUMN IF NOT EXISTS master_signal_key TEXT DEFAULT '';
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS execution_mode TEXT; -- 'COPPR_MANAGED', 'WEBHOOK_BRIDGE'
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS is_managed BOOLEAN DEFAULT false;
 
