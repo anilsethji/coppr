@@ -17,7 +17,18 @@ BEGIN
 
     -- 2. Ensure default is empty string if null
     UPDATE strategies SET master_signal_key = '' WHERE master_signal_key IS NULL;
-    
+    -- 4. Check if execution_mode is ENUM and Convert to TEXT
+    IF (SELECT data_type FROM information_schema.columns 
+        WHERE table_name = 'strategies' AND column_name = 'execution_mode') <> 'text' THEN
+        
+        ALTER TABLE strategies ALTER COLUMN execution_mode TYPE TEXT USING execution_mode::text;
+        ALTER TABLE strategies ALTER COLUMN execution_mode SET DEFAULT 'COPPR_MANAGED';
+        
+        RAISE NOTICE 'SUCCESS: execution_mode converted to TEXT.';
+    ELSE
+        RAISE NOTICE 'SKIPPED: execution_mode is already TEXT.';
+    END IF;
+
 END $$;
 
 -- 3. RE-INDEX FOR SEARCH PERFORMANCE
