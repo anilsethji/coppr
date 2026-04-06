@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
@@ -13,26 +13,43 @@ import {
   CheckCircle2,
   Image as LucideImage,
   Zap,
-  Sparkles
+  Sparkles,
+  Clock,
+  Pin,
+  Newspaper,
+  LayoutGrid,
+  Activity,
+  ArrowRight,
+  TrendingUp,
+  Target,
+  Info,
+  ExternalLink,
+  PlayCircle,
+  Code2,
+  Lock,
+  Terminal,
+  Trophy,
+  Globe,
+  Copy,
+  Check
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CreatorStats from '@/components/dashboard/CreatorStats';
 
-const steps = ['Creator Profile', 'Strategy Details', 'Security Scan', 'Pricing'];
+const steps = ['Branding', 'Project Hub', 'Logic Vault', 'Broadcasting Hub'];
 
 export default function CreatorSubmitPage() {
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
-      <CreatorStats />
-      <React.Suspense fallback={
+    <div className="max-w-5xl mx-auto py-12 px-6">
+      <Suspense fallback={
         <div className="p-20 flex flex-col items-center justify-center gap-4">
            <div className="w-10 h-10 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
            <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Initializing Secure Terminal...</p>
         </div>
       }>
         <SubmitFormContent />
-      </React.Suspense>
+      </Suspense>
     </div>
   );
 }
@@ -43,9 +60,9 @@ function SubmitFormContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [scanStatus, setScanStatus] = useState<'IDLE' | 'SCANNING' | 'CLEAN' | 'FAIL'>('IDLE');
+  const [handshakeSynced, setHandshakeSynced] = useState(false);
+  const [copied, setCopied] = useState<'URL' | 'PAYLOAD' | null>(null);
   
-  // ... rest of the existing page logic ...
-
   // Form State
   const [profile, setProfile] = useState({
     id: '',
@@ -56,10 +73,31 @@ function SubmitFormContent() {
     avatarData: '🤖'
   });
 
-  const [hasProfile, setHasProfile] = useState(false);
+  const [strategy, setStrategy] = useState({
+    name: '',
+    type: 'MT5_EA', 
+    symbol: 'XAUUSD',
+    timeframe: 'H1',
+    description: '',
+    script_code: '', 
+    price: 1999,
+    video_url: '',
+    setup_guide: '',
+    origin: 'MARKETPLACE',
+    tier: 'PAID',
+    mode: 'CLIENT_SIDE',
+    theme_color: '#FFD700',
+    thumbnail_url: '',
+    screenshot_urls: ['', '', ''],
+    how_it_works: ['', ''], 
+    is_managed: true
+  });
 
-  // Fetch existing profile and handle URL params
-  React.useEffect(() => {
+  const [file, setFile] = useState<File | null>(null);
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+  const [strategyId, setStrategyId] = useState<string | null>(null);
+
+  useEffect(() => {
     async function loadProfile() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -80,58 +118,44 @@ function SubmitFormContent() {
                 avatarType: data.avatar_type || 'EMOJI',
                 avatarData: data.avatar_data || '🤖'
             });
-            setHasProfile(true);
-            setCurrentStep(1); // Jump to Strategy Details for returning creators
+            // Auto skip Step 0 if profile is already complete
+            if (data.display_name && data.bio) {
+                setCurrentStep(1);
+            }
         }
     }
     loadProfile();
 
-    // Handle Search Params for Origin restoration
     const originParam = searchParams.get('origin');
     if (originParam === 'OFFICIAL') {
-        setStrategy(prev => ({ 
-            ...prev, 
-            origin: 'OFFICIAL', 
-            mode: 'VPS_MANAGED', 
-            is_managed: true 
-        }));
+        setStrategy(prev => ({ ...prev, origin: 'OFFICIAL', mode: 'VPS_MANAGED', is_managed: true }));
     } else if (originParam === 'MARKETPLACE') {
-        setStrategy(prev => ({ 
-            ...prev, 
-            origin: 'MARKETPLACE', 
-            mode: 'CLIENT_SIDE' 
-        }));
+        setStrategy(prev => ({ ...prev, origin: 'MARKETPLACE', mode: 'CLIENT_SIDE' }));
     }
   }, [searchParams]);
 
-  const [strategy, setStrategy] = useState({
-    name: '',
-    type: 'MT5_EA',
-    symbol: 'XAUUSD',
-    timeframe: 'M5',
-    description: '',
-    price: 1999,
-    video_url: '',
-    setup_guide: '',
-    origin: 'MARKETPLACE',
-    tier: 'PAID',
-    mode: 'CLIENT_SIDE',
-    theme_color: '#FFD700',
-    thumbnail_url: '',
-    is_managed: true
-  });
-
-  const [file, setFile] = useState<File | null>(null);
-  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
-  const [strategyId, setStrategyId] = useState<string | null>(null);
+  const handleHandshake = () => {
+    setLoading(true);
+    const mKey = 'COPPR-' + self.crypto.randomUUID().split('-')[0].toUpperCase();
+    setTimeout(() => {
+        setGeneratedKey(mKey);
+        setHandshakeSynced(true);
+        setLoading(false);
+    }, 2000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
-      // Trigger Mock Viral Scan
       setScanStatus('SCANNING');
       setTimeout(() => setScanStatus('CLEAN'), 3000);
     }
+  };
+
+  const handleCopy = (text: string, type: 'URL' | 'PAYLOAD') => {
+    navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const handleFinalSubmit = async () => {
@@ -148,11 +172,8 @@ function SubmitFormContent() {
     try {
         let creatorId = profile.id;
         let eaFileUrl = '';
-        const mKey = self.crypto.randomUUID();
-        setGeneratedKey(mKey);
-
-        // 1. Upload EA File ONLY if it's an EA and managed
-        if (strategy.type === 'MT5_EA' && strategy.is_managed && file) {
+        
+        if (strategy.type === 'MT5_EA' && file) {
             const fileName = `${user.id}/${Date.now()}-${file.name}`;
             const { data: uploadData, error: uError } = await supabase.storage
                 .from('strategy-files')
@@ -162,15 +183,14 @@ function SubmitFormContent() {
             eaFileUrl = uploadData.path;
         }
 
-        // 2. Profile Sync (Ensuring creator profile exists)
         const { data: prof, error: pError } = await supabase
             .from('creator_profiles')
             .upsert({
                 ...(creatorId ? { id: creatorId } : {}),
                 user_id: user.id,
                 handle: profile.handle || `user_${user.id.slice(0, 5)}`,
-                display_name: profile.displayName || user.email?.split('@')[0],
-                bio: profile.bio || 'Coppr Network Creator',
+                display_name: profile.displayName,
+                bio: profile.bio,
                 avatar_type: profile.avatarType,
                 avatar_data: profile.avatarData
             }, {
@@ -182,518 +202,494 @@ function SubmitFormContent() {
         if (pError) throw new Error("PROFILE_SYNC_FAILURE: " + pError.message);
         creatorId = prof.id;
 
-        // 3. Strategy Injection with Protocol Clearance ('PENDING' status)
         const { data: sData, error: sError } = await supabase
             .from('strategies')
             .insert({
                 creator_id: creatorId,
-                name: strategy.name || 'Untitled Strategy',
+                name: strategy.name,
                 type: strategy.type,
-                symbol: strategy.symbol || 'UNIVERSAL',
+                symbol: strategy.symbol,
                 timeframe: strategy.timeframe,
                 description: strategy.description,
+                script_code: strategy.script_code, 
                 monthly_price_inr: strategy.tier === 'FREE' ? 0 : strategy.price,
                 video_url: strategy.video_url,
-                setup_guide: strategy.setup_guide,
+                setup_guide: strategy.video_url, // Assuming same field for now
                 origin: strategy.origin,
                 tier: strategy.tier,
                 mode: strategy.mode,
-                theme_color: strategy.theme_color,
-                thumbnail_url: strategy.thumbnail_url,
-                is_managed: strategy.type === 'PINE_SCRIPT_WEBHOOK' ? false : strategy.is_managed,
+                thumbnail_url: strategy.screenshot_urls[0],
+                screenshot_urls: strategy.screenshot_urls.filter(u => u),
+                how_it_works: [strategy.description, `Optimized for ${strategy.timeframe}`],
+                is_managed: strategy.type === 'MT5_EA' ? true : false,
                 ea_file_url: eaFileUrl,
-                execution_mode: strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'WEBHOOK_BRIDGE' : (strategy.is_managed ? 'COPPR_MANAGED' : 'SELF_HOSTED'),
-                master_signal_key: mKey,
+                execution_mode: strategy.type === 'MT5_EA' ? 'COPPR_MANAGED' : 'WEBHOOK_BRIDGE',
+                master_signal_key: generatedKey || 'COPPR-' + self.crypto.randomUUID().split('-')[0].toUpperCase(),
                 status: 'PENDING'
             })
             .select('id')
             .single();
 
-        if (sError) {
-            console.error("STRATEGY_INSERT_ERROR:", sError);
-            throw new Error(`PROTOCOL_REJECTION: ${sError.message} (Code: ${sError.code})`);
-        }
+        if (sError) throw new Error(`PROTOCOL_REJECTION: ${sError.message}`);
 
         if (sData) {
             setStrategyId(sData.id);
-            setCurrentStep(4); // Advance to Success State
+            setCurrentStep(4);
         }
 
     } catch (err: any) {
         console.error("SUBMISSION_TERMINATED:", err);
-        alert(`SUBMISSION FAILED\n\nReason: ${err.message}\n\nPlease check your strategy details and try again.`);
+        alert(`BROADCAST FAILED: ${err.message}`);
     } finally {
         setLoading(false);
     }
   };
 
+  const isStep0Complete = profile.displayName.trim() !== '' && profile.bio.trim() !== '';
+  const isStep1Complete = 
+    strategy.name.trim() !== '' && 
+    strategy.symbol.trim() !== '' && 
+    strategy.timeframe.trim() !== '' && 
+    strategy.description.trim() !== '' &&
+    (strategy.type !== 'MT5_EA' || file !== null);
+
+  const isStep2Complete = handshakeSynced && (strategy.type !== 'MT5_EA' || scanStatus === 'CLEAN');
+  const isStep3Complete = strategy.screenshot_urls[0].trim() !== '' && strategy.video_url.trim() !== '';
+
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
-      {/* Dynamic Header */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-            <h1 className="text-3xl font-black text-white mb-2 leading-none">Creator Terminal</h1>
-            <p className="text-[12px] text-white/30 font-bold uppercase tracking-widest">PUBLISH YOUR ALGORITHMS TO THE GLOBAL COPP NETWORK</p>
+    <div className="space-y-12 pb-24 font-sans">
+      {/* 1. HEADER HANDSHAKE */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div className="space-y-4">
+            <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
+                <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] italic">Creator Network Ingress</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none">
+              Deploy <span className="text-[#FFD700]">Protocol</span>
+            </h1>
+            <p className="text-[12px] font-black text-white/30 uppercase tracking-[0.3em] font-sans italic underline decoration-[#FFD700]/20 underline-offset-4">Sync your algorithmic asset with the global Managed Execution Hub.</p>
         </div>
         
-        {/* Step Indicators */}
-        <div className="flex items-center gap-3">
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2 p-4 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-xl">
              {steps.map((s, i) => (
-                 <div key={i} className="flex flex-col items-center gap-1.5">
-                    <div className={`w-2.5 h-1 rounded-full transition-all ${i <= currentStep ? 'bg-[#FFD700] w-6' : 'bg-white/10'}`} />
-                 </div>
+                  <div key={i} className="flex items-center gap-2 px-3">
+                    <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i <= currentStep ? 'bg-[#FFD700] shadow-[0_0_8px_#FFD700]' : 'bg-white/10'}`} />
+                    <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${i === currentStep ? 'text-white' : 'text-white/20'}`}>{s}</span>
+                  </div>
              ))}
         </div>
       </div>
 
-      <div className="relative min-h-[500px]">
+      <div className="relative">
         <AnimatePresence mode="wait">
+            {/* STEP 0: MANDATORY BRANDING */}
             {currentStep === 0 && (
-                <motion.div key="p0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                    <section className="space-y-6 bg-white/[0.02] border border-white/5 p-8 rounded-[40px]">
-                        <h3 className="text-sm font-black text-[#FFD700] uppercase tracking-widest">Personal Branding</h3>
+                <motion.div key="p0" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-10">
+                    <section className="bg-[#131929]/40 border border-white/5 p-12 rounded-[56px] backdrop-blur-xl space-y-12 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD700]/5 blur-[100px] pointer-events-none" />
                         
-                        <div className="flex flex-col md:flex-row gap-10 items-center">
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-24 h-24 rounded-full border border-white/10 flex items-center justify-center text-4xl bg-white/5 shadow-xl">
-                                    {profile.avatarData}
+                        <div className="space-y-2">
+                           <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Creator Branding</h3>
+                           <p className="text-[10px] text-white/20 font-black uppercase tracking-widest leading-none">Your public identity is mandatory for project listing.</p>
+                        </div>
+                        
+                        <div className="flex flex-col md:flex-row gap-16 items-center">
+                            <div className="flex flex-col items-center gap-6">
+                                <div className="w-32 h-32 rounded-[48px] bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-5xl shadow-2xl relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <span className="relative z-10">{profile.avatarData}</span>
                                 </div>
                                 <select 
-                                    className="bg-black/40 border border-white/10 rounded-lg py-1.5 px-3 text-[10px] font-black uppercase text-white/40 focus:text-white"
+                                    className="bg-black/60 border border-white/10 rounded-2xl py-2 px-4 text-[10px] font-black uppercase text-white outline-none focus:border-[#FFD700]/40 transition-all font-sans"
+                                    value={profile.avatarData}
                                     onChange={(e) => setProfile({...profile, avatarData: e.target.value})}
                                 >
-                                    <option value="🤖">Droid</option>
-                                    <option value="🦾">Cyborg</option>
-                                    <option value="📈">Gains</option>
-                                    <option value="👤">Human</option>
+                                    <option value="🤖">Robo Alpha</option>
+                                    <option value="📈">Gains Logic</option>
+                                    <option value="🦾">Cyborg Hub</option>
+                                    <option value="👤">Ghost Protocol</option>
+                                    <option value="💎">Diamond Hands</option>
                                 </select>
                             </div>
-
-                            <div className="flex-1 space-y-6 w-full">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Public Handle</label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-bold">@</span>
-                                        <input type="text" placeholder="unique_trader_id" className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-10 pr-6 text-sm text-white focus:border-[#FFD700]/30 outline-none" value={profile.handle} onChange={e => setProfile({...profile, handle: e.target.value})} />
+                            
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                                <div className="space-y-3 font-sans">
+                                    <label className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em] ml-1 flex items-center gap-2">
+                                        Display Name <span className="text-red-500/60 font-black">*</span>
+                                    </label>
+                                    <input type="text" placeholder="Matrix Quant Systems" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-[28px] py-5 px-8 text-sm text-white outline-none transition-all font-bold placeholder:text-white/10" value={profile.displayName} onChange={e => setProfile({...profile, displayName: e.target.value})} />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em] ml-1">Creator Handle (@)</label>
+                                    <div className="relative group">
+                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-[#FFD700] font-black italic">@</span>
+                                        <input type="text" placeholder="alpha_logic_sys" className="w-full bg-white/[0.03] border border-white/10 group-hover:border-white/20 focus:border-[#FFD700]/40 rounded-[28px] py-5 pl-12 pr-8 text-sm text-white outline-none transition-all font-bold placeholder:text-white/10" value={profile.handle} onChange={e => setProfile({...profile, handle: e.target.value})} />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Display Name</label>
-                                    <input type="text" placeholder="Arun Trades" className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-sm text-white focus:border-[#FFD700]/30 outline-none" value={profile.displayName} onChange={e => setProfile({...profile, displayName: e.target.value})} />
+                                <div className="md:col-span-2 space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em] ml-1 flex items-center gap-2">
+                                        Bio / Professional Mission <span className="text-red-500/60 font-black">*</span>
+                                    </label>
+                                    <input type="text" placeholder="Deep liquidity Momentum scanning for Gold Pulse protocols." className="w-full bg-white/[0.03] border border-white/10 hover:border-white/20 focus:border-[#FFD700]/40 rounded-[28px] py-5 px-8 text-sm text-white outline-none transition-all font-bold placeholder:text-white/10" value={profile.bio} onChange={e => setProfile({...profile, bio: e.target.value})} />
                                 </div>
                             </div>
                         </div>
                     </section>
-                    <button onClick={() => setCurrentStep(1)} className="w-full md:w-auto px-10 py-4 rounded-2xl bg-[#FFD700] text-black font-black uppercase tracking-widest text-[11px] shadow-lg shadow-[#FFD700]/10 hover:scale-[1.02] transition-all">Continue to Strategy</button>
+                    
+                    <div className="flex justify-end items-center gap-6">
+                      {!isStep0Complete && <span className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse italic">! Complete mandatory fields to proceed</span>}
+                      <button 
+                        onClick={() => setCurrentStep(1)} 
+                        disabled={!isStep0Complete}
+                        className={`px-12 py-5 font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl transition-all shadow-xl italic ${isStep0Complete ? 'bg-[#FFD700] text-black hover:scale-105 shadow-[#FFD700]/10' : 'bg-white/5 text-white/10 cursor-not-allowed border border-white/5'}`}
+                      >
+                         Initialize Project Hub →
+                      </button>
+                    </div>
                 </motion.div>
             )}
 
+            {/* STEP 1: RESTORED CATEGORIZATION & HUB */}
             {currentStep === 1 && (
-                <motion.div key="p1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                        {/* 1. Origin & Tier Selection */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-white/5">
+                <motion.div key="p1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                    {/* EA VS INDICATOR SELECTOR */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <button onClick={() => setStrategy({...strategy, type: 'MT5_EA', mode: 'CLIENT_SIDE'})} className={`p-8 rounded-[40px] border transition-all flex flex-col items-center gap-4 text-center group ${strategy.type === 'MT5_EA' ? 'bg-[#FFD700] text-black border-[#FFD700] shadow-xl' : 'bg-white/5 text-white/20 border-white/5 hover:bg-white/10'}`}>
+                            <Bot className="w-12 h-12 group-hover:scale-110 transition-transform" />
+                            <div className="space-y-1">
+                                <h4 className="text-[13px] font-black uppercase tracking-widest italic leading-none">MT5 Bot Binary</h4>
+                                <p className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-1 ${strategy.type === 'MT5_EA' ? 'text-black/40' : 'text-white/10'}`}>Managed Execution Node</p>
+                            </div>
+                        </button>
+                        <button onClick={() => setStrategy({...strategy, type: 'PINE_SCRIPT_WEBHOOK', mode: 'WEBHOOK_BRIDGE'})} className={`p-8 rounded-[40px] border transition-all flex flex-col items-center gap-4 text-center group ${strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black border-[#00E676] shadow-xl' : 'bg-white/5 text-white/20 border-white/5 hover:bg-white/10'}`}>
+                            <Code2 className="w-12 h-12 group-hover:scale-110 transition-transform" />
+                            <div className="space-y-1">
+                                <h4 className="text-[13px] font-black uppercase tracking-widest italic leading-none">Indicator Indicator</h4>
+                                <p className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-1 ${strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'text-black/40' : 'text-white/10'}`}>Pine Script Webhook Bridge</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* 1. CATEGORIZATION PROTOCOL */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Distribution Hub</label>
+                            <div className="flex gap-4 p-2 bg-black/40 border border-white/5 rounded-3xl">
+                                <button onClick={() => setStrategy({...strategy, origin: 'PERSONAL'})} className={`flex-1 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2 ${strategy.origin === 'PERSONAL' ? 'bg-[#FFD700] text-black shadow-xl' : 'text-white/20 hover:text-white/40'}`}>
+                                    <Lock className="w-3 h-3" /> Private Node
+                                </button>
+                                <button onClick={() => setStrategy({...strategy, origin: 'MARKETPLACE'})} className={`flex-1 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2 ${strategy.origin === 'MARKETPLACE' ? 'bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/40 shadow-xl' : 'text-white/20 hover:text-white/40'}`}>
+                                    <Globe className="w-3 h-3" /> Marketplace
+                                </button>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Monetization Tier</label>
+                            <div className="flex gap-4 p-2 bg-black/40 border border-white/5 rounded-3xl">
+                                <button onClick={() => setStrategy({...strategy, tier: 'FREE'})} className={`flex-1 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic ${strategy.tier === 'FREE' ? 'bg-white/10 text-white shadow-xl' : 'text-white/20 hover:text-white/40'}`}>Community (Free)</button>
+                                <button onClick={() => setStrategy({...strategy, tier: 'PAID'})} className={`flex-1 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all italic ${strategy.tier === 'PAID' ? 'bg-[#FFD700] text-black shadow-xl' : 'text-white/20 hover:text-white/40'}`}>Elite (Paid)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#131929]/40 border border-white/5 p-12 rounded-[56px] space-y-16 backdrop-blur-xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-80 h-80 bg-[#FFD700]/5 blur-[120px] pointer-events-none" />
+                        
+                        {/* 2. CORE PARAMETERS */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-[#FFD700] tracking-widest">Product Origin</label>
-                                <div className="flex gap-2">
-                                    {(['OFFICIAL', 'MARKETPLACE'] as const).map(o => (
-                                        <button 
-                                            key={o} 
-                                            onClick={() => setStrategy({...strategy, origin: o, mode: o === 'OFFICIAL' ? 'VPS_MANAGED' : 'CLIENT_SIDE'})}
-                                            className={`flex-1 py-3 rounded-xl border text-[10px] font-black transition-all ${strategy.origin === o ? 'bg-[#FFD700] text-black border-[#FFD700]' : 'bg-white/5 text-white/20 border-white/5'}`}
-                                        >
-                                            {o}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Best Timeframe <span className="text-red-500/60">*</span></label>
+                                <input type="text" placeholder="e.g. 15H, 1D" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-sm text-white outline-none font-bold text-center italic" value={strategy.timeframe} onChange={e => setStrategy({...strategy, timeframe: e.target.value})} />
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-[#00E676] tracking-widest">Access Tier</label>
-                                <div className="flex gap-2">
-                                    {(['FREE', 'PAID'] as const).map(t => (
-                                        <button 
-                                            key={t} 
-                                            onClick={() => setStrategy({...strategy, tier: t})}
-                                            className={`flex-1 py-3 rounded-xl border text-[10px] font-black transition-all ${strategy.tier === t ? 'bg-[#00E676] text-black border-[#00E676]' : 'bg-white/5 text-white/20 border-white/5'}`}
-                                        >
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Algorithm Name <span className="text-red-500/60">*</span></label>
+                                <input type="text" placeholder="Gold Pulse X" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-sm text-white outline-none font-bold italic" value={strategy.name} onChange={e => setStrategy({...strategy, name: e.target.value})} />
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Asset Symbol <span className="text-red-500/60">*</span></label>
+                                <input type="text" placeholder="XAUUSD" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-sm text-white outline-none font-bold text-center italic" value={strategy.symbol} onChange={e => setStrategy({...strategy, symbol: e.target.value})} />
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-black text-[#FFD700] uppercase tracking-widest">Strategy DNA</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Strategy Name</label>
-                                    <input type="text" className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-sm text-white outline-none" placeholder="Coppr Gold Reaper" value={strategy.name} onChange={e => setStrategy({...strategy, name: e.target.value})} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Asset Class / Symbol</label>
-                                    <input type="text" className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-sm text-white outline-none" placeholder="XAUUSD" value={strategy.symbol} onChange={e => setStrategy({...strategy, symbol: e.target.value})} />
-                                </div>
-                            </div>
-
-                            {/* VISUAL BRANDING SECTION */}
-                            <div className="pt-6 border-t border-white/5 space-y-6">
-                                <h3 className="text-sm font-black text-[#FFD700] uppercase tracking-widest">Visual Branding</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Card Theme Color</label>
-                                        <div className="flex flex-wrap gap-3">
-                                            {[
-                                                { name: 'Aero Gold', val: '#FFD700' },
-                                                { name: 'Cyber Emerald', val: '#00E676' },
-                                                { name: 'Cobalt Blue', val: '#00B0FF' },
-                                                { name: 'Neon Purple', val: '#9C6EFA' },
-                                                { name: 'Crimson Red', val: '#FF4757' }
-                                            ].map(color => (
-                                                <button 
-                                                    key={color.val}
-                                                    onClick={() => setStrategy({...strategy, theme_color: color.val})}
-                                                    className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center ${strategy.theme_color === color.val ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-60'}`}
-                                                    style={{ backgroundColor: color.val }}
-                                                    title={color.name}
-                                                >
-                                                    {strategy.theme_color === color.val && <CheckCircle2 className="w-4 h-4 text-black" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Screenshot URL</label>
-                                        <div className="relative">
-                                            <LucideImage className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                            <input 
-                                                type="text" 
-                                                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white outline-none" 
-                                                placeholder="https://imgur.com/your-chart.png" 
-                                                value={strategy.thumbnail_url} 
-                                                onChange={e => setStrategy({...strategy, thumbnail_url: e.target.value})} 
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1 flex items-center gap-2">
+                                Strategic Protocol Description <span className="text-red-500/60">*</span>
+                            </label>
+                            <textarea 
+                                rows={5} 
+                                placeholder="Describe the entry logic, risk parameters, and unique edge of this strategy in detail." 
+                                className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-[32px] py-6 px-8 text-sm text-white outline-none font-bold italic leading-relaxed" 
+                                value={strategy.description} 
+                                onChange={e => setStrategy({...strategy, description: e.target.value})} 
+                            />
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-end">
-                                <h3 className="text-sm font-black text-white/20 uppercase tracking-widest">Logic & Setup</h3>
-                                <div className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest bg-[#FFD700]/5 px-2 py-0.5 rounded">Markdown Enabled</div>
+                        {/* 3. LOGIC HUB: UPLOAD VS SCRIPT */}
+                        <div className="space-y-8 border-t border-white/5 pt-10 relative z-10">
+                            <div className="flex items-center justify-between ml-1">
+                                <div className="space-y-1">
+                                   <h4 className="text-[13px] font-black text-white uppercase italic tracking-tighter shadow-sm">
+                                     {strategy.type === 'MT5_EA' ? 'Binary Logic Hub' : 'Source Protocol Archive'}
+                                   </h4>
+                                   <p className="text-[9px] text-white/20 font-black uppercase tracking-widest leading-none">
+                                     {strategy.type === 'MT5_EA' ? 'Direct upload of .ex5 logic binary' : 'Internal encrypted repository storage for net review.'}
+                                   </p>
+                                </div>
+                                <span className={`text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-full border ${strategy.type === 'MT5_EA' ? 'bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700]' : 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]'}`}>
+                                   {strategy.type === 'MT5_EA' ? 'Required Binary' : 'Protocol Source'}
+                                </span>
                             </div>
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Onboarding Manual</label>
+
+                            {strategy.type === 'MT5_EA' ? (
+                                <div className="relative group">
+                                    <input type="file" accept=".ex4,.ex5" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-30" />
+                                    <div className={`bg-white/5 border-2 border-dashed rounded-[40px] py-16 flex flex-col items-center gap-4 transition-all duration-500 ${scanStatus === 'CLEAN' ? 'border-[#00E676]/40 bg-[#00E676]/5 shadow-[0_0_40px_rgba(0,230,118,0.05)]' : 'border-white/10 hover:border-[#FFD700]/40'}`}>
+                                        <div className={`p-5 rounded-full ${scanStatus === 'CLEAN' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-white/10 text-white/20 group-hover:bg-[#FFD700]/10 group-hover:text-[#FFD700]'}`}>
+                                           <Upload className="w-10 h-10" />
+                                        </div>
+                                        <div className="text-center space-y-1">
+                                            <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${scanStatus === 'CLEAN' ? 'text-[#00E676]' : 'text-white/40 group-hover:text-white'}`}>
+                                              {file ? file.name : 'Upload .ex4 / .ex5 Binary File'}
+                                            </span>
+                                            <p className="text-[8px] font-black text-white/10 uppercase tracking-widest">Mandatory for technical clearance</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative group">
+                                    <Terminal className="absolute left-6 top-6 w-4 h-4 text-white/10 group-focus-within:text-[#FFD700] transition-colors" />
                                     <textarea 
-                                        rows={4}
-                                        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-sm text-white outline-none resize-none" 
-                                        placeholder="Explain how to set up, recommended balance, and logic..." 
-                                        value={strategy.setup_guide} 
-                                        onChange={e => setStrategy({...strategy, setup_guide: e.target.value})} 
+                                        rows={8} 
+                                        placeholder="// Paste your Pine Script logic code here for encrypted archival..."
+                                        className="w-full bg-black/40 border border-white/10 focus:border-[#FFD700]/40 rounded-[40px] py-8 pl-14 pr-8 text-[11px] text-white outline-none font-mono leading-relaxed transition-all shadow-inner"
+                                        value={strategy.script_code} 
+                                        onChange={e => setStrategy({...strategy, script_code: e.target.value})} 
                                     />
                                 </div>
+                            )}
+                        </div>
+                    </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {[
-                                        { id: 'MT5_EA', label: 'MetaTrader 5 EA', d: 'Automated bot. High performance execution.' },
-                                        { id: 'PINE_SCRIPT_WEBHOOK', label: 'TradingView Indicator', d: 'Signal bridge via Webhooks. Manual copy.' },
-                                    ].map(type => (
-                                        <button 
-                                            key={type.id}
-                                            onClick={() => setStrategy({...strategy, type: type.id as any})}
-                                            className={`p-4 rounded-2xl border transition-all text-left ${strategy.type === type.id ? 'bg-[#FFD700]/10 border-[#FFD700]/30 text-[#FFD700]' : 'bg-white/5 border-white/5 text-white/20'}`}
-                                        >
-                                            <div className="text-[11px] font-black uppercase mb-1">{type.label}</div>
-                                            <div className="text-[9px] font-bold opacity-40 leading-relaxed uppercase tracking-wider">{type.d}</div>
-                                        </button>
-                                    ))}
+                    <div className="flex gap-6">
+                        <button onClick={() => setCurrentStep(0)} className="px-8 py-5 rounded-3xl bg-white/5 border border-white/5 text-white/20 hover:text-white transition-all hover:bg-white/10"><ArrowLeft className="w-5 h-5" /></button>
+                        <button 
+                            onClick={() => setCurrentStep(2)} 
+                            disabled={!isStep1Complete}
+                            className={`flex-1 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[11px] transition-all italic underline underline-offset-4 decoration-2 text-center font-sans ${isStep1Complete ? 'bg-[#FFD700] text-black shadow-xl' : 'bg-white/5 text-white/10 cursor-not-allowed border border-white/10'}`}
+                        >
+                            Synchronize to Logic Vault →
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* STEP 2: INTERACTIVE HANDSHAKE VAULT */}
+            {currentStep === 2 && (
+                <motion.div key="p2" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-12">
+                    <section className="bg-[#131929]/40 border border-white/5 p-16 rounded-[64px] backdrop-blur-xl text-center space-y-12 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#FFD700]/5 to-transparent pointer-events-none" />
+                        
+                        <div className="space-y-3 relative z-10">
+                           <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter shadow-sm">
+                             {strategy.type === 'MT5_EA' ? 'Binary Binary Vault' : 'Signal Handshake Vault'}
+                           </h4>
+                           <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.3em] font-sans">Initialize technical synchronization with the Coppr Network Hub.</p>
+                        </div>
+
+                        {strategy.type === 'MT5_EA' ? (
+                            <div className="max-w-md mx-auto space-y-8 relative z-10">
+                                <div className="bg-black/20 p-10 rounded-[48px] border border-white/5 space-y-6">
+                                     <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center transition-all duration-700 ${scanStatus === 'CLEAN' ? 'bg-[#00E676]/20 text-[#00E676] scale-110 shadow-[0_0_20px_#00E67644]' : 'bg-white/5 text-white/10'}`}>
+                                        <ShieldCheck className="w-10 h-10" />
+                                     </div>
+                                     <div className="space-y-1">
+                                        <h4 className="text-[13px] font-black text-white uppercase italic tracking-widest italic">{scanStatus === 'CLEAN' ? 'Integrity Verified' : 'Awaiting Binary'}</h4>
+                                        <p className="text-[9px] text-white/20 font-black uppercase tracking-[0.2em]">Node logic file must be cleared for managed execution.</p>
+                                     </div>
                                 </div>
-
-                                {strategy.type === 'PINE_SCRIPT_WEBHOOK' && (
-                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 border-t border-white/5 pt-4">
-                                        <label className="text-[10px] font-black uppercase text-[#00B0FF] tracking-wider">Signal Alert Template (JSON)</label>
-                                        <pre className="p-3 bg-black/40 rounded-xl text-[9px] font-mono text-white/20 mb-2">
-{`{
+                                {scanStatus === 'CLEAN' && (
+                                    <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={handleHandshake} className={`w-full py-6 rounded-3xl font-black uppercase text-[11px] tracking-[0.2em] italic transition-all shadow-2xl ${handshakeSynced ? 'bg-[#00E676] text-black shadow-[#00E676]/20' : 'bg-[#FFD700] text-black shadow-[#FFD700]/20 hover:scale-105'}`}>
+                                        {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : handshakeSynced ? 'Vault Synchronization Confirmed ✓' : 'Confirm & Initialize Managed Node'}
+                                    </motion.button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="max-w-xl mx-auto space-y-8 relative z-10">
+                                <div className="p-12 bg-white/[0.02] border border-white/5 rounded-[48px] backdrop-blur-3xl relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#00E676]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Zap className={`w-16 h-16 mx-auto mb-8 transition-all duration-700 ${handshakeSynced ? 'text-[#00E676] drop-shadow-[0_0_15px_#00E676] scale-110' : 'text-white/10'}`} strokeWidth={1} />
+                                    <h4 className="text-xl font-black text-white italic uppercase tracking-tighter">Indicator Signal Bridge</h4>
+                                    <p className="text-[11px] text-white/30 font-bold uppercase tracking-[0.2em] mt-6 italic font-sans px-8 leading-relaxed">
+                                        Synchronize your indicator logic to generate the secure Webhook endpoint and JSON Handshake template.
+                                    </p>
+                                </div>
+                                <button onClick={handleHandshake} disabled={handshakeSynced || loading} className={`w-full py-7 rounded-[32px] font-black uppercase text-[12px] tracking-[0.2em] italic transition-all shadow-2xl ${handshakeSynced ? 'bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40' : 'bg-[#FFD700] text-black shadow-[#FFD700]/20 hover:scale-[1.02]'}`}>
+                                     {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : handshakeSynced ? 'Synchronization Established ✓' : 'Initialize Handshake Synchronization'}
+                                </button>
+                                
+                                <AnimatePresence>
+                                {handshakeSynced && generatedKey && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-6 text-left">
+                                        <div className="p-8 bg-black/40 border border-[#00E676]/20 rounded-[40px] space-y-8 shadow-inner backdrop-blur-xl">
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center px-1">
+                                                   <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Webhook Endpoint URL</span>
+                                                   {copied === 'URL' && <span className="text-[9px] font-black text-[#00E676] uppercase italic animate-pulse">Copied!</span>}
+                                                </div>
+                                                <div onClick={() => handleCopy('https://hub.coppr.network/api/v1/signals', 'URL')} className="group flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10 hover:border-[#00E676]/40 transition-all cursor-pointer">
+                                                    <span className="font-mono text-[10px] text-white/60 truncate italic">https://hub.coppr.network/api/v1/signals</span>
+                                                    <Copy className="w-4 h-4 text-white/20 group-hover:text-[#00E676] transition-colors" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center px-1">
+                                                   <span className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans">JSON Handshake Payload</span>
+                                                   {copied === 'PAYLOAD' && <span className="text-[9px] font-black text-[#00E676] uppercase italic animate-pulse">Payload Copied!</span>}
+                                                </div>
+                                                <div onClick={() => handleCopy(`{ "secret": "${generatedKey}", "ticker": "{{ticker}}", "action": "{{strategy.order.action}}", "price": "{{close}}" }`, 'PAYLOAD')} className="group relative bg-black/60 p-6 rounded-3xl border border-white/10 hover:border-[#00E676]/40 transition-all cursor-pointer overflow-hidden font-mono text-[10px] text-[#00E676]/80 leading-relaxed italic">
+                                                    <pre>{`{
+  "secret": "${generatedKey}",
+  "ticker": "{{ticker}}",
   "action": "{{strategy.order.action}}",
-  "symbol": "{{ticker}}",
   "price": "{{close}}"
-}`}
-                                        </pre>
-                                        <p className="text-[9px] text-white/20 font-bold uppercase leading-relaxed">
-                                            The bridge uses this to relay signals. You can customize the body as needed.
-                                        </p>
+}`}</pre>
+                                                    <Copy className="absolute bottom-4 right-4 w-4 h-4 text-white/10 group-hover:text-[#00E676]" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 px-2">
+                                           <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+                                           <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-widest italic font-sans italic">Logic synced to Network Handshake. Ready for TradingView Integration.</span>
+                                        </div>
                                     </motion.div>
+                                )}
+                                </AnimatePresence>
+                            </div>
+                        )}
+                    </section>
+                    
+                    <div className="flex gap-6">
+                        <button onClick={() => setCurrentStep(1)} className="px-8 py-5 rounded-3xl bg-white/5 border border-white/5 text-white/20 hover:text-white transition-all hover:bg-white/10"><ArrowLeft className="w-5 h-5" /></button>
+                        <button 
+                            onClick={() => setCurrentStep(3)} 
+                            disabled={!isStep2Complete} 
+                            className={`flex-1 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[12px] transition-all italic underline underline-offset-4 decoration-2 ${isStep2Complete ? 'bg-[#FFD700] text-black shadow-2xl shadow-[#FFD700]/10 hover:scale-[1.01]' : 'bg-white/5 text-white/10 cursor-not-allowed border border-white/5'}`}
+                        >
+                            Final Step: Assets & Pricing Hub →
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* STEP 3: ASSETS & FINANCIALS */}
+            {currentStep === 3 && (
+                <motion.div key="p3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-12">
+                     <section className="bg-[#131929]/40 border border-white/5 p-16 rounded-[64px] backdrop-blur-xl space-y-16 relative overflow-hidden leading-none">
+                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-[100px] pointer-events-none" />
+                        
+                        <div className="flex items-center justify-between border-b border-white/5 pb-12">
+                            <div className="space-y-2">
+                               <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">Assets & Pricing</h3>
+                               <p className="text-[10px] text-[#FFD700] font-black uppercase tracking-[0.3em]">Configure evidence and monetization</p>
+                            </div>
+                            <Trophy className="w-12 h-12 text-[#FFD700]/20" strokeWidth={1} />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div className="space-y-8">
+                                 {/* MONETIZATION TIER */}
+                                 <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Monetization Tier</label>
+                                    <div className="flex gap-4 p-2 bg-black/40 border border-white/5 rounded-2xl">
+                                        <button onClick={() => setStrategy({...strategy, tier: 'FREE'})} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${strategy.tier === 'FREE' ? 'bg-white/10 text-white shadow-xl' : 'text-white/20 hover:text-white/40'}`}>Community (Free)</button>
+                                        <button onClick={() => setStrategy({...strategy, tier: 'PAID'})} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${strategy.tier === 'PAID' ? 'bg-[#FFD700] text-black shadow-xl' : 'text-white/20 hover:text-white/40'}`}>Elite (Paid)</button>
+                                    </div>
+                                 </div>
+
+                                 <div className="space-y-3 font-sans pt-4">
+                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Chart Example (Image URL) <span className="text-red-500/60">*</span></label>
+                                    <input type="text" placeholder="https://imgur.com/image.png" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-[11px] text-white outline-none font-mono" value={strategy.screenshot_urls[0]} onChange={e => {
+                                        const news = [...strategy.screenshot_urls];
+                                        news[0] = e.target.value;
+                                        setStrategy({...strategy, screenshot_urls: news});
+                                    }} />
+                                 </div>
+                                 <div className="space-y-3 font-sans">
+                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Video Guide (YouTube/Instagram Reel) <span className="text-red-500/60">*</span></label>
+                                    <input type="text" placeholder="https://reel.link/your_demo" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-[11px] text-white outline-none font-mono" value={strategy.video_url} onChange={e => setStrategy({...strategy, video_url: e.target.value})} />
+                                 </div>
+                            </div>
+
+                            <div className={`p-10 rounded-[48px] space-y-10 transition-all duration-700 ${strategy.tier === 'PAID' ? 'bg-black/40 border border-[#FFD700]/20' : 'bg-white/[0.01] border border-white/5 opacity-40 shadow-inner'}`}>
+                                {strategy.tier === 'PAID' ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic leading-none">Subscription Fee (INR)</label>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-7xl font-black text-white italic tracking-tighter leading-none">₹{strategy.price}</span>
+                                                <span className="text-[12px] font-black text-[#FFD700] uppercase tracking-[0.4em]">/ Mo</span>
+                                            </div>
+                                        </div>
+                                        <input type="range" min="999" max="9999" step="100" value={strategy.price} onChange={e => setStrategy({...strategy, price: parseInt(e.target.value)})} className="w-full h-2 bg-white/10 rounded-full appearance-none accent-[#FFD700] cursor-pointer shadow-xl" />
+                                        <div className="flex justify-between items-center">
+                                             <span className="text-[8px] font-black text-white/10 uppercase italic">Entry Level</span>
+                                             <span className="text-[8px] font-black text-white/10 uppercase italic">Elite Protocol</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center gap-6 text-center py-10 px-4">
+                                        <Sparkles className="w-12 h-12 text-[#FFD700]/20 animate-pulse" strokeWidth={1} />
+                                        <div className="space-y-2">
+                                           <h4 className="text-[13px] font-black text-white/40 uppercase tracking-widest italic leading-none">Community Open Node</h4>
+                                           <p className="text-[9px] text-white/10 font-bold uppercase tracking-widest leading-relaxed">No subscription fee required. Accessible to the global network.</p>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    <div className="flex gap-4">
-                        <button onClick={() => setCurrentStep(0)} className="px-6 py-4 rounded-2xl border border-white/5 text-white/40 font-black uppercase tracking-widest text-[11px]"><ArrowLeft className="w-4 h-4" /></button>
-                        <button onClick={() => setCurrentStep(2)} className="flex-1 py-4 rounded-2xl bg-[#FFD700] text-black font-black uppercase tracking-widest text-[11px]">Security Validation</button>
-                    </div>
-                </motion.div>
-            )}
-
-            {currentStep === 2 && (
-                <motion.div key="p2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <section className="bg-white/[0.02] border border-white/5 p-12 rounded-[48px] text-center space-y-8">
-                        <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-                            <Upload className="w-8 h-8 text-[#FFD700]" />
-                        </div>
-                        
-                        <div className="max-w-sm mx-auto p-6 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-3xl mb-8 text-left">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <Bot className="w-5 h-5 text-[#FFD700]" />
-                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest">Coppr-Managed Execution</h4>
-                                </div>
-                                <button 
-                                    onClick={() => setStrategy({...strategy, is_managed: !strategy.is_managed})}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${strategy.is_managed ? 'bg-[#FFD700]' : 'bg-white/10'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-black transition-all ${strategy.is_managed ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
-                            <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
-                                Let Coppr host your EA on our proprietary high-speed fiber network. We handle the VPS 24/7. No manual setup required for you or your buyers.
-                            </p>
-                        </div>
-                        {strategy.mode === 'VPS_MANAGED' ? (
-                            <div className="space-y-4">
-                                <h3 className="text-2xl font-black text-[#FFD700]">VPS-MANAGED PROTOCOL</h3>
-                                <p className="text-[11px] text-white/25 uppercase font-bold tracking-widest leading-loose max-w-sm mx-auto">
-                                    Official Coppr Managed products are hosted directly on our Hostinger VPS network. No user file upload required.
-                                </p>
-                                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                    <p className="text-[10px] text-white/40 font-bold uppercase">Our engineering team will initiate deployment within 24 hours.</p>
-                                </div>
-                            </div>
-                        ) : strategy.type === 'PINE_SCRIPT_WEBHOOK' ? (
-                            <div className="space-y-4">
-                                <div className="w-16 h-16 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center mx-auto mb-4">
-                                    <Zap className="w-8 h-8 text-[#00E676]" />
-                                </div>
-                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Bridge Gateway Ready</h3>
-                                <p className="text-[11px] text-white/25 uppercase font-bold tracking-widest leading-loose max-w-sm mx-auto">
-                                    Your TradingView signals will be processed via our high-speed Webhook Bridge. No executable upload is necessary for this protocol.
-                                </p>
-                                <div className="p-4 bg-[#00E676]/5 rounded-2xl border border-[#00E676]/10">
-                                    <p className="text-[10px] text-[#00E676]/60 font-black uppercase tracking-widest leading-relaxed">
-                                        Handshake validation will occur after submission in the Signal Terminal.
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-white">Upload Executable</h3>
-                                <p className="text-[11px] text-white/25 uppercase font-bold tracking-widest leading-loose max-w-sm mx-auto">
-                                    All files undergo a deep bytecode virus scan via ClamAV protocol to protect the Coppr Trade Network.
-                                </p>
-                            </div>
-
-                            <div className="relative group max-w-sm mx-auto">
-                                <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                                <div className="py-6 px-10 border-2 border-dashed border-white/10 rounded-3xl group-hover:border-[#FFD700]/30 transition-all flex flex-col items-center gap-3">
-                                    <span className="text-[11px] font-black text-white/30 uppercase tracking-widest">{file ? file.name : 'Select .mq5 or .pine'}</span>
-                                    <div className="text-[9px] px-3 py-1 bg-white/5 text-white/20 font-black tracking-widest rounded-full uppercase">MAX 50MB</div>
-                                </div>
-                            </div>
-                            </>
-                        )}
-
-                        <AnimatePresence>
-                            {scanStatus === 'SCANNING' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3 py-4">
-                                    <Loader2 className="w-6 h-6 animate-spin text-[#FFD700]" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20">De-compiling for heuristics...</span>
-                                </motion.div>
-                            )}
-                            {scanStatus === 'CLEAN' && strategy.type !== 'PINE_SCRIPT_WEBHOOK' && (
-                                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-3 py-4">
-                                     <div className="flex items-center gap-3 px-6 py-3 bg-[#00E676]/10 border border-[#00E676]/30 rounded-2xl">
-                                         <ShieldCheck className="w-5 h-5 text-[#00E676]" />
-                                         <span className="text-[11px] font-black uppercase tracking-[0.1em] text-[#00E676]">VERIFIED NO MALWARE</span>
-                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </section>
-                    <div className="flex gap-4">
-                        <button onClick={() => setCurrentStep(1)} className="px-6 py-4 rounded-2xl border border-white/5 text-white/40"><ArrowLeft className="w-4 h-4" /></button>
+
+                    <div className="flex gap-6">
+                        <button onClick={() => setCurrentStep(2)} className="px-8 py-5 rounded-3xl bg-white/5 border border-white/5 text-white/20 hover:text-white transition-all hover:bg-white/10"><ArrowLeft className="w-5 h-5" /></button>
                         <button 
-                            disabled={(strategy.type === 'MT5_EA' && strategy.mode === 'CLIENT_SIDE' && scanStatus !== 'CLEAN')} 
-                            onClick={() => setCurrentStep(3)} 
-                            className="flex-1 py-4 rounded-2xl bg-[#FFD700] text-black font-black uppercase tracking-[0.1em] text-[11px] disabled:opacity-20 transition-opacity"
+                             onClick={handleFinalSubmit} 
+                             disabled={!isStep3Complete || loading} 
+                             className={`flex-1 py-6 rounded-[32px] font-black uppercase tracking-[0.2em] text-[12px] transition-all italic flex items-center justify-center gap-4 shadow-2xl ${isStep3Complete ? 'bg-[#FFD700] text-black shadow-[#FFD700]/10 hover:scale-[1.01]' : 'bg-white/5 text-white/10 cursor-not-allowed border border-white/10'}`}
                         >
-                            Continue to Financials
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Sparkles className="w-6 h-6" /> VERIFY & BROADCAST PROJECT TO NETWORK</>}
                         </button>
                     </div>
                 </motion.div>
             )}
 
-            {currentStep === 3 && (
-                <motion.div key="p3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                    <section className="bg-white/[0.02] border border-white/5 p-8 rounded-[40px] space-y-10">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-sm font-black text-[#FFD700] uppercase tracking-widest">Revenue Splitting</h3>
-                            <div className="text-[10px] px-3 py-1 bg-white/5 text-white/40 font-black tracking-widest rounded-full uppercase italic">70% CREATOR · 30% COPPR</div>
-                        </div>
-
-                        <div className="space-y-8">
-                             <div className="flex justify-between items-end">
-                                <label className="text-[10px] font-black uppercase text-white/20 tracking-wider">Set Monthly License Fee</label>
-                                <span className="text-4xl font-black text-white tracking-tighter">₹{strategy.price}</span>
-                             </div>
-                             <input 
-                                type="range" 
-                                min="999" 
-                                max="9999" 
-                                step="100" 
-                                value={strategy.price}
-                                onChange={e => setStrategy({...strategy, price: parseInt(e.target.value)})}
-                                className="w-full h-2 bg-white/5 rounded-full appearance-none accent-[#FFD700] cursor-pointer" 
-                             />
-                             <div className="flex justify-between text-[11px] font-bold text-white/10 uppercase">
-                                <span>₹999</span>
-                                <span>₹9999</span>
-                             </div>
-
-                             <div className="p-6 rounded-3xl bg-white/5 space-y-4">
-                                <div className="flex justify-between items-center text-[11px] font-bold">
-                                    <span className="text-white/30 lowercase uppercase">Potential Payout per Subscriber</span>
-                                    <span className="text-[#00E676]">₹{(strategy.price * 0.7).toFixed(0)}</span>
-                                </div>
-                             </div>
-                        </div>
-                    </section>
-
-                    <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl flex gap-4 items-center">
-                        <AlertTriangle className="w-6 h-6 text-red-500" />
-                        <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest leading-loose">
-                            All submissions undergo internal review for logic performance before going PUBLIC. Verification takes ~24 hours.
-                        </p>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button onClick={() => setCurrentStep(2)} className="px-6 py-4 rounded-2xl border border-white/5 text-white/40"><ArrowLeft className="w-4 h-4" /></button>
-                        <button onClick={handleFinalSubmit} disabled={loading} className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-black uppercase tracking-widest text-[11px] shadow-2xl flex items-center justify-center gap-3">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Finalize and Submit Strategy'}
-                        </button>
-                    </div>
-                </motion.div>
-            )}
-
+            {/* STEP 4: FINAL SUCCESS */}
             {currentStep === 4 && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 text-center gap-6">
-                    <div className="w-24 h-24 rounded-full bg-[#00E676]/10 border border-[#00E676]/30 flex items-center justify-center mb-4">
-                        <CheckCircle2 className="w-12 h-12 text-[#00E676]" strokeWidth={2.5} />
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-24 gap-12 text-center max-w-2xl mx-auto">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-[#00E676]/20 blur-[60px] rounded-full animate-pulse" />
+                        <div className="w-32 h-32 rounded-[48px] bg-[#00E676]/10 border border-[#00E676]/40 flex items-center justify-center relative z-10 shadow-2xl">
+                             <CheckCircle2 className="w-16 h-16 text-[#00E676]" strokeWidth={1.5} />
+                        </div>
                     </div>
                     <div className="space-y-4">
-                        <h2 className="text-3xl font-black text-white leading-none">SUBMISSION RECEIVED</h2>
-                        <p className="text-[13px] text-white/30 uppercase font-bold tracking-widest mb-8">Awaiting protocol clearance for public listing</p>
-                        
-                        {strategy.type === 'PINE_SCRIPT_WEBHOOK' && generatedKey && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="max-w-xl mx-auto space-y-6 text-left"
-                            >
-                                {/* SIMPLIFIED VIBE-CODER INSTRUCTIONS */}
-                                <div className="p-8 bg-white/[0.04] border border-[#00E676]/30 rounded-[40px] space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E676]/10 blur-[60px]" />
-                                    
-                                    <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                                       <div className="w-12 h-12 rounded-2xl bg-[#00E676]/10 flex items-center justify-center border border-[#00E676]/20">
-                                          <Zap className="w-6 h-6 text-[#00E676]" />
-                                       </div>
-                                       <div>
-                                          <h4 className="text-xl font-black text-white uppercase italic tracking-tight leading-none italic">Fast Link Protocol</h4>
-                                          <p className="text-[10px] font-black text-[#00E676]/60 uppercase tracking-widest mt-1">Zero-Code Handshake Active</p>
-                                       </div>
-                                    </div>
-
-                                    <div className="space-y-6 relative z-10">
-                                       <div className="space-y-4">
-                                          <div className="flex items-center justify-between">
-                                             <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Step 1: Webhook URL</label>
-                                             <span className="text-[8px] font-black text-[#FFD700] uppercase italic">TradingView Alerts</span>
-                                          </div>
-                                          <div className="bg-black/60 p-4 rounded-2xl border border-white/5 group transition-all hover:border-[#FFD700]/30 shadow-inner">
-                                             <code className="text-[10px] text-white/60 font-mono break-all">{`https://coppr.in/api/bridge/${generatedKey}`}</code>
-                                          </div>
-                                       </div>
-
-                                       <div className="space-y-4">
-                                          <div className="flex items-center justify-between">
-                                             <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Step 2: Message Template</label>
-                                             <span className="text-[8px] font-black text-[#00E676] uppercase italic">Standard Connector</span>
-                                          </div>
-                                          <div className="bg-black/60 p-4 rounded-2xl border border-white/5 shadow-inner">
-                                             <pre className="text-[11px] text-[#00E676]/60 font-mono">
-{`{
-  "side": "{{strategy.order.action}}",
-  "symbol": "{{ticker}}",
-  "id": "${strategyId}"
-}`}
-                                             </pre>
-                                          </div>
-                                       </div>
-                                    </div>
-
-                                    <div className="pt-10 border-t border-white/5 space-y-10">
-                                       <div className="space-y-4">
-                                          <div className="flex items-center gap-3">
-                                             <Sparkles className="w-5 h-5 text-[#FFD700]" />
-                                             <h4 className="text-[14px] font-black text-white uppercase italic tracking-tighter">Migration to Live: Next Steps</h4>
-                                          </div>
-                                          
-                                          <div className="grid grid-cols-1 gap-6">
-                                             {[
-                                                { step: '01', title: 'TradingView Alert', desc: 'Go to your BTCUSD chart, create an Alert, and paste your Webhook URL + Message Template.' },
-                                                { step: '02', title: 'Trigger Pulse', desc: 'Trigger a signal (manual or auto) and verify the "Handshake" in your Signal Bridge Terminal.' },
-                                                { step: '03', title: 'Admin Clearance', desc: 'Once verified, Anil will approve your listing. Your bridge will then switch from "Pending" to "Active".' }
-                                             ].map((s, i) => (
-                                                <div key={i} className="flex gap-6 items-start group p-4 rounded-2xl transition-all hover:bg-white/[0.02]">
-                                                   <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center font-black text-[14px] italic text-white/20 group-hover:bg-[#FFD700]/10 group-hover:text-[#FFD700] transition-all">
-                                                      {s.step}
-                                                   </div>
-                                                   <div className="space-y-1">
-                                                      <h5 className="text-[11px] font-black text-white uppercase italic">{s.title}</h5>
-                                                      <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed">{s.desc}</p>
-                                                   </div>
-                                                </div>
-                                             ))}
-                                          </div>
-                                       </div>
-
-                                       <div className="p-4 bg-[#FFD700]/5 border border-[#FFD700]/20 rounded-2xl flex items-center gap-4">
-                                          <ShieldCheck className="w-5 h-5 text-[#FFD700]" />
-                                          <div className="flex-1">
-                                             <p className="text-[10px] text-[#FFD700] font-black uppercase tracking-widest leading-none">PROTOCOL STATUS: PENDING CLEARANCE</p>
-                                             <p className="text-[8px] text-[#FFD700]/40 font-bold uppercase mt-1">Our Admin team will review your bridge logic within 24 hours.</p>
-                                          </div>
-                                       </div>
-                                    </div>
-                                </div>
-
-                                <div className="text-center">
-                                    <button 
-                                      onClick={() => router.push('/dashboard/creator')}
-                                      className="px-10 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all shadow-2xl shadow-[#FFD700]/10 italic tracking-tighter"
-                                    >
-                                       GO TO SIGNAL TERMINAL <ChevronRight className="w-5 h-5 inline-block" />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
+                        <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none shadow-sm">Project <span className="text-[#00E676]">Pulsing</span></h2>
+                        <p className="text-[12px] text-white/30 uppercase font-bold tracking-[0.3em] font-sans italic px-10">
+                          Clearance initiated. Your strategy node is now undergoing administrative audit before live network propagation.
+                        </p>
+                    </div>
+                    <button onClick={() => router.push('/dashboard/creator')} className="px-12 py-5 bg-white/5 border border-white/10 rounded-[32px] text-[11px] font-black uppercase text-white transition-all italic hover:bg-white/10 hover:scale-105 tracking-widest font-sans italic">Back to Terminal Hub</button>
+                    
+                    <div className="pt-10 flex items-center gap-4 text-white/10 pb-20">
+                       <Zap className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.5em] italic">Coppr Managed Execution Grid</span>
+                       <Zap className="w-4 h-4" />
                     </div>
                 </motion.div>
             )}
         </AnimatePresence>
       </div>
-
     </div>
   );
 }

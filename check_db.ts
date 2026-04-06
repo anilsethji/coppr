@@ -9,12 +9,12 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function check() {
-    const { data: types } = await supabase
+    const { data: strategies } = await supabase
         .from('strategies')
-        .select('type, subtype')
-        .limit(20);
+        .select('id, name, type')
+        .limit(5);
     
-    console.log(JSON.stringify(types, null, 2));
+    console.log(JSON.stringify(strategies, null, 2));
 }
 
 check();

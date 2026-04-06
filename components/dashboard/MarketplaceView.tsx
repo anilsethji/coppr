@@ -71,8 +71,7 @@ export function MarketplaceView() {
   };
 
   const handleCreatorClick = (handle: string) => {
-    // This will open the creator modal or navigate to profile
-    router.push(`/creator/${handle}`);
+    router.push(`/dashboard/creator/${handle}`);
   };
 
   return (

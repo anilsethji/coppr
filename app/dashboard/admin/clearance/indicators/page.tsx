@@ -12,7 +12,9 @@ import {
   Loader2,
   ArrowLeft,
   Zap,
-  Activity
+  Activity,
+  Eye,
+  Image as LucideImage
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -21,6 +23,7 @@ export default function IndicatorClearance() {
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPending();
@@ -87,60 +90,123 @@ export default function IndicatorClearance() {
 
       <div className="grid grid-cols-1 gap-6">
         <AnimatePresence>
-          {pending.map((strat) => (
-            <motion.div 
-              key={strat.id}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden group hover:border-[#FFD700]/20 transition-all flex flex-col md:flex-row shadow-2xl"
-            >
-              <div className="p-10 flex-1 space-y-8">
-                  <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-6">
-                           <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border border-white/5 text-white/20">
-                               <FileCode className="w-8 h-8 text-[#FFD700]" />
-                           </div>
-                           <div>
-                               <h3 className="text-2xl font-black text-white italic tracking-tight">{strat.name}</h3>
-                               <div className="flex items-center gap-3 mt-1">
-                                   <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">@{strat.creator_profiles?.handle}</span>
-                                   <span className="w-1 h-1 rounded-full bg-white/10" />
-                                   <span className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none bg-white/5 px-3 py-1.5 rounded-full">{strat.symbol}</span>
+          {pending.map((strat) => {
+            const isExpanded = expandedId === strat.id;
+            return (
+              <motion.div 
+                key={strat.id}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className={`bg-white/[0.02] border rounded-[40px] overflow-hidden group transition-all flex flex-col shadow-2xl ${
+                  isExpanded ? 'border-[#FFD700]/40 bg-white/[0.04]' : 'border-white/5 hover:border-[#FFD700]/20'
+                }`}
+              >
+                <div className="flex flex-col md:flex-row">
+                  <div className="p-10 flex-1 space-y-8">
+                      <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-6">
+                               <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border border-white/5 text-white/20">
+                                   <FileCode className="w-8 h-8 text-[#FFD700]" />
                                </div>
+                               <div>
+                                   <h3 className="text-2xl font-black text-white italic tracking-tight">{strat.name}</h3>
+                                   <div className="flex items-center gap-3 mt-1">
+                                       <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">@{strat.creator_profiles?.handle}</span>
+                                       <span className="w-1 h-1 rounded-full bg-white/10" />
+                                       <span className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none bg-white/5 px-3 py-1.5 rounded-full">{strat.symbol}</span>
+                                   </div>
+                               </div>
+                          </div>
+                      </div>
+
+                      <p className="text-sm text-white/30 font-bold uppercase tracking-wide leading-relaxed max-w-2xl italic">
+                          {strat.description || 'No bridge documentation provided.'}
+                      </p>
+
+                      <div className="flex flex-wrap gap-4">
+                          <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-black text-white/60 uppercase tracking-widest italic">
+                              Webhook Protocol: WEBHOOK_BRIDGE
+                          </div>
+                          <button 
+                            onClick={() => setExpandedId(isExpanded ? null : strat.id)}
+                            className={`px-5 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest italic flex items-center gap-3 transition-all ${
+                              isExpanded ? 'bg-[#FFD700] text-black border-[#FFD700]' : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10'
+                            }`}
+                          >
+                            <Eye className="w-4 h-4" /> {isExpanded ? 'Close Protocol Review' : 'Review Metadata'}
+                          </button>
+                      </div>
+                  </div>
+
+                  <div className="bg-[#131929]/20 border-l border-white/5 p-10 flex flex-col justify-center gap-4 min-w-[280px]">
+                      <button 
+                          onClick={() => handleAction(strat.id, 'APPROVE')}
+                          disabled={!!processingId}
+                          className="w-full py-5 rounded-[24px] bg-[#00E676] text-black font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-[#00E676]/10 flex items-center justify-center gap-3 hover:scale-[1.02] transition-all disabled:opacity-50"
+                      >
+                          {processingId === strat.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5" /> Approve Listing</>}
+                      </button>
+                      <button 
+                          onClick={() => handleAction(strat.id, 'REJECT')}
+                          disabled={!!processingId}
+                          className="w-full py-5 rounded-[24px] bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                      >
+                          <XCircle className="w-5 h-5" /> Reject Strategy
+                      </button>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="border-t border-white/5 bg-black/20"
+                    >
+                      <div className="p-10 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        {/* SCREENSHOTS */}
+                        <div className="space-y-6">
+                           <h4 className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.3em] flex items-center gap-2">
+                             <LucideImage className="w-3 h-3" /> Visual Evidence
+                           </h4>
+                           <div className="grid grid-cols-3 gap-4">
+                             {[0, 1, 2].map((idx) => (
+                               <div key={idx} className="aspect-video rounded-2xl bg-white/5 border border-white/5 overflow-hidden group/img relative">
+                                 {strat.screenshot_urls?.[idx] ? (
+                                   <img src={strat.screenshot_urls[idx]} alt={`Preview ${idx}`} className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700" />
+                                 ) : (
+                                   <div className="w-full h-full flex items-center justify-center text-white/10">
+                                      <LucideImage className="w-6 h-6" />
+                                   </div>
+                                 )}
+                               </div>
+                             ))}
                            </div>
+                        </div>
+
+                        {/* PROTOCOL POINTS */}
+                        <div className="space-y-6">
+                           <h4 className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.3em] flex items-center gap-2">
+                             <Activity className="w-3 h-3" /> Strategic Protocol
+                           </h4>
+                           <div className="grid grid-cols-1 gap-3">
+                             {(strat.how_it_works?.length > 0 ? strat.how_it_works : ['No specific bridge logic provided.']).map((point: string, i: number) => (
+                               <div key={i} className="p-4 rounded-xl bg-white/[0.03] border border-white/5 flex items-start gap-4">
+                                  <div className="w-5 h-5 rounded-lg bg-[#FFD700]/10 flex items-center justify-center text-[10px] font-black text-[#FFD700] shrink-0">{i + 1}</div>
+                                  <p className="text-[11px] text-white/60 font-bold uppercase italic tracking-wide">{point}</p>
+                               </div>
+                             ))}
+                           </div>
+                        </div>
                       </div>
-                  </div>
-
-                  <p className="text-sm text-white/30 font-bold uppercase tracking-wide leading-relaxed max-w-2xl italic">
-                      {strat.description || 'No bridge documentation provided.'}
-                  </p>
-
-                  <div className="flex gap-4">
-                      <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/5 text-[10px] font-black text-white/60 uppercase tracking-widest italic">
-                          Webhook Protocol: WEBHOOK_BRIDGE
-                      </div>
-                  </div>
-              </div>
-
-              <div className="bg-[#131929]/20 border-l border-white/5 p-10 flex flex-col justify-center gap-4 min-w-[280px]">
-                  <button 
-                      onClick={() => handleAction(strat.id, 'APPROVE')}
-                      disabled={!!processingId}
-                      className="w-full py-5 rounded-[24px] bg-[#00E676] text-black font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-[#00E676]/10 flex items-center justify-center gap-3 hover:scale-[1.02] transition-all disabled:opacity-50"
-                  >
-                      {processingId === strat.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5" /> Approve Listing</>}
-                  </button>
-                  <button 
-                      onClick={() => handleAction(strat.id, 'REJECT')}
-                      disabled={!!processingId}
-                      className="w-full py-5 rounded-[24px] bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all disabled:opacity-50"
-                  >
-                      <XCircle className="w-5 h-5" /> Reject Strategy
-                  </button>
-              </div>
-            </motion.div>
-          ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
         
         {pending.length === 0 && (

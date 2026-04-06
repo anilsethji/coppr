@@ -41,7 +41,10 @@ export class PropagationService {
             .select(`
                 id, 
                 user_id, 
-                risk_multiplier, 
+                engine_mode,
+                engine_value,
+                leverage_override,
+                is_paused,
                 broker_account_id,
                 broker_accounts!broker_account_id (*)
             `)
@@ -54,7 +57,7 @@ export class PropagationService {
             return;
         }
 
-        console.log(`[PROPAGATION] Found ${subscribers.length} active nodes.`);
+        console.log(`[PROPAGATION] Found ${subscribers.length} candidate nodes.`);
 
         const propagationPromises = subscribers.map(async (sub: any) => {
             try {
@@ -63,6 +66,13 @@ export class PropagationService {
                 
                 if (!broker) {
                     await this.logEvent(sub.id, "EXECUTION_FAIL", { error: "No linked broker account found.", status: 'FAILED' }, supabase);
+                    return;
+                }
+
+                // ABORT IF PAUSED (Manual or Auto-Kill)
+                if (sub.is_paused) {
+                    console.log(`[PROPAGATION] Node ${sub.id} is PAUSED. Dropping signal.`);
+                    await this.logEvent(sub.id, "NODE_PAUSED", { message: sub.last_kill_reason || "Global stop active.", status: 'SKIPPED' }, supabase);
                     return;
                 }
 
@@ -76,16 +86,45 @@ export class PropagationService {
                         return;
                 }
 
+                // PRE-FLIGHT WATCHDOG: DRAWDOWN PROTECTION
+                const currentBalance = await adapter.getAccountBalance({ account_id: broker.account_id });
+                const baseBalance = sub.base_balance || currentBalance;
+                const threshold = sub.drawdown_threshold || 50.0;
+                const currentDrawdown = ((baseBalance - currentBalance) / baseBalance) * 100;
+
+                if (currentDrawdown > threshold) {
+                    console.error(`[WATCHDOG] Node ${sub.id} triggered Kill-Switch! Drawdown: ${currentDrawdown.toFixed(2)}% > ${threshold}%`);
+                    // PERSIST KILL SWITCH
+                    await supabase.from('user_strategies')
+                        .update({ is_paused: true, last_kill_reason: 'CRITICAL_DRAWDOWN_REACHED' })
+                        .eq('id', sub.id);
+                        
+                    await this.logEvent(sub.id, "AUTO_KILL", { 
+                        reason: 'CRITICAL_DRAWDOWN_REACHED', 
+                        drawdown: currentDrawdown, 
+                        threshold,
+                        status: 'KILLED' 
+                    }, supabase);
+                    return;
+                }
+
                 // Calculate Order (risk adjustment)
+                const calculatedQty = await this.calculateQuantity(sub, signalPayload, adapter, {
+                    account_id: broker.account_id,
+                    api_key: broker.api_key,
+                    api_secret: broker.api_secret
+                });
+
                 const order = {
                     symbol: signalPayload.symbol,
                     action: signalPayload.action,
-                    quantity: this.calculateQuantity(sub.risk_multiplier, signalPayload),
+                    quantity: calculatedQty,
                     orderType: signalPayload.order_type || 'MARKET',
                     limitPrice: signalPayload.limit_price,
                     price: signalPayload.price,
                     sl: signalPayload.sl,
-                    tp: signalPayload.tp
+                    tp: signalPayload.tp,
+                    leverage: sub.leverage_override || 1
                 };
 
                 // Place Order
@@ -119,7 +158,25 @@ export class PropagationService {
         });
     }
 
-    private static calculateQuantity(multiplier: number, payload: any): number {
-        return multiplier * (payload.quantity || 0.01);
+    private static async calculateQuantity(sub: any, payload: any, adapter: any, credentials: any): Promise<number> {
+        const mode = sub.engine_mode || 'MULTIPLIER';
+        const val = sub.engine_value || 1.0;
+        const masterQty = payload.quantity || 0.01;
+
+        switch (mode) {
+            case 'FIXED_QTY':
+                return val;
+            
+            case 'PCT_BALANCE':
+                const balance = await adapter.getAccountBalance(credentials);
+                const price = payload.price || 1.0; 
+                // Formula: (Budget / Price) -> e.g. (10% of 1000) / 50000 price = 0.002 BTC
+                const qty = ( (val / 100) * balance ) / price;
+                return Number(qty.toFixed(4));
+
+            case 'MULTIPLIER':
+            default:
+                return val * masterQty;
+        }
     }
 }

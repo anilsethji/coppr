@@ -92,16 +92,7 @@ export default function IndicatorsPage() {
         </div>
       </motion.div>
 
-      {/* 2. THE JOURNEY (QUICK START) */}
-      <div className="space-y-8">
-         <div className="flex items-center gap-4 px-2">
-            <Terminal className="w-5 h-5 text-white/10" />
-            <h3 className="text-xl font-black text-white uppercase italic tracking-widest leading-none">Integration <span className="text-white/20">Protocol</span></h3>
-         </div>
-         <QuickStartJourney type="subscriber" />
-      </div>
-
-      {/* 3. VAULT MIRROR (ACTIVE SIGNALS) */}
+      {/* 2. VAULT MIRROR (ACTIVE SIGNALS) */}
       <div className="space-y-10">
         <div className="flex items-center gap-4 px-2">
             <Activity className="w-5 h-5 text-[#00E676]" />

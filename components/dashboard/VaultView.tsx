@@ -70,6 +70,14 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
     };
   }, [activeTab]);
 
+  const [configuringId, setConfiguringId] = useState<string | null>(null);
+  const [riskData, setRiskData] = useState({ 
+    engineMode: 'MULTIPLIER' as 'FIXED_QTY' | 'MULTIPLIER' | 'PCT_BALANCE', 
+    engineValue: 1.0, 
+    leverageOverride: 1,
+    drawdownThreshold: 50.0
+  });
+
   const fetchVault = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -99,6 +107,10 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
             user_id: user.id,
             strategy_id: strategy.id,
             sync_active: true,
+            engine_mode: strategy.type === 'MT5_EA' ? 'FIXED_QTY' : 'MULTIPLIER',
+            engine_value: strategy.type === 'MT5_EA' ? 0.01 : 1.0,
+            leverage_override: 1,
+            drawdown_threshold: 50.0,
             strategy: strategy
           });
         }
@@ -160,6 +172,31 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
     }
   };
 
+  const updateRisk = async (subscriptionId: string) => {
+    setActivating(true);
+    try {
+        const res = await fetch('/api/subscription/update-risk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                subscriptionId, 
+                engineMode: riskData.engineMode,
+                engineValue: riskData.engineValue,
+                leverageOverride: riskData.leverageOverride,
+                drawdownThreshold: riskData.drawdownThreshold
+            })
+        });
+        if (res.ok) {
+            setConfiguringId(null);
+            fetchVault();
+        }
+    } catch (err) {
+        console.error('Update failed');
+    } finally {
+        setActivating(false);
+    }
+  };
+
   const toggleSync = async (subscriptionId: string, currentStatus: boolean) => {
     try {
         const res = await fetch('/api/subscription/toggle-sync', {
@@ -213,18 +250,20 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
 
       {activeTab === 'PINE_SCRIPT_WEBHOOK' && strategies.length === 0 && (
           <div className="space-y-12">
-            <QuickStartJourney type="subscriber" />
-            <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[40px] p-20 text-center space-y-8">
-                <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto border border-white/10">
-                      <BarChart3 className="w-8 h-8 text-white/10" />
+            <div className="bg-[#00E676]/[0.02] border border-dashed border-[#00E676]/20 rounded-[48px] p-24 text-center space-y-10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[#00E676]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[100px]" />
+                <div className="w-24 h-24 bg-[#00E676]/10 rounded-[32px] flex items-center justify-center mx-auto border border-[#00E676]/20 relative z-10 transition-transform group-hover:scale-110">
+                      <BarChart3 className="w-10 h-10 text-[#00E676] animate-pulse" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-black text-white uppercase italic tracking-[0.1em]">No Indicators Connected</p>
-                  <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Connect your TradingView alerts to the Coppr bridge to begin mirroring</p>
+                <div className="space-y-3 relative z-10">
+                  <h4 className="text-xl font-black text-white uppercase italic tracking-[0.1em]">No Active <span className="text-[#00E676]">Signals</span> Found</h4>
+                  <p className="text-[11px] font-bold text-white/20 uppercase tracking-widest leading-loose max-w-sm mx-auto">
+                    Your institutional-grade signal bridge is hungry for data. Discovery official Alphas to begin mirroring today.
+                  </p>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/dashboard/marketplace?filter=Pine+Script'} 
-                  className="px-10 py-4 bg-[#00E676] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-xl shadow-[#00E676]/10"
+                  className="px-12 py-5 bg-[#00E676] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#00E676]/20 relative z-10 italic"
                 >
                   Explore TradingView Alphas
                 </button>
@@ -232,25 +271,27 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
           </div>
       )}
 
-      {strategies.length === 0 && activeTab === 'MT5_EA' ? (
-          <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[40px] p-20 text-center space-y-12">
-              <div className="space-y-8">
-                <div className="w-20 h-20 bg-white/5 rounded-[32px] flex items-center justify-center mx-auto border border-white/10">
-                      <Lock className="w-8 h-8 text-white/10" />
+      {strategies.length === 0 && activeTab === 'MT5_EA' && (
+          <div className="bg-[#FFD700]/[0.02] border border-dashed border-[#FFD700]/20 rounded-[48px] p-24 text-center space-y-10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[100px]" />
+                <div className="w-24 h-24 bg-[#FFD700]/10 rounded-[32px] flex items-center justify-center mx-auto border border-[#FFD700]/20 relative z-10 transition-transform group-hover:scale-110">
+                      <Lock className="w-10 h-10 text-[#FFD700] animate-pulse" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-black text-white uppercase italic tracking-[0.1em]">No Active Alphas Detected</p>
-                  <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Connect to the Coppr Grid to begin cloud mirroring</p>
+                <div className="space-y-3 relative z-10">
+                  <h4 className="text-xl font-black text-white uppercase italic tracking-[0.1em]">No <span className="text-[#FFD700]">Managed</span> Nodes Detected</h4>
+                  <p className="text-[11px] font-bold text-white/20 uppercase tracking-widest leading-loose max-w-sm mx-auto">
+                    Mirror institutional Expert Advisors directly to your terminal. Begin your mirroring journey in the marketplace.
+                  </p>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/dashboard/marketplace'} 
-                  className="px-10 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-xl shadow-[#FFD700]/10"
+                  className="px-12 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#FFD700]/20 relative z-10 italic"
                 >
                   Browse Official Alphas
                 </button>
-              </div>
           </div>
-      ) : strategies.length > 0 && (
+      )}
+      {strategies.length > 0 && (
           <div className="space-y-20">
             {/* 1. OFFICIAL HUB */}
             <div className="space-y-10">
@@ -272,6 +313,11 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
                         isOfficial={true} 
                         linkingId={linkingId} 
                         setLinkingId={setLinkingId} 
+                        configuringId={configuringId}
+                        setConfiguringId={setConfiguringId}
+                        riskData={riskData}
+                        setRiskData={setRiskData}
+                        updateRisk={updateRisk}
                         toggleSync={toggleSync} 
                         brokerType={brokerType} 
                         setBrokerType={setBrokerType} 
@@ -306,6 +352,11 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
                         isOfficial={false} 
                         linkingId={linkingId} 
                         setLinkingId={setLinkingId} 
+                        configuringId={configuringId}
+                        setConfiguringId={setConfiguringId}
+                        riskData={riskData}
+                        setRiskData={setRiskData}
+                        updateRisk={updateRisk}
                         toggleSync={toggleSync} 
                         brokerType={brokerType} 
                         setBrokerType={setBrokerType} 
@@ -350,7 +401,26 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
   );
 }
 
-function StrategyCard({ sub, isOfficial, linkingId, setLinkingId, toggleSync, brokerType, setBrokerType, brokerData, setBrokerData, activating, linkBrokerAccount, logs, fetchLogs }: any) {
+function StrategyCard({ 
+    sub, 
+    isOfficial, 
+    linkingId, 
+    setLinkingId, 
+    configuringId, 
+    setConfiguringId, 
+    riskData, 
+    setRiskData, 
+    updateRisk, 
+    toggleSync, 
+    brokerType, 
+    setBrokerType, 
+    brokerData, 
+    setBrokerData, 
+    activating, 
+    linkBrokerAccount, 
+    logs, 
+    fetchLogs 
+}: any) {
     const logId = sub.id.startsWith('own-') ? sub.strategy_id : sub.id;
 
     return (
@@ -381,6 +451,23 @@ function StrategyCard({ sub, isOfficial, linkingId, setLinkingId, toggleSync, br
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 rounded-3xl bg-white/5 border border-white/5">
+                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Protocol</p>
+                             <div className="flex items-center gap-3">
+                                <Activity className="w-4 h-4 text-[#00E676]" />
+                                <span className="text-[11px] font-black text-white uppercase italic">{sub.engine_mode || 'MULTIPLIER'}</span>
+                             </div>
+                        </div>
+                        <div className="p-5 rounded-3xl bg-white/5 border border-white/5">
+                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Risk Value</p>
+                             <div className="flex items-center gap-3">
+                                <Zap className="w-4 h-4 text-[#FFD700]" />
+                                <span className="text-[11px] font-black text-white uppercase italic">{sub.engine_value || '1.0'}x</span>
+                             </div>
+                        </div>
+                    </div>
+
                     {sub.strategy.execution_mode === 'COPPR_MANAGED' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between px-2">
@@ -391,70 +478,163 @@ function StrategyCard({ sub, isOfficial, linkingId, setLinkingId, toggleSync, br
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-6 py-8 border-y border-white/5">
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans italic">Infrastructure</p>
-                            <div className="flex items-center gap-3">
-                                    <Globe className={`w-4 h-4 ${sub.strategy.managed_node_status === 'RUNNING' ? 'text-[#00E676]' : 'text-white/20'}`} />
-                                    <span className="text-[11px] font-black text-white/80 uppercase italic tracking-widest leading-none">
-                                        {isOfficial ? 'Direct Fiber' : sub.strategy.execution_mode === 'COPPR_MANAGED' ? 'Managed Cloud' : 'Self Hosted'}
-                                    </span>
+                    <div className={`p-5 rounded-[24px] border transition-all ${isOfficial && sub.sync_active ? 'bg-[#FFD700]/5 border-[#FFD700]/20' : 'bg-white/5 border-white/10 group-hover:border-white/20'}`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-2.5 h-2.5 rounded-full ${sub.sync_active ? 'bg-[#00E676] shadow-[0_0_12px_#00E676]' : 'bg-white/20'}`}></div>
+                                <span className="text-[11px] font-black text-white uppercase tracking-widest font-sans italic">{sub.sync_active ? 'Node Operational' : 'Node Halted'}</span>
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans italic">Handshake</p>
-                            <div className="flex items-center gap-3">
-                                    <CheckCircle2 className={`w-4 h-4 ${sub.sync_active ? 'text-[#00E676]' : 'text-[#FFD700]/40'}`} />
-                                    <span className="text-[11px] font-black text-white/80 uppercase italic tracking-widest leading-none">
-                                        {sub.sync_active ? 'Mirror Active' : 'Waiting Link'}
-                                    </span>
-                            </div>
+                            <button 
+                                onClick={() => toggleSync(sub.id, sub.sync_active)}
+                                className={`relative w-12 h-6 rounded-full transition-all duration-500 ${sub.sync_active ? 'bg-[#00E676]' : 'bg-white/10'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-500 ${sub.sync_active ? 'left-7' : 'left-1'}`}></div>
+                            </button>
                         </div>
                     </div>
 
-                    <div className={`flex items-center justify-between p-5 rounded-[24px] border transition-all ${isOfficial && sub.sync_active ? 'bg-[#FFD700]/5 border-[#FFD700]/20' : 'bg-white/5 border-white/10 group-hover:border-white/20'}`}>
-                        <div className="flex items-center gap-4">
-                            <div className={`w-2.5 h-2.5 rounded-full ${sub.sync_active ? 'bg-[#00E676] shadow-[0_0_12px_#00E676]' : 'bg-red-500'}`}></div>
-                            <span className="text-[11px] font-black text-white/60 uppercase tracking-widest font-sans italic">{sub.sync_active ? 'Mirror Operational' : 'Node Halted'}</span>
-                        </div>
-                        <button 
-                            onClick={() => toggleSync(sub.id, sub.sync_active)}
-                            className={`relative w-12 h-6 rounded-full transition-all duration-500 ${sub.sync_active ? 'bg-[#00E676]' : 'bg-white/10'}`}
-                        >
-                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-500 ${sub.sync_active ? 'left-7' : 'left-1'}`}></div>
-                        </button>
-                    </div>
+                    <div className="flex gap-3">
+                        {linkingId === sub.id ? (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="w-full space-y-4 bg-black/40 p-6 rounded-[32px] border border-white/5">
+                                <div className="flex gap-2">
+                                    {(['ZERODHA', 'ANGELONE', 'MT5'] as const).map(type => (
+                                        <button key={type} onClick={() => setBrokerType(type)} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all uppercase ${brokerType === type ? 'bg-[#FFD700] text-black' : 'bg-white/5 text-white/40 border border-white/5 hover:bg-white/10'}`}>{type}</button>
+                                    ))}
+                                </div>
+                                <input type="text" placeholder="Account ID (Private)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.accountId} onChange={e => setBrokerData({...brokerData, accountId: e.target.value})} />
+                                {(brokerType === 'ZERODHA' || brokerType === 'ANGELONE') && (
+                                    <>
+                                        <input type="password" placeholder="API Key" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiKey} onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} />
+                                        <input type="password" placeholder="API Secret" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiSecret} onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} />
+                                    </>
+                                )}
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={() => setLinkingId(null)} className="px-6 py-4 bg-white/5 border border-white/10 text-white/40 font-black uppercase text-[10px] rounded-2xl flex-1 hover:bg-white/10 transition-all font-sans italic">Cancel</button>
+                                    <button onClick={() => linkBrokerAccount(sub.id)} disabled={activating} className="px-6 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl flex-[2] flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-[#FFD700]/10 font-sans italic">
+                                        {activating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-5 h-5" /> Initialize Linking</>}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ) : configuringId === sub.id ? (
+                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="w-full space-y-6 bg-black/40 p-8 rounded-[40px] border border-[#00E676]/20">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest italic">Configure Risk Protocol</h4>
+                                    <ShieldCheck className="w-4 h-4 text-[#00E676]" />
+                                </div>
 
-                    {linkingId === sub.id ? (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 bg-black/40 p-6 rounded-[32px] border border-white/5">
-                            <div className="flex gap-2">
-                                {(['ZERODHA', 'ANGELONE', 'MT5'] as const).map(type => (
-                                    <button key={type} onClick={() => setBrokerType(type)} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all uppercase ${brokerType === type ? 'bg-[#FFD700] text-black' : 'bg-white/5 text-white/40 border border-white/5 hover:bg-white/10'}`}>{type}</button>
-                                ))}
+                                <div className="space-y-4">
+                                     {/* MODE SELECTOR (INDICATORS ONLY) */}
+                                     {sub.strategy.type === 'PINE_SCRIPT_WEBHOOK' ? (
+                                         <div className="flex gap-2">
+                                            {(['FIXED_QTY', 'MULTIPLIER', 'PCT_BALANCE'] as const).map(mode => (
+                                                <button 
+                                                    key={mode} 
+                                                    onClick={() => setRiskData({...riskData, engineMode: mode})} 
+                                                    className={`flex-1 py-3 rounded-xl text-[8px] font-black transition-all uppercase ${riskData.engineMode === mode ? 'bg-[#00E676] text-black' : 'bg-white/5 text-white/40 border border-white/5'}`}
+                                                >
+                                                    {mode.replace('_', ' ')}
+                                                </button>
+                                            ))}
+                                         </div>
+                                     ) : (
+                                         <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between">
+                                             <span className="text-[10px] font-black text-white/40 uppercase">Execution Mode</span>
+                                             <span className="text-[10px] font-black text-[#FFD700] uppercase italic">Fixed Lot Only (EA)</span>
+                                         </div>
+                                     )}
+
+                                     <div className="space-y-2">
+                                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] font-sans ml-2">
+                                             {sub.strategy.type === 'MT5_EA' ? 'Lot Size' : `Engine Value (${riskData.engineMode === 'PCT_BALANCE' ? '%' : 'Lots/Ratio'})`}
+                                         </p>
+                                         <input 
+                                            type="number" 
+                                            step="0.01"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#00E676]/40 transition-all font-mono" 
+                                            value={riskData.engineValue} 
+                                            onChange={e => setRiskData({...riskData, engineValue: parseFloat(e.target.value)})} 
+                                         />
+                                     </div>
+
+                                     {/* LEVERAGE (INDICATORS ONLY) */}
+                                     {sub.strategy.type === 'PINE_SCRIPT_WEBHOOK' && (
+                                         <div className="space-y-2">
+                                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] font-sans ml-2">Leverage Override</p>
+                                            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                <input 
+                                                    type="range" min="1" max="100" 
+                                                    className="flex-1 accent-[#FFD700]" 
+                                                    value={riskData.leverageOverride} 
+                                                    onChange={e => setRiskData({...riskData, leverageOverride: parseInt(e.target.value)})} 
+                                                />
+                                                <span className="text-[12px] font-black text-[#FFD700] w-10">{riskData.leverageOverride}x</span>
+                                            </div>
+                                         </div>
+                                     )}
+
+                                     {/* DRAWDOWN KILL-SWITCH */}
+                                     <div className="space-y-2">
+                                         <div className="flex justify-between items-center px-1">
+                                            <p className="text-[8px] font-black text-[#FF5252]/60 uppercase tracking-[0.2em] font-sans">Drawdown Kill-Switch</p>
+                                            <span className="text-[10px] font-black text-[#FF5252] font-mono">{riskData.drawdownThreshold}%</span>
+                                         </div>
+                                         <div className="flex items-center gap-4 bg-[#FF5252]/5 p-4 rounded-2xl border border-[#FF5252]/10">
+                                             <input 
+                                                type="range" min="5" max="95" step="5"
+                                                className="flex-1 accent-[#FF5252]" 
+                                                value={riskData.drawdownThreshold} 
+                                                onChange={e => setRiskData({...riskData, drawdownThreshold: parseInt(e.target.value)})} 
+                                             />
+                                             <AlertCircle className="w-4 h-4 text-[#FF5252]/40" />
+                                         </div>
+                                         <p className="text-[8px] text-white/10 uppercase font-black tracking-widest text-center mt-1 italic italic">Auto-Halts Node if Equity Drops {riskData.drawdownThreshold}%</p>
+                                     </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={() => setConfiguringId(null)} className="px-6 py-4 bg-white/5 border border-white/10 text-white/40 font-black uppercase text-[10px] rounded-2xl flex-1 hover:bg-white/10 transition-all font-sans italic">Cancel</button>
+                                    <button onClick={() => updateRisk(sub.id)} disabled={activating} className="px-6 py-4 bg-[#00E676] text-black font-black uppercase text-[10px] rounded-2xl flex-[2] flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-[#00E676]/10 font-sans italic">
+                                        {activating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-5 h-5" /> Save Risk Protocol</>}
+                                    </button>
+                                </div>
+                             </motion.div>
+                        ) : (
+                            <div className="w-full space-y-4">
+                                {sub.is_paused && sub.last_kill_reason && (
+                                    <div className="p-4 bg-[#FF5252]/10 border border-[#FF5252]/20 rounded-2xl flex items-center gap-4 group/alert animate-pulse">
+                                        <AlertCircle className="w-5 h-5 text-[#FF5252]" />
+                                        <div className="flex-1">
+                                            <p className="text-[9px] font-black text-[#FF5252] uppercase tracking-widest leading-none mb-1">Protection Engaged</p>
+                                            <p className="text-[8px] font-bold text-[#FF5252]/60 uppercase tracking-tighter leading-none">{sub.last_kill_reason.replace(/_/g, ' ')}</p>
+                                        </div>
+                                        <ShieldCheck className="w-4 h-4 text-[#FF5252]/20 group-hover/alert:text-[#FF5252] transition-colors" />
+                                    </div>
+                                )}
+                                <div className="flex gap-4 w-full">
+                                    <button 
+                                        onClick={() => setLinkingId(sub.id)} 
+                                        className={`flex-1 py-6 rounded-[32px] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-4 transition-all duration-500 italic ${sub.sync_active ? 'bg-white/5 border border-white/10 text-white/20' : 'bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20'}`}
+                                    >
+                                        {sub.sync_active ? 'API Linked' : 'Connect API'}
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setConfiguringId(sub.id);
+                                            setRiskData({ 
+                                                engineMode: sub.engine_mode || 'MULTIPLIER', 
+                                                engineValue: sub.engine_value || (sub.strategy.type === 'MT5_EA' ? 0.01 : 1.0), 
+                                                leverageOverride: sub.leverage_override || 1,
+                                                drawdownThreshold: sub.drawdown_threshold || 50.0
+                                            });
+                                        }} 
+                                        className={`px-8 py-6 rounded-[32px] transition-all group ${sub.is_paused ? 'bg-[#FF5252]/10 border border-[#FF5252]/40 text-[#FF5252]' : 'bg-white/5 border border-white/10 text-[#00E676] hover:bg-[#00E676]/10'}`}
+                                    >
+                                        <Settings className={`w-5 h-5 group-hover:rotate-90 transition-transform ${sub.is_paused ? 'animate-spin-slow' : ''}`} />
+                                    </button>
+                                </div>
                             </div>
-                            <input type="text" placeholder="Account ID (Private)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.accountId} onChange={e => setBrokerData({...brokerData, accountId: e.target.value})} />
-                            {(brokerType === 'ZERODHA' || brokerType === 'ANGELONE') && (
-                                <>
-                                    <input type="password" placeholder="API Key" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiKey} onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} />
-                                    <input type="password" placeholder="API Secret" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiSecret} onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} />
-                                </>
-                            )}
-                            <div className="flex gap-3 pt-2">
-                                <button onClick={() => setLinkingId(null)} className="px-6 py-4 bg-white/5 border border-white/10 text-white/40 font-black uppercase text-[10px] rounded-2xl flex-1 hover:bg-white/10 transition-all font-sans italic">Cancel</button>
-                                <button onClick={() => linkBrokerAccount(sub.id)} disabled={activating} className="px-6 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl flex-[2] flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-[#FFD700]/10 font-sans italic">
-                                    {activating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-5 h-5" /> Initialize Linking</>}
-                                </button>
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <button 
-                            onClick={() => setLinkingId(sub.id)} 
-                            className={`w-full py-6 rounded-[32px] font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-4 transition-all duration-500 italic ${sub.sync_active ? 'bg-white/5 border border-white/10 text-[#00E676] hover:bg-white/10' : 'bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20 hover:scale-[1.02]'}`}
-                        >
-                            {sub.sync_active ? 'Connection Optimized' : 'Initialize High-Performance Link'}
-                            {sub.sync_active ? <ShieldCheck className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
-                        </button>
-                    )}
+                        )}
+                    </div>
                 </div>
 
                 <div className="p-10 flex flex-col justify-between bg-black/40 relative">

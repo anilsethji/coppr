@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { 
   CheckCircle2, 
   Circle, 
@@ -39,6 +40,15 @@ const creatorSteps: Step[] = [
 export default function QuickStartJourney({ type = 'subscriber' }: { type?: 'subscriber' | 'creator' }) {
   const steps = type === 'subscriber' ? subscriberSteps : creatorSteps;
   const [currentStep, setCurrentStep] = useState(0);
+  const router = useRouter();
+
+  const handleInitialize = () => {
+    if (type === 'subscriber') {
+      router.push('/dashboard/marketplace');
+    } else {
+      router.push('/dashboard/creator/submit');
+    }
+  };
 
   return (
     <div className="w-full bg-white/[0.02] border border-white/5 rounded-[40px] p-8 md:p-12 relative overflow-hidden">
@@ -82,11 +92,12 @@ export default function QuickStartJourney({ type = 'subscriber' }: { type?: 'sub
                         className="h-full bg-gradient-to-r from-[#FFD700] to-[#00E676]" 
                        />
                     </div>
-                 )}
+                  )}
 
                  <div className="flex items-center gap-4 md:flex-col md:items-start md:gap-6">
                     <motion.div 
                       whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
                       className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all z-10 relative overflow-hidden ${
                         isActive ? 'bg-[#FFD700]/10 border-[#FFD700]/40 shadow-[0_0_30px_rgba(255,215,0,0.1)]' : 
                         isCompleted ? 'bg-[#00E676]/10 border-[#00E676]/40' : 'bg-white/5 border-white/10'
@@ -143,17 +154,22 @@ export default function QuickStartJourney({ type = 'subscriber' }: { type?: 'sub
               </div>
 
               <div className="flex items-center gap-4">
-                 <button 
+                 <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setCurrentStep((prev) => (prev + 1) % steps.length)}
                   className="px-8 py-4 bg-white/5 border border-white/10 text-white/60 font-black uppercase text-[10px] rounded-2xl hover:bg-white/10 transition-all font-sans italic flex items-center gap-3"
                  >
                     Next Logic <ChevronRight className="w-4 h-4" />
-                 </button>
-                 <button 
-                  className="px-8 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10 font-sans italic flex items-center gap-3"
+                 </motion.button>
+                 <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleInitialize}
+                  className="px-8 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] rounded-2xl transition-all shadow-xl shadow-[#FFD700]/10 font-sans italic flex items-center gap-3"
                  >
                     Initialize Now <ArrowUpRight className="w-4 h-4" />
-                 </button>
+                 </motion.button>
               </div>
            </motion.div>
         </AnimatePresence>

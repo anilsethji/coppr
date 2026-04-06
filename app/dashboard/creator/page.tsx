@@ -17,7 +17,11 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
-  LayoutGrid
+  LayoutGrid,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -41,24 +45,35 @@ const item = {
 
 export default function CreatorTerminal() {
   const [loading, setLoading] = useState(true);
-  const [strategiesCount, setStrategiesCount] = useState(0);
+  const [strategies, setStrategies] = useState<any[]>([]);
   const [hoveredOrigin, setHoveredOrigin] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCount();
+    fetchData();
   }, []);
 
-  const fetchCount = async () => {
+  const fetchData = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { count } = await supabase
-      .from('strategies')
-      .select('*', { count: 'exact', head: true })
-      .eq('creator_id', (await supabase.from('creator_profiles').select('id').eq('user_id', user.id).single()).data?.id);
+    // Fetch creator profile first
+    const { data: profile } = await supabase
+        .from('creator_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-    setStrategiesCount(count || 0);
+    if (profile) {
+        const { data: strats } = await supabase
+            .from('strategies')
+            .select('*')
+            .eq('creator_id', profile.id)
+            .order('created_at', { ascending: false });
+        
+        setStrategies(strats || []);
+    }
+    
     setLoading(false);
   };
 
@@ -91,8 +106,8 @@ export default function CreatorTerminal() {
         
         <div className="bg-[#131929]/40 border border-white/5 p-6 rounded-[28px] flex items-center gap-6 backdrop-blur-xl">
            <div className="flex flex-col">
-              <span className="text-[24px] font-black text-[#FFD700] leading-none uppercase italic">{strategiesCount}</span>
-              <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 italic">Active Nodes</span>
+              <span className="text-[24px] font-black text-[#FFD700] leading-none uppercase italic">{strategies.length}</span>
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 italic">Deployed Nodes</span>
            </div>
            <div className="w-[1px] h-10 bg-white/5" />
            <div className="flex gap-2">
@@ -106,6 +121,65 @@ export default function CreatorTerminal() {
       <motion.div variants={item}>
         <CreatorStats />
       </motion.div>
+
+      {/* 2. SUBMISSION PORTFOLIO */}
+      {strategies.length > 0 && (
+        <motion.div variants={item} className="space-y-8">
+            <div className="flex items-center justify-between border-l-2 border-[#FFD700] pl-8">
+               <div>
+                  <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">My Strategy Portfolio</h3>
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] font-sans">Live deployment status and analytics node</p>
+               </div>
+               <Link href="/dashboard/creator/submit" className="hidden md:flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all">
+                  <Plus className="w-4 h-4" /> New Deployment
+               </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+                {strategies.map((strat) => (
+                    <div key={strat.id} className="p-6 rounded-[34px] bg-[#131929] border border-white/5 flex flex-col md:flex-row items-center justify-between group hover:border-white/10 transition-all gap-6">
+                        <div className="flex items-center gap-6 flex-1">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 shrink-0 ${
+                                strat.type === 'MT5_EA' ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-[#FFD700]/10 text-[#FFD700]'
+                            }`}>
+                                {strat.type === 'MT5_EA' ? <Bot className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
+                            </div>
+                            <div>
+                                <h4 className="font-black text-white italic text-lg leading-tight">{strat.name}</h4>
+                                <div className="flex items-center gap-3 mt-1">
+                                    <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{strat.symbol}</span>
+                                    <span className="w-1 h-1 rounded-full bg-white/10" />
+                                    <span className="text-[9px] font-black text-[#FF8C00] uppercase tracking-widest italic">{strat.origin}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-10">
+                            <div className="flex flex-col items-center md:items-end gap-2">
+                                <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest italic ${
+                                    strat.status === 'ACTIVE' ? 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]' :
+                                    strat.status === 'PENDING' ? 'bg-[#FFD700]/10 border-[#FFD700]/20 text-[#FFD700] animate-pulse' :
+                                    'bg-red-500/10 border-red-500/20 text-red-500'
+                                }`}>
+                                    {strat.status === 'ACTIVE' && <CheckCircle2 className="w-3 h-3" />}
+                                    {strat.status === 'PENDING' && <Clock className="w-3 h-3" />}
+                                    {strat.status === 'REJECTED' && <XCircle className="w-3 h-3" />}
+                                    {strat.status}
+                                </div>
+                                <span className="text-[8px] font-black text-white/10 uppercase tracking-widest">Protocol Status</span>
+                            </div>
+
+                            {strat.status === 'ACTIVE' && (
+                                <Link href={`/dashboard/marketplace/${strat.id}`} className="p-4 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all">
+                                    <Eye className="w-5 h-5" />
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </motion.div>
+      )}
 
       {/* 2. THE LAUNCH PAD: PRODUCT ORIGIN (REPLACING THE FLEET) */}
       <div className="space-y-12">
