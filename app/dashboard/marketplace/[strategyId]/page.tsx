@@ -327,10 +327,10 @@ export default function StrategyLandingPage() {
                           <div className="flex items-center justify-between">
                              <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFD700]/20 to-transparent flex items-center justify-center font-black text-[12px] italic text-[#FFD700]">
-                                   {rev.profiles?.display_name?.[0] || 'A'}
+                                   {rev.profiles?.full_name?.[0] || 'A'}
                                 </div>
                                 <div className="flex flex-col">
-                                   <span className="text-[11px] font-black text-white uppercase italic">{rev.profiles?.display_name || 'Anonymous Alpha'}</span>
+                                   <span className="text-[11px] font-black text-white uppercase italic">{rev.profiles?.full_name || 'Anonymous Alpha'}</span>
                                    <div className="flex gap-0.5 mt-1">
                                       {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-2.5 h-2.5 text-[#FFD700] fill-[#FFD700]" />)}
                                    </div>

@@ -24,9 +24,7 @@ export async function GET(
           display_name,
           handle,
           avatar_type,
-          avatar_data,
-          total_subscribers,
-          follower_count
+          avatar_data
         )
       `)
       .eq('id', strategyId)
@@ -55,7 +53,7 @@ export async function GET(
     // 4. Reviews Status (Verified only)
     const { data: reviews } = await supabase
       .from('strategy_reviews')
-      .select('*, profiles(id, display_name, avatar_url)')
+      .select('*, profiles(id, full_name)')
       .eq('strategy_id', strategyId)
       .order('created_at', { ascending: false })
       .limit(4);

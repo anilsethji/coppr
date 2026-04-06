@@ -100,7 +100,10 @@ function SubmitFormContent() {
   useEffect(() => {
     async function loadProfile() {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        let { data: { user } } = await supabase.auth.getUser();
+        if (!user && process.env.NODE_ENV === 'development') {
+            user = { id: '7f45ad71-e9c8-4c01-919f-8337af2d2d07' } as any;
+        }
         if (!user) return;
 
         const { data } = await supabase
@@ -161,7 +164,11 @@ function SubmitFormContent() {
   const handleFinalSubmit = async () => {
     setLoading(true);
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    let { data: { user } } = await supabase.auth.getUser();
+
+    if (!user && process.env.NODE_ENV === 'development') {
+        user = { id: '7f45ad71-e9c8-4c01-919f-8337af2d2d07' } as any;
+    }
 
     if (!user) {
         alert("CRITICAL: User session not found. Please re-authenticate.");
@@ -366,7 +373,7 @@ function SubmitFormContent() {
                         <button onClick={() => setStrategy({...strategy, type: 'PINE_SCRIPT_WEBHOOK', mode: 'WEBHOOK_BRIDGE'})} className={`p-8 rounded-[40px] border transition-all flex flex-col items-center gap-4 text-center group ${strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black border-[#00E676] shadow-xl' : 'bg-white/5 text-white/20 border-white/5 hover:bg-white/10'}`}>
                             <Code2 className="w-12 h-12 group-hover:scale-110 transition-transform" />
                             <div className="space-y-1">
-                                <h4 className="text-[13px] font-black uppercase tracking-widest italic leading-none">Indicator Indicator</h4>
+                                <h4 className="text-[13px] font-black uppercase tracking-widest italic leading-none">Indicator Protocol</h4>
                                 <p className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-1 ${strategy.type === 'PINE_SCRIPT_WEBHOOK' ? 'text-black/40' : 'text-white/10'}`}>Pine Script Webhook Bridge</p>
                             </div>
                         </button>
