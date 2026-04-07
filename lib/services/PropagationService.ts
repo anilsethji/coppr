@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { ZerodhaAdapter, AngelOneAdapter, MT5Adapter } from '@/lib/brokers/adapters';
 import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
+import { BybitAdapter } from '@/lib/brokers/BybitAdapter';
+import { DhanAdapter } from '@/lib/brokers/DhanAdapter';
 
 export class PropagationService {
     /**
@@ -83,6 +85,8 @@ export class PropagationService {
                     case 'ANGELONE': adapter = new AngelOneAdapter(); break;
                     case 'MT5': adapter = new MT5Adapter(); break;
                     case 'BINANCE_FUTURES': adapter = new BinanceFuturesAdapter(); break;
+                    case 'BYBIT': adapter = new BybitAdapter(); break;
+                    case 'DHAN': adapter = new DhanAdapter(); break;
                     default: 
                         await this.logEvent(sub.id, "EXECUTION_FAIL", { error: `Unsupported broker type: ${broker.broker_type}`, status: 'FAILED' }, supabase);
                         return;

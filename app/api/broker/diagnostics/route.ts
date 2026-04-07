@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
+import { BybitAdapter } from '@/lib/brokers/BybitAdapter';
+import { DhanAdapter } from '@/lib/brokers/DhanAdapter';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -53,6 +55,36 @@ export async function POST(request: Request) {
                 }
             } catch (err) {
                 reports.push({ label: 'Account Mode (Hedge)', status: 'FAILED', message: 'Failed to verify position mode.' });
+                success = false;
+            }
+        } else if (brokerType === 'BYBIT') {
+            const adapter = new BybitAdapter();
+            const credentials = { api_key: broker.api_key, api_secret: broker.api_secret };
+
+            try {
+                await adapter.getAccountBalance(credentials);
+                reports.push({ label: 'API Permissions', status: 'SUCCESS', message: 'Verified' });
+                
+                const isHedge = await adapter.getPositionMode(credentials);
+                if (isHedge) {
+                    reports.push({ label: 'Position Mode (Hedge)', status: 'SUCCESS', message: 'Active' });
+                } else {
+                    reports.push({ label: 'Position Mode (Hedge)', status: 'FAILED', message: 'One-Way Mode detected.' });
+                    success = false;
+                }
+            } catch (err) {
+                reports.push({ label: 'Bybit Connectivity', status: 'FAILED', message: 'API check failed.' });
+                success = false;
+            }
+        } else if (brokerType === 'DHAN') {
+            const adapter = new DhanAdapter();
+            const credentials = { api_key: broker.api_key };
+
+            try {
+                await adapter.getAccountBalance(credentials);
+                reports.push({ label: 'Session Status', status: 'SUCCESS', message: 'Active Handshake' });
+            } catch (err) {
+                reports.push({ label: 'Session Status', status: 'FAILED', message: 'Token Expired (Daily Refresh Required)' });
                 success = false;
             }
         }

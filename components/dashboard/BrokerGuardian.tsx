@@ -31,7 +31,7 @@ export default function BrokerGuardian({ brokerType, accountId }: Props) {
         }
     };
 
-    if (brokerType !== 'BINANCE_FUTURES') return null;
+    if (!['BINANCE_FUTURES', 'BYBIT', 'DHAN'].includes(brokerType)) return null;
 
     return (
         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 space-y-6">
@@ -62,7 +62,7 @@ export default function BrokerGuardian({ brokerType, accountId }: Props) {
                         className="p-4 rounded-2xl bg-white/[0.01] border border-dashed border-white/10 text-center"
                     >
                         <p className="text-[10px] text-white/20 font-black uppercase tracking-widest leading-relaxed">
-                            Initialize scan to verify API permissions & Hedge Mode settings.
+                            Initialize scan to verify connectivity, permissions & account settings.
                         </p>
                     </motion.div>
                 )}
@@ -89,9 +89,13 @@ export default function BrokerGuardian({ brokerType, accountId }: Props) {
 
             <div className="flex items-start gap-3 p-4 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-2xl">
                 <Info className="w-4 h-4 text-[#FFD700] mt-0.5" />
-                <p className="text-[10px] text-[#FFD700]/60 font-medium leading-relaxed italic">
-                    Binary execution on Binance Futures requires **Hedge Mode** enabled and **Enable Futures** permissions checked in your API dashboard.
-                </p>
+                <div className="space-y-1">
+                    <p className="text-[10px] text-[#FFD700]/60 font-medium leading-relaxed italic">
+                        {brokerType === 'BINANCE_FUTURES' && "**Binance Futures** requires **Hedge Mode** enabled and **Enable Futures** permissions checked."}
+                        {brokerType === 'BYBIT' && "**Bybit V5** requires **Hedge Mode** enabled and **Unified Trading Account** verification."}
+                        {brokerType === 'DHAN' && "**DhanHQ** requires a daily **Access Token** refresh for retail automated trading."}
+                    </p>
+                </div>
             </div>
         </div>
     );
