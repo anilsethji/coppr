@@ -27,12 +27,13 @@ import { createClient } from '@/lib/supabase/client';
 import TerminalLog from './TerminalLog';
 import ManagedNodeMonitor from './ManagedNodeMonitor';
 import QuickStartJourney from './QuickStartJourney';
+import BrokerGuardian from './BrokerGuardian';
 
 export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK' }) {
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<any[]>([]);
   const [linkingId, setLinkingId] = useState<string | null>(null);
-  const [brokerType, setBrokerType] = useState<'ZERODHA' | 'ANGELONE' | 'MT5'>('MT5');
+  const [brokerType, setBrokerType] = useState<'ZERODHA' | 'ANGELONE' | 'MT5' | 'BINANCE_FUTURES'>('MT5');
   const [brokerData, setBrokerData] = useState({ accountId: '', apiKey: '', apiSecret: '' });
   const [activating, setActivating] = useState(false);
   const [logs, setLogs] = useState<Record<string, any[]>>({});
@@ -496,16 +497,16 @@ function StrategyCard({
                     <div className="flex gap-3">
                         {linkingId === sub.id ? (
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="w-full space-y-4 bg-black/40 p-6 rounded-[32px] border border-white/5">
-                                <div className="flex gap-2">
-                                    {(['ZERODHA', 'ANGELONE', 'MT5'] as const).map(type => (
-                                        <button key={type} onClick={() => setBrokerType(type)} className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all uppercase ${brokerType === type ? 'bg-[#FFD700] text-black' : 'bg-white/5 text-white/40 border border-white/5 hover:bg-white/10'}`}>{type}</button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(['ZERODHA', 'ANGELONE', 'MT5', 'BINANCE_FUTURES'] as const).map(type => (
+                                        <button key={type} onClick={() => setBrokerType(type)} className={`flex-1 py-3 rounded-xl text-[8px] font-black transition-all uppercase ${brokerType === type ? 'bg-[#FFD700] text-black' : 'bg-white/5 text-white/40 border border-white/5 hover:bg-white/10'}`}>{type.replace('_', ' ')}</button>
                                     ))}
                                 </div>
                                 <input type="text" placeholder="Account ID (Private)" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.accountId} onChange={e => setBrokerData({...brokerData, accountId: e.target.value})} />
-                                {(brokerType === 'ZERODHA' || brokerType === 'ANGELONE') && (
+                                {(brokerType === 'ZERODHA' || brokerType === 'ANGELONE' || brokerType === 'BINANCE_FUTURES') && (
                                     <>
-                                        <input type="password" placeholder="API Key" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiKey} onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} />
-                                        <input type="password" placeholder="API Secret" className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiSecret} onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} />
+                                        <input type="password" placeholder={brokerType === 'BINANCE_FUTURES' ? "Binance API Key" : "API Key"} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiKey} onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} />
+                                        <input type="password" placeholder={brokerType === 'BINANCE_FUTURES' ? "Binance Secret Key" : "API Secret"} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiSecret} onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} />
                                     </>
                                 )}
                                 <div className="flex gap-3 pt-2">
@@ -607,9 +608,13 @@ function StrategyCard({
                                             <p className="text-[9px] font-black text-[#FF5252] uppercase tracking-widest leading-none mb-1">Protection Engaged</p>
                                             <p className="text-[8px] font-bold text-[#FF5252]/60 uppercase tracking-tighter leading-none">{sub.last_kill_reason.replace(/_/g, ' ')}</p>
                                         </div>
-                                        <ShieldCheck className="w-4 h-4 text-[#FF5252]/20 group-hover/alert:text-[#FF5252] transition-colors" />
                                     </div>
                                 )}
+                                
+                                {sub.broker_account_id && (
+                                    <BrokerGuardian brokerType={sub.broker_accounts?.broker_type} accountId={sub.broker_account_id} />
+                                )}
+
                                 <div className="flex gap-4 w-full">
                                     <button 
                                         onClick={() => setLinkingId(sub.id)} 

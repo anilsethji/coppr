@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { ZerodhaAdapter, AngelOneAdapter, MT5Adapter } from '@/lib/brokers/adapters';
+import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
 
 export class PropagationService {
     /**
@@ -81,13 +82,18 @@ export class PropagationService {
                     case 'ZERODHA': adapter = new ZerodhaAdapter(); break;
                     case 'ANGELONE': adapter = new AngelOneAdapter(); break;
                     case 'MT5': adapter = new MT5Adapter(); break;
+                    case 'BINANCE_FUTURES': adapter = new BinanceFuturesAdapter(); break;
                     default: 
                         await this.logEvent(sub.id, "EXECUTION_FAIL", { error: `Unsupported broker type: ${broker.broker_type}`, status: 'FAILED' }, supabase);
                         return;
                 }
 
                 // PRE-FLIGHT WATCHDOG: DRAWDOWN PROTECTION
-                const currentBalance = await adapter.getAccountBalance({ account_id: broker.account_id });
+                const currentBalance = await adapter.getAccountBalance({ 
+                    account_id: broker.account_id,
+                    api_key: broker.api_key,
+                    api_secret: broker.api_secret
+                });
                 const baseBalance = sub.base_balance || currentBalance;
                 const threshold = sub.drawdown_threshold || 50.0;
                 const currentDrawdown = ((baseBalance - currentBalance) / baseBalance) * 100;
@@ -176,7 +182,12 @@ export class PropagationService {
 
             case 'MULTIPLIER':
             default:
-                return val * masterQty;
+                let resultQty = val * masterQty;
+                // BINANCE PRECISION GUARD (Min step size 0.001 typically for BTC)
+                if (sub.broker_accounts?.broker_type === 'BINANCE_FUTURES') {
+                    resultQty = Number(resultQty.toFixed(3)); 
+                }
+                return resultQty;
         }
     }
 }
