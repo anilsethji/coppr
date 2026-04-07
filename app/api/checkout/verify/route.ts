@@ -46,48 +46,62 @@ export async function POST(request: Request) {
 
     if (sError || !strat) throw new Error('Strategy metadata fetch failed');
 
-    // 4. TRANSACTION SUCCESS -> PROVISION LICENSE
-    const { error: fulfillmentError } = await supabase
+    // 4. FETCH TRANSACTION ID FOR LEDGER SYNC
+    const { data: tx } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('order_id', orderId)
+      .maybeSingle();
+
+    // 5. TRANSACTION SUCCESS -> PROVISION LICENSE
+    const { data: sub, error: fulfillmentError } = await supabase
       .from('user_strategies')
       .insert({
-        user_id: user.id,
-        strategy_id: strategyId,
-        status: 'ACTIVE',
-        signal_key: crypto.randomUUID(),
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 Days
-        // Inheritance from Phase 11
-        mt5_account_number: null, // User must link in Vault
-      });
+          user_id: user.id,
+          strategy_id: strategyId,
+          status: 'ACTIVE',
+          signal_key: crypto.randomUUID(),
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 Days
+          mt5_account_number: null, // User must link in Vault/Success Page
+      })
+      .select()
+      .single();
 
     if (fulfillmentError) throw fulfillmentError;
 
-    // 5. ECONOMIC ENGINE: CALCULATE REVENUE SPLIT (80/20)
+    // 6. ECONOMIC ENGINE: CALCULATE REVENUE SPLIT (90/10 - CONFIRMED)
     const gross = strat.monthly_price_inr;
-    const creatorNet = Math.floor(gross * 0.8);
+    const creatorNet = Math.floor(gross * 0.9);
     const copprFee = gross - creatorNet;
 
     const { error: revenueError } = await supabase
       .from('creator_revenue')
       .insert({
-        creator_id: strat.creator_id,
-        strategy_id: strategyId,
-        gross_amount: gross,
-        creator_net: creatorNet,
-        coppr_fee: copprFee,
-        status: 'PENDING_PAYOUT'
+          creator_id: strat.creator_id,
+          strategy_id: strategyId,
+          transaction_id: tx?.id,
+          gross_amount: gross,
+          creator_net: creatorNet,
+          coppr_fee: copprFee,
+          status: 'PENDING_PAYOUT'
       });
 
-    if (revenueError) console.error('Revenue Engine Error:', revenueError.message);
+    if (revenueError) console.error('Revenue Ledger Sync Failed:', revenueError.message);
 
-    // 6. UPDATE TRANSACTION STATUS
+    // 7. UPDATE TRANSACTION STATUS
     await supabase
       .from('transactions')
-      .update({ status: 'completed' })
+      .update({ 
+          status: 'completed',
+          cf_payment_id: order.cf_order_id || null, // Best effort capture
+          updated_at: new Date().toISOString()
+      })
       .eq('order_id', orderId);
 
     return NextResponse.json({ 
       status: 'SUCCESSFUL_FULFILLMENT',
-      strategy_name: strat.name
+      strategy_name: strat.name,
+      subscriptionId: sub.id
     });
 
   } catch (error: any) {

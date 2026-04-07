@@ -20,12 +20,28 @@ export async function POST(request: Request) {
     // 1. FETCH STRATEGY METADATA (Server-side price verification)
     const { data: strat, error: sError } = await supabase
       .from('strategies')
-      .select('id, name, monthly_price_inr, tier, status')
+      .select(`
+        id, 
+        name, 
+        monthly_price_inr, 
+        tier, 
+        status, 
+        creator_id,
+        creator_profiles!inner(user_id)
+      `)
       .eq('id', strategyId)
       .single();
 
-    if (sError || !strat || strat.status !== 'ACTIVE') {
+    if (sError || !strat) {
         return NextResponse.json({ error: 'Strategy Protocol Unavailable' }, { status: 404 });
+    }
+
+    const { user_id: creatorUserId } = (strat.creator_profiles as any);
+    const isCreator = creatorUserId === user.id;
+
+    // Only allow ACTIVE strategies or the Creator's own PENDING strategies
+    if (strat.status !== 'ACTIVE' && !isCreator) {
+        return NextResponse.json({ error: 'Strategy Protocol Unavailable (Awaiting Clearance)' }, { status: 403 });
     }
 
     if (strat.tier === 'FREE') {

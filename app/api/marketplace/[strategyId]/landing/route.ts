@@ -45,10 +45,10 @@ export async function GET(
     const isLivePulsing = lastSignal && (new Date().getTime() - new Date(lastSignal).getTime()) < 24 * 60 * 60 * 1000;
 
     // 3. Performance Stats (Simulated calculation from logs if available, or static from DB)
-    const winRate = strategy.win_rate || 0;
-    const totalTrades = strategy.total_trades || 0;
-    const avgGain = strategy.avg_gain || 0;
-    const maxDrawdown = strategy.max_drawdown || 0;
+    const winRate = Number(strategy.win_rate) || 0;
+    const totalTrades = Number(strategy.total_trades) || 0;
+    const avgGain = Number(strategy.avg_gain) || 0;
+    const maxDrawdown = Number(strategy.max_drawdown) || 0;
 
     // 4. Reviews Status (Verified only)
     const { data: reviews } = await supabase

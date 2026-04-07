@@ -70,7 +70,8 @@ function SubmitFormContent() {
     displayName: '',
     bio: '',
     avatarType: 'EMOJI',
-    avatarData: '🤖'
+    avatarData: '🤖',
+    payout_upi: ''
   });
 
   const [strategy, setStrategy] = useState({
@@ -90,7 +91,11 @@ function SubmitFormContent() {
     thumbnail_url: '',
     screenshot_urls: ['', '', ''],
     how_it_works: ['', ''], 
-    is_managed: true
+    is_managed: true,
+    win_rate: '',
+    total_trades: '',
+    avg_gain: '',
+    max_drawdown: ''
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -119,7 +124,8 @@ function SubmitFormContent() {
                 displayName: data.display_name,
                 bio: data.bio || '',
                 avatarType: data.avatar_type || 'EMOJI',
-                avatarData: data.avatar_data || '🤖'
+                avatarData: data.avatar_data || '🤖',
+                payout_upi: data.payout_upi || ''
             });
             // Auto skip Step 0 if profile is already complete
             if (data.display_name && data.bio) {
@@ -199,7 +205,8 @@ function SubmitFormContent() {
                 display_name: profile.displayName,
                 bio: profile.bio,
                 avatar_type: profile.avatarType,
-                avatar_data: profile.avatarData
+                avatar_data: profile.avatarData,
+                payout_upi: profile.payout_upi
             }, {
                 onConflict: 'user_id'
             })
@@ -232,7 +239,11 @@ function SubmitFormContent() {
                 ea_file_url: eaFileUrl,
                 execution_mode: strategy.type === 'MT5_EA' ? 'COPPR_MANAGED' : 'WEBHOOK_BRIDGE',
                 master_signal_key: generatedKey || 'COPPR-' + self.crypto.randomUUID().split('-')[0].toUpperCase(),
-                status: 'PENDING'
+                status: 'PENDING',
+                win_rate: parseFloat(strategy.win_rate) || 0,
+                total_trades: parseInt(strategy.total_trades) || 0,
+                avg_gain: parseFloat(strategy.avg_gain) || 0,
+                max_drawdown: parseFloat(strategy.max_drawdown) || 0
             })
             .select('id')
             .single();
@@ -261,7 +272,7 @@ function SubmitFormContent() {
     (strategy.type !== 'MT5_EA' || file !== null);
 
   const isStep2Complete = handshakeSynced && (strategy.type !== 'MT5_EA' || scanStatus === 'CLEAN');
-  const isStep3Complete = strategy.screenshot_urls[0].trim() !== '' && strategy.video_url.trim() !== '';
+  const isStep3Complete = strategy.screenshot_urls[0].trim() !== '' && strategy.video_url.trim() !== '' && strategy.win_rate !== '';
 
   return (
     <div className="space-y-12 pb-24 font-sans">
@@ -615,18 +626,69 @@ function SubmitFormContent() {
                                     </div>
                                  </div>
 
-                                 <div className="space-y-3 font-sans pt-4">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Chart Example (Image URL) <span className="text-red-500/60">*</span></label>
-                                    <input type="text" placeholder="https://imgur.com/image.png" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-[11px] text-white outline-none font-mono" value={strategy.screenshot_urls[0]} onChange={e => {
-                                        const news = [...strategy.screenshot_urls];
-                                        news[0] = e.target.value;
-                                        setStrategy({...strategy, screenshot_urls: news});
-                                    }} />
+                                 {/* PAYOUT ROUTING */}
+                                 {strategy.tier === 'PAID' && (
+                                     <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                         <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Payout UPI ID (for 90% Revenue Share)</label>
+                                         <input 
+                                             type="text" 
+                                             placeholder="e.g. yourname@upi" 
+                                             className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-[11px] outline-none focus:border-[#FFD700]/40 font-mono italic" 
+                                             value={profile.payout_upi || ''} 
+                                             onChange={e => setProfile({...profile, payout_upi: e.target.value})} 
+                                         />
+                                     </div>
+                                 )}
+
+                             <div className="space-y-6">
+                                 {/* PERFORMANCE STATS PROTOCOL */}
+                                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                     <div className="space-y-2">
+                                         <label className="text-[9px] font-black text-white/20 uppercase tracking-widest">Expected Win Rate (%)</label>
+                                         <input type="text" placeholder="e.g. 73" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-[11px] outline-none focus:border-[#FFD700]/40 font-mono italic" value={strategy.win_rate} onChange={e => setStrategy({...strategy, win_rate: e.target.value})} />
+                                     </div>
+                                     <div className="space-y-2">
+                                         <label className="text-[9px] font-black text-white/20 uppercase tracking-widest">Total Trades</label>
+                                         <input type="text" placeholder="e.g. 150" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-[11px] outline-none focus:border-[#FFD700]/40 font-mono italic" value={strategy.total_trades} onChange={e => setStrategy({...strategy, total_trades: e.target.value})} />
+                                     </div>
+                                     <div className="space-y-2">
+                                         <label className="text-[9px] font-black text-white/20 uppercase tracking-widest">Avg Gain (%)</label>
+                                         <input type="text" placeholder="e.g. 2.4" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-[11px] outline-none focus:border-[#FFD700]/40 font-mono italic" value={strategy.avg_gain} onChange={e => setStrategy({...strategy, avg_gain: e.target.value})} />
+                                     </div>
+                                     <div className="space-y-2">
+                                         <label className="text-[9px] font-black text-white/20 uppercase tracking-widest">Max Drawdown (%)</label>
+                                         <input type="text" placeholder="e.g. 8.2" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-[11px] outline-none focus:border-[#FFD700]/40 font-mono italic" value={strategy.max_drawdown} onChange={e => setStrategy({...strategy, max_drawdown: e.target.value})} />
+                                     </div>
                                  </div>
-                                 <div className="space-y-3 font-sans">
-                                    <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Video Guide (YouTube/Instagram Reel) <span className="text-red-500/60">*</span></label>
-                                    <input type="text" placeholder="https://reel.link/your_demo" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-[11px] text-white outline-none font-mono" value={strategy.video_url} onChange={e => setStrategy({...strategy, video_url: e.target.value})} />
+
+                                 <div className="space-y-4 pt-4 border-t border-white/5">
+                                     <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Screenshot Hub (URLs required) <span className="text-red-500/60">*</span></label>
+                                        <div className="space-y-3">
+                                            {['Chart Heuristics', 'Profitable Hits', 'Equity Curve'].map((label, idx) => (
+                                                <div key={idx} className="relative group">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-white/10 uppercase group-focus-within:text-[#FFD700] transition-colors">{label}</span>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder={idx === 0 ? "https://image.hub/chart_proof" : idx === 1 ? "https://image.hub/profit_history" : "https://image.hub/equity_growth"} 
+                                                        className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-2xl py-4 pl-32 pr-6 text-[10px] text-white outline-none font-mono italic" 
+                                                        value={strategy.screenshot_urls[idx]} 
+                                                        onChange={e => {
+                                                            const news = [...strategy.screenshot_urls];
+                                                            news[idx] = e.target.value;
+                                                            setStrategy({...strategy, screenshot_urls: news});
+                                                        }} 
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                     </div>
+                                     <div className="space-y-3 font-sans">
+                                        <label className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] ml-1">Video Evidence URL <span className="text-red-500/60">*</span></label>
+                                        <input type="text" placeholder="https://reel.link/your_demo" className="w-full bg-white/[0.03] border border-white/10 focus:border-[#FFD700]/40 rounded-3xl py-5 px-8 text-[11px] text-white outline-none font-mono" value={strategy.video_url} onChange={e => setStrategy({...strategy, video_url: e.target.value})} />
+                                     </div>
                                  </div>
+                             </div>
                             </div>
 
                             <div className={`p-10 rounded-[48px] space-y-10 transition-all duration-700 ${strategy.tier === 'PAID' ? 'bg-black/40 border border-[#FFD700]/20' : 'bg-white/[0.01] border border-white/5 opacity-40 shadow-inner'}`}>

@@ -51,21 +51,27 @@ export default function StrategyLandingPage() {
   }, [strategyId]);
 
   const handleSubscribe = async () => {
-    setIsSubscribing(true);
-    try {
-      const resp = await fetch(`/api/marketplace/${strategyId}/subscribe`, {
-        method: 'POST',
-      });
-      const json = await resp.json();
-      if (json.success) {
-        router.push('/dashboard/vault');
-      } else {
-        alert(json.error || 'Failed to initialize subscription');
-      }
-    } catch (err) {
-      console.error('Subscription error:', err);
-    } finally {
-      setIsSubscribing(false);
+    // 1. FREE TIER: Direct Activation
+    if (strategy.tier === 'FREE') {
+        setIsSubscribing(true);
+        try {
+            const resp = await fetch(`/api/marketplace/${strategyId}/subscribe`, {
+                method: 'POST',
+            });
+            const json = await resp.json();
+            if (json.success) {
+                router.push('/dashboard/vault');
+            } else {
+                alert(json.error || 'Direct activation protocol failed.');
+            }
+        } catch (err) {
+            console.error('Subscription error:', err);
+        } finally {
+            setIsSubscribing(false);
+        }
+    } else {
+        // 2. PAID/ELITE TIER: Redirect to Secure Gateway
+        router.push(`/checkout?strategyId=${strategyId}`);
     }
   };
 
@@ -164,7 +170,6 @@ export default function StrategyLandingPage() {
                   {/* META TAGS ROW */}
                   <div className="flex flex-wrap gap-4 pt-4">
                      {[
-                        { l: 'Min Capital', v: '₹50k+' },
                         { l: 'Timeframe', v: strategy.timeframe || 'H1' },
                         { l: 'Lot Range', v: '0.01 - 1.00' },
                         { l: 'Risk Type', v: 'Low-Medium' }
@@ -179,16 +184,24 @@ export default function StrategyLandingPage() {
                   {/* QUICK STATS CARDS */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 pt-10">
                      {[
-                        { l: 'Win Rate', v: stats.winRate, unit: '%' },
-                        { l: 'Total Trades', v: stats.totalTrades, unit: '' },
-                        { l: 'Avg Gain', v: stats.avgGain, unit: '%' },
-                        { l: 'Max Drawdown', v: stats.maxDrawdown, unit: '%' }
+                        { l: 'Win Rate', v: stats.winRate, unit: '%', color: '#00E676' },
+                        { l: 'Total Trades', v: stats.totalTrades, unit: '', color: '#FFD700' },
+                        { l: 'Avg Gain', v: stats.avgGain, unit: '%', color: '#00B0FF' },
+                        { l: 'Max Drawdown', v: stats.maxDrawdown, unit: '%', color: '#FF5252' }
                      ].map((s, i) => (
-                        <div key={i} className="p-6 rounded-[32px] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/5 hover:border-[#FFD700]/20 transition-all group">
+                        <div key={i} className="p-6 rounded-[32px] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/5 hover:border-white/20 hover:bg-white/[0.06] transition-all group relative overflow-hidden">
+                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest italic group-hover:text-white/40 transition-colors">{s.l}</span>
-                           <div className="mt-2 flex items-baseline gap-1">
-                              <span className="text-2xl font-black text-white italic tracking-tighter leading-none">{s.v}</span>
+                           <div className="mt-2 flex items-baseline gap-1 relative z-10">
+                              <span className="text-2xl font-black text-white italic tracking-tighter leading-none" style={{ color: s.v > 0 ? 'white' : 'rgba(255,255,255,0.2)' }}>
+                                {s.v || '0'}
+                              </span>
                               <span className="text-[10px] font-black text-white/20">{s.unit}</span>
+                           </div>
+                           <div className="mt-4 w-full h-[1px] bg-white/5 group-hover:bg-white/10 transition-colors" />
+                           <div className="mt-3 flex items-center gap-1">
+                               <div className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: s.color }} />
+                               <span className="text-[7px] font-black uppercase tracking-widest text-white/10 group-hover:text-white/20 transition-colors">Verified Logic</span>
                            </div>
                         </div>
                      ))}
@@ -209,25 +222,28 @@ export default function StrategyLandingPage() {
                      <Link href={strategy.screenshot_urls?.[selectedImg] || strategy.thumbnail_url || '#'} target="_blank">
                         <motion.div 
                           key={selectedImg}
-                          initial={{ opacity: 0, scale: 1 }}
-                          animate={{ opacity: 1, scale: 1 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           className="relative h-[220px] md:h-[450px] w-full bg-white/5 rounded-3xl overflow-hidden border border-white/10 group cursor-zoom-in"
                         >
                            {strategy.screenshot_urls?.[selectedImg] ? (
-                             <img src={strategy.screenshot_urls[selectedImg]} alt="Screenshot" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                             <img src={strategy.screenshot_urls[selectedImg]} alt="High Fidelity Capture" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                            ) : (
                              <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#131929] to-black">
                                 <LucideImage className="w-12 h-12 text-white/10" />
-                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Screenshot Data Link Not Found</span>
+                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Awaiting Visual Protocol Evidence</span>
                              </div>
                            )}
                            <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
                               <span className="text-[10px] font-black text-white uppercase italic">{selectedImg + 1} / 3</span>
                            </div>
-                           <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/80 to-transparent flex items-end p-8">
-                              <p className="text-[12px] font-black text-white uppercase tracking-widest italic group-hover:text-[#FFD700] transition-colors">{
-                                selectedImg === 0 ? 'Protocol Chart Heuristics' : selectedImg === 1 ? 'Trade Statement Intelligence' : 'Liquidity Growth Curve'
-                              }</p>
+                           <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end p-10">
+                              <div className="flex flex-col gap-1">
+                                 <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.3em] italic">High-Fidelity Evidence</span>
+                                 <p className="text-[14px] md:text-[16px] font-black text-white uppercase tracking-wider italic">{
+                                   selectedImg === 0 ? 'Project Chart Heuristics & Setup' : selectedImg === 1 ? 'Profitable Hits & History Breakdown' : 'Equity Curve & Growth Visualization'
+                                 }</p>
+                              </div>
                            </div>
                         </motion.div>
                      </Link>
@@ -247,7 +263,7 @@ export default function StrategyLandingPage() {
                                  </div>
                               </div>
                               <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-center group-hover:text-white transition-colors">
-                                 {idx === 0 ? 'Chart' : idx === 1 ? 'History' : 'Growth'}
+                                 {idx === 0 ? 'Chart' : idx === 1 ? 'Profitable Hits' : 'Equity Curve'}
                               </span>
                            </button>
                         ))}
