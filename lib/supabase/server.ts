@@ -4,9 +4,27 @@ import { cookies } from 'next/headers'
 export function createClient() {
   const cookieStore = cookies()
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // This handles the build-time prerendering without crashing
+    return createServerClient(
+      'https://placeholder.supabase.co',
+      'placeholder-key',
+      {
+        cookies: {
+          get(name: string) { return undefined },
+          set(name: string, value: string, options: CookieOptions) {},
+          remove(name: string, options: CookieOptions) {},
+        },
+      }
+    )
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
