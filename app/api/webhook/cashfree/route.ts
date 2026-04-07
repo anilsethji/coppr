@@ -9,9 +9,7 @@ import crypto from 'crypto';
  * Prevents "Missing Subscription" if user closes checkout tab.
  */
 export async function POST(request: Request) {
-  const supabase = createClient({
-    // Use Service Role if available for server-side fulfillment bypass of RLS
-  });
+  const supabase = createClient();
 
   try {
     const payload = await request.json();
