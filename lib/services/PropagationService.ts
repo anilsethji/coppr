@@ -3,6 +3,9 @@ import { ZerodhaAdapter, AngelOneAdapter, MT5Adapter } from '@/lib/brokers/adapt
 import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
 import { BybitAdapter } from '@/lib/brokers/BybitAdapter';
 import { DhanAdapter } from '@/lib/brokers/DhanAdapter';
+import { MexcAdapter } from '@/lib/brokers/MexcAdapter';
+import { BingXAdapter } from '@/lib/brokers/BingXAdapter';
+import { GrowwAdapter } from '@/lib/brokers/GrowwAdapter';
 
 export class PropagationService {
     /**
@@ -87,6 +90,9 @@ export class PropagationService {
                     case 'BINANCE_FUTURES': adapter = new BinanceFuturesAdapter(); break;
                     case 'BYBIT': adapter = new BybitAdapter(); break;
                     case 'DHAN': adapter = new DhanAdapter(); break;
+                    case 'MEXC': adapter = new MexcAdapter(); break;
+                    case 'BINGX': adapter = new BingXAdapter(); break;
+                    case 'GROWW': adapter = new GrowwAdapter(); break;
                     default: 
                         await this.logEvent(sub.id, "EXECUTION_FAIL", { error: `Unsupported broker type: ${broker.broker_type}`, status: 'FAILED' }, supabase);
                         return;

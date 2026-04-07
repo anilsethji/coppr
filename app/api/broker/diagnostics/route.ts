@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
 import { BybitAdapter } from '@/lib/brokers/BybitAdapter';
 import { DhanAdapter } from '@/lib/brokers/DhanAdapter';
+import { MexcAdapter } from '@/lib/brokers/MexcAdapter';
+import { BingXAdapter } from '@/lib/brokers/BingXAdapter';
+import { GrowwAdapter } from '@/lib/brokers/GrowwAdapter';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -85,6 +88,48 @@ export async function POST(request: Request) {
                 reports.push({ label: 'Session Status', status: 'SUCCESS', message: 'Active Handshake' });
             } catch (err) {
                 reports.push({ label: 'Session Status', status: 'FAILED', message: 'Token Expired (Daily Refresh Required)' });
+                success = false;
+            }
+        } else if (brokerType === 'MEXC') {
+            const adapter = new MexcAdapter();
+            const credentials = { api_key: broker.api_key, api_secret: broker.api_secret };
+            try {
+                await adapter.getAccountBalance(credentials);
+                reports.push({ label: 'API Connectivity', status: 'SUCCESS', message: 'Active' });
+                const isHedge = await adapter.getPositionMode(credentials);
+                if (isHedge) reports.push({ label: 'Position Mode (Hedge)', status: 'SUCCESS', message: 'Ready' });
+                else {
+                    reports.push({ label: 'Position Mode (Hedge)', status: 'FAILED', message: 'Manual Switch Required' });
+                    success = false;
+                }
+            } catch (err) {
+                reports.push({ label: 'MEXC Permissions', status: 'FAILED', message: 'Check API Key permissions' });
+                success = false;
+            }
+        } else if (brokerType === 'BINGX') {
+            const adapter = new BingXAdapter();
+            const credentials = { api_key: broker.api_key, api_secret: broker.api_secret };
+            try {
+                await adapter.getAccountBalance(credentials);
+                reports.push({ label: 'API Permissions', status: 'SUCCESS', message: 'Authorized' });
+                const isHedge = await adapter.getPositionMode(credentials);
+                if (isHedge) reports.push({ label: 'Hedge Mode', status: 'SUCCESS', message: 'Active' });
+                else {
+                    reports.push({ label: 'Hedge Mode', status: 'FAILED', message: 'Required for Dual-Side' });
+                    success = false;
+                }
+            } catch (err) {
+                reports.push({ label: 'BingX Connectivity', status: 'FAILED', message: 'Check API settings' });
+                success = false;
+            }
+        } else if (brokerType === 'GROWW') {
+            const adapter = new GrowwAdapter();
+            const credentials = { api_key: broker.api_key };
+            try {
+                await adapter.getAccountBalance(credentials);
+                reports.push({ label: 'Session Status', status: 'SUCCESS', message: 'Valid JWT Token' });
+            } catch (err) {
+                reports.push({ label: 'Session Status', status: 'FAILED', message: 'Token Expired (Refresh Required)' });
                 success = false;
             }
         }

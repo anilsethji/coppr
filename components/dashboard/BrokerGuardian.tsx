@@ -31,7 +31,7 @@ export default function BrokerGuardian({ brokerType, accountId }: Props) {
         }
     };
 
-    if (!['BINANCE_FUTURES', 'BYBIT', 'DHAN'].includes(brokerType)) return null;
+    if (!['BINANCE_FUTURES', 'BYBIT', 'DHAN', 'MEXC', 'BINGX', 'GROWW'].includes(brokerType)) return null;
 
     return (
         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 space-y-6">
@@ -94,6 +94,9 @@ export default function BrokerGuardian({ brokerType, accountId }: Props) {
                         {brokerType === 'BINANCE_FUTURES' && "**Binance Futures** requires **Hedge Mode** enabled and **Enable Futures** permissions checked."}
                         {brokerType === 'BYBIT' && "**Bybit V5** requires **Hedge Mode** enabled and **Unified Trading Account** verification."}
                         {brokerType === 'DHAN' && "**DhanHQ** requires a daily **Access Token** refresh for retail automated trading."}
+                        {brokerType === 'MEXC' && "**MEXC Futures** requires **Hedge Mode** and a valid API Key with IP whitelisting."}
+                        {brokerType === 'BINGX' && "**BingX** requires **Hedge Mode** and Perpetual Futures API permissions."}
+                        {brokerType === 'GROWW' && "**Groww** requires a daily **Access Token** and a paid API subscription."}
                     </p>
                 </div>
             </div>
