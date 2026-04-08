@@ -90,51 +90,51 @@ export default function DashboardHome() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-10 pb-20 max-w-[1400px] mx-auto px-4 md:px-8"
+      className="space-y-6 md:space-y-10 pb-20 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8"
     >
       {/* 1. COMPACT HERO: ELEGANT CONTROL CENTER (TOP) */}
-      <motion.div variants={item} className="relative p-6 md:p-8 bg-white/[0.02] border border-white/5 rounded-[40px] backdrop-blur-3xl overflow-hidden group">
+      <motion.div variants={item} className="relative p-6 md:p-8 bg-white/[0.03] border border-white/5 rounded-[32px] md:rounded-[40px] backdrop-blur-3xl overflow-hidden group shadow-2xl">
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#FFD700]/5 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
-              <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] font-sans">System Operational • High Uptime</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
+              <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] font-sans">System Operational</p>
             </div>
-               <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight uppercase italic leading-none opacity-90">
+               <h1 className="text-lg md:text-3xl font-extrabold text-white tracking-tight uppercase italic leading-none opacity-90">
                 Control Center: <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">{profile?.full_name?.split(' ')[0] || 'Member'}</span>
               </h1>
           </div>
 
-          <div className="flex items-center gap-6 bg-black/60 p-5 rounded-3xl border border-white/5 shadow-2xl">
+          <div className="flex items-center gap-4 md:gap-6 bg-black/40 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl">
              <div className="text-right">
-                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest font-sans mb-1">Mirroring Level</p>
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-1">Mirroring Level</p>
                 <div className="flex items-center gap-2 justify-end">
-                   <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
-                   <p className="text-[14px] font-black text-[#FFD700] uppercase italic leading-none">Pro Access</p>
+                   <ShieldCheck className="w-3 h-3 text-[#FFD700]" />
+                   <p className="text-[12px] md:text-[14px] font-black text-[#FFD700] uppercase italic leading-none">Pro Access</p>
                 </div>
              </div>
-             <div className="w-[1px] h-10 bg-white/10" />
-             <div className="text-center min-w-[60px]">
-                <p className="text-[20px] font-black text-white leading-none font-sans italic mb-1">27</p>
-                <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest font-sans">Days Left</p>
+             <div className="w-[1px] h-8 md:h-10 bg-white/10" />
+             <div className="text-center min-w-[50px] md:min-w-[60px]">
+                <p className="text-[16px] md:text-[20px] font-black text-white leading-none font-sans italic mb-1">27</p>
+                <p className="text-[7px] md:text-[8px] font-bold text-white/20 uppercase tracking-widest font-sans">Days Left</p>
              </div>
           </div>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
         {navCards.map((card, i) => (
           <Link key={i} href={card.href} className="group relative">
             <motion.div 
               variants={item}
               whileHover="hover"
               whileTap={{ scale: 0.98 }}
-              className={`relative p-8 md:p-10 rounded-[44px] transition-all duration-700 aspect-square flex flex-col justify-between overflow-hidden border border-white/[0.08] shadow-2xl ${
+              className={`relative p-4 md:p-10 rounded-[24px] md:rounded-[44px] transition-all duration-700 aspect-auto md:aspect-square flex flex-col justify-between overflow-hidden border border-white/[0.08] shadow-2xl ${
                 card.isHighlight 
                   ? 'bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]' 
-                  : 'bg-gradient-to-b from-[#111827] to-[#030712]'
+                  : 'bg-gradient-to-b from-[#161C2D] to-[#0A1A3A]'
               }`}
             >
               {/* METALLIC FINISH OVERLAY */}
@@ -182,24 +182,24 @@ export default function DashboardHome() {
                 }}
               />
               
-              <div className={`w-16 h-16 rounded-[28px] ${card.isHighlight ? 'bg-[#FFD700]' : 'bg-white/5'} flex items-center justify-center border border-white/10 shadow-inner relative z-40 backdrop-blur-md transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]`}>
+              <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[28px] ${card.isHighlight ? 'bg-[#FFD700]' : 'bg-white/5'} flex items-center justify-center border border-white/10 shadow-inner relative z-40 backdrop-blur-md transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
                 <card.icon 
-                  className={`w-8 h-8 transition-all duration-500 ${card.isHighlight ? 'text-black' : ''}`} 
+                  className={`w-6 h-6 md:w-8 md:h-8 transition-all duration-500 ${card.isHighlight ? 'text-black' : ''}`} 
                   style={{ color: card.isHighlight ? undefined : card.color, filter: card.isHighlight ? undefined : `drop-shadow(0 0 15px ${card.color})` }}
                 />
               </div>
 
-              <div className="relative z-40">
-                 <h4 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1">
+              <div className="relative z-40 mt-6 md:mt-0">
+                 <h4 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1">
                     {card.t === 'Knowledge' ? 'Knowledge' : card.t.split(' ')[0]}
-                    {card.t === 'Knowledge' && <br />}
+                    <span className="hidden md:inline">{card.t === 'Knowledge' && <br />}</span>
                     <span className={`text-white transition-opacity ${card.isHighlight ? 'opacity-80' : 'opacity-40 group-hover:opacity-100'}`}>
-                       {card.t === 'Knowledge' ? 'Hub' : ` ${card.t.split(' ')[1] || ''}`}
+                       {card.t === 'Knowledge' ? ' Hub' : ` ${card.t.split(' ')[1] || ''}`}
                     </span>
                  </h4>
                  <div className="flex justify-between items-end">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans group-hover:text-white/60 transition-colors leading-none">{card.sub}</p>
-                    <ArrowUpRight className="w-5 h-5 text-white/10 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans group-hover:text-white/60 transition-colors leading-none">{card.sub}</p>
+                    <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-white/22 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                  </div>
               </div>
             </motion.div>
@@ -208,29 +208,29 @@ export default function DashboardHome() {
       </div>
 
       {/* 3. COPPR LABS: NEW RELEASE RELEASE (FEATURED MARQUEE) */}
-      <div className="space-y-12">
+      <div className="space-y-8 md:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
                <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                     <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full md:bg-transparent md:border-none md:p-0">Official Direct Alpha</span>
+                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1.5 md:p-0 bg-white/5 md:bg-transparent border border-white/10 md:border-none rounded-full">Official Direct Alpha</span>
                      <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Lab</span> Release</h3>
+                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Lab</span> Release</h3>
                </div>
-           <p className="text-[10px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right">
+           <p className="text-[9px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right leading-relaxed">
               Proprietary mirroring logic direct from the Coppr Labs propagation terminal.
            </p>
         </div>
 
-        {/* FEATURED HERO (THE MARQUEE) - SHRUNK FOR BETTER BALANCE */}
+        {/* FEATURED HERO (THE MARQUEE) */}
         {botLibrary.length > 0 && (
           <motion.div 
             variants={item}
-            whileHover={{ scale: 1.005, y: -5 }}
-            className="relative p-6 md:p-10 bg-gradient-to-br from-[#131929] via-[#0D121F] to-[#080C14] border border-[#FFD700]/20 rounded-[48px] overflow-hidden group shadow-2xl shadow-[#FFD700]/5"
+            whileHover={{ y: -5 }}
+            className="relative p-7 md:p-10 bg-gradient-to-br from-[#161C2D] via-[#0A1A3A] to-[#060A12] border border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden group shadow-2xl"
           >
-             <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FFD700]/60 to-transparent" />
-             <div className="absolute inset-0 bg-[#FFD700]/[0.02] group-hover:bg-[#FFD700]/[0.05] transition-colors duration-1000" />
+             <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FFD700]/30 to-transparent" />
+             <div className="absolute inset-0 bg-[#FFD700]/[0.01] group-hover:bg-[#FFD700]/[0.03] transition-colors duration-1000" />
              <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-[#FFD700]/10 blur-[130px] rounded-full group-hover:bg-[#FFD700]/20 transition-all duration-1000" />
 
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
@@ -243,11 +243,11 @@ export default function DashboardHome() {
                       </div>
                    </div>
                    
-                   <div className="space-y-4">
-                      <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-[0.9] group-hover:text-[#FFD700] transition-colors duration-700">
+                   <div className="space-y-3">
+                      <h2 className="text-2xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-[0.9] group-hover:text-[#FFD700] transition-colors duration-700">
                         {botLibrary[0].title}
                       </h2>
-                      <p className="text-[12px] md:text-[14px] text-white/30 font-bold italic font-sans max-w-xl leading-relaxed uppercase tracking-wide">
+                      <p className="text-[11px] md:text-[14px] text-white/30 font-bold italic font-sans max-w-xl leading-relaxed uppercase tracking-wide">
                         {botLibrary[0].description ? (botLibrary[0].description.startsWith('{') ? JSON.parse(botLibrary[0].description).desc : botLibrary[0].description) : 'Enterprise-grade alpha verified on the mainnet.'}
                       </p>
                    </div>
@@ -309,18 +309,18 @@ export default function DashboardHome() {
             <Link key={item.id} href={item.external_link || `/dashboard/bots`} className="group relative">
                <motion.div 
                  whileHover={{ y: -5, scale: 1.02 }}
-                 className="p-6 bg-white/[0.02] border border-white/5 rounded-[32px] hover:border-[#FFD700]/30 transition-all flex flex-col gap-6 aspect-auto overflow-hidden relative shadow-lg"
+                 className="p-5 md:p-6 bg-[#161C2D] border border-white/5 rounded-[24px] md:rounded-[32px] hover:border-[#FFD700]/30 transition-all flex flex-col gap-4 md:gap-6 aspect-auto overflow-hidden relative shadow-lg"
                >
-                  <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-all duration-500 overflow-hidden relative">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-all duration-500 overflow-hidden relative">
                      <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                     <Bot className="w-8 h-8 text-[#FFD700]/60 group-hover:text-[#FFD700]" />
+                     <Bot className="w-6 h-6 md:w-8 md:h-8 text-[#FFD700]/60 group-hover:text-[#FFD700]" />
                   </div>
                   <div>
-                     <h4 className="text-[14px] md:text-[16px] font-black text-white uppercase italic leading-tight mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{item.title}</h4>
+                     <h4 className="text-[13px] md:text-[16px] font-black text-white uppercase italic leading-tight mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{item.title}</h4>
                      <div className="flex items-center gap-2 opacity-40">
-                        <span className="text-[10px] font-black uppercase tracking-tighter text-white font-sans italic">{item.roi || '99%'} ROI</span>
+                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-white font-sans italic">{item.roi || '99%'} ROI</span>
                         <div className="w-[1px] h-3 bg-white/20" />
-                        <span className="text-[10px] font-black uppercase tracking-tighter text-[#00E676] font-sans italic">Live Broadcast</span>
+                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-[#00E676] font-sans italic">Broadcast</span>
                      </div>
                   </div>
                </motion.div>
@@ -352,20 +352,20 @@ export default function DashboardHome() {
       </div>
 
       {/* FOOTER CTA */}
-      <div className="pt-20">
-        <Link href="/dashboard/creator" className="group flex flex-col md:flex-row items-center justify-between p-12 bg-gradient-to-br from-white/[0.04] to-transparent border border-white/10 rounded-[64px] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden">
+      <div className="pt-12 md:pt-20">
+        <Link href="/dashboard/creator" className="group flex flex-col md:flex-row items-center justify-between p-8 md:p-12 bg-gradient-to-br from-white/[0.04] to-transparent border border-white/10 rounded-[32px] md:rounded-[64px] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden">
            <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-[80px] pointer-events-none" />
-           <div className="flex items-center gap-10 relative z-10">
-              <div className="p-8 bg-[#FFD700]/10 rounded-3xl group-hover:scale-110 transition-all duration-700 shadow-2xl">
-                 <Plus className="w-10 h-10 text-[#FFD700]" />
+           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10 text-center md:text-left">
+              <div className="p-6 md:p-8 bg-[#FFD700]/10 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-all duration-700 shadow-2xl">
+                 <Plus className="w-8 h-8 md:w-10 md:h-10 text-[#FFD700]" />
               </div>
               <div className="space-y-2">
-                 <h4 className="text-3xl md:text-5xl font-black text-white uppercase italic leading-none tracking-tighter">Monetize Your Alpha</h4>
-                 <p className="text-[12px] md:text-sm font-black text-white/30 uppercase tracking-[0.3em] font-sans italic">Ship proprietary mirroring nodes on the global grid.</p>
+                 <h4 className="text-2xl md:text-5xl font-black text-white uppercase italic leading-none tracking-tighter">Monetize Your Alpha</h4>
+                 <p className="text-[10px] md:text-sm font-black text-white/30 uppercase tracking-[0.3em] font-sans italic max-w-xs md:max-w-none">Ship proprietary mirroring nodes on the global grid.</p>
               </div>
            </div>
-           <div className="mt-8 md:mt-0 p-6 rounded-full border border-white/10 group-hover:text-[#FFD700] group-hover:border-[#FFD700]/40 transition-all relative z-10 backdrop-blur-xl">
-              <ChevronRight className="w-10 h-10" />
+           <div className="mt-8 md:mt-0 p-4 md:p-6 rounded-full border border-white/10 group-hover:text-[#FFD700] group-hover:border-[#FFD700]/40 transition-all relative z-10 backdrop-blur-xl hidden md:block">
+              <ChevronRight className="w-8 h-8 md:w-10 md:h-10" />
            </div>
         </Link>
       </div>

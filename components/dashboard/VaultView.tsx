@@ -29,7 +29,20 @@ import ManagedNodeMonitor from './ManagedNodeMonitor';
 import QuickStartJourney from './QuickStartJourney';
 import BrokerGuardian from './BrokerGuardian';
 
+const SUPPORTED_BROKERS = [
+  { id: 'MT5', name: 'MetaTrader 5', region: 'GLOBAL', icon: Globe },
+  { id: 'BINANCE_FUTURES', name: 'Binance Futures', region: 'GLOBAL', icon: Zap },
+  { id: 'BYBIT', name: 'Bybit V5', region: 'GLOBAL', icon: Zap },
+  { id: 'MEXC', name: 'MEXC Global', region: 'GLOBAL', icon: Globe },
+  { id: 'BINGX', name: 'BingX Pro', region: 'GLOBAL', icon: Zap },
+  { id: 'ZERODHA', name: 'Zerodha Kite', region: 'INDIA', icon: ShieldCheck },
+  { id: 'ANGELONE', name: 'AngelOne', region: 'INDIA', icon: ShieldCheck },
+  { id: 'DHAN', name: 'DhanHQ', region: 'INDIA', icon: Zap },
+  { id: 'GROWW', name: 'Groww', region: 'INDIA', icon: ShieldCheck },
+];
+
 export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK' }) {
+  const [connections, setConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<any[]>([]);
   const [linkingId, setLinkingId] = useState<string | null>(null);
@@ -249,6 +262,88 @@ export default function VaultView({ typeFilter }: { typeFilter?: 'MT5_EA' | 'PIN
         </div>
       </div>
 
+      {/* 0. BROKER GUARDIAN STATUS (MOBILE OPTIMIZED) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+         <div className="p-6 md:p-10 rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-[#161C2D] to-[#0A1A3A] border border-white/5 relative overflow-hidden group shadow-2xl">
+            <div className="absolute top-0 right-0 p-4 md:p-6 opacity-10">
+               <ShieldCheck className="w-16 h-16 md:w-24 md:h-24 text-[#FFD700]" />
+            </div>
+            <div className="relative z-10 space-y-4 md:space-y-6">
+               <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
+                  <span className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.3em] font-sans">Guard Logic: ACTIVE</span>
+               </div>
+               <div className="space-y-1">
+                  <h3 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none">Broker <span className="text-[#FFD700]">Guardian™</span></h3>
+                  <p className="text-[10px] md:text-[12px] font-bold text-white/20 uppercase tracking-widest italic font-sans">Pre-flight Diagnostic Protocol</p>
+               </div>
+               <div className="pt-2 md:pt-4 flex flex-wrap gap-2">
+                  {['API Key', 'Hedge Mode', 'IP Whitelist'].map((tag) => (
+                     <span key={tag} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black text-white/40 uppercase italic font-sans">{tag}</span>
+                  ))}
+               </div>
+            </div>
+         </div>
+
+         <div className="p-6 md:p-10 rounded-[32px] md:rounded-[48px] bg-[#161C2D] border border-white/5 md:col-span-1 lg:col-span-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-10 shadow-2xl">
+            <div className="space-y-2 md:space-y-4">
+               <div className="flex items-center gap-3">
+                  <Activity className="w-5 h-5 text-[#00E676]" />
+                  <h4 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tighter">Managed Node Monitor</h4>
+               </div>
+               <p className="text-[11px] md:text-sm text-white/30 font-bold uppercase italic leading-relaxed max-w-md font-sans">
+                  Real-time synchronization between master signal hubs and your linked broker endpoints. 
+               </p>
+            </div>
+            <div className="w-full md:w-auto grid grid-cols-2 gap-4">
+               <div className="p-4 md:p-6 bg-black/40 rounded-2xl md:rounded-3xl border border-white/5 text-center backdrop-blur-xl">
+                  <span className="text-xl md:text-3xl font-black text-white italic leading-none font-sans">244ms</span>
+                  <p className="text-[8px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 font-sans">Avg Latency</p>
+               </div>
+               <div className="p-4 md:p-6 bg-black/40 rounded-2xl md:rounded-3xl border border-white/5 text-center backdrop-blur-xl">
+                  <span className="text-xl md:text-3xl font-black text-[#00E676] italic leading-none font-sans">99.9%</span>
+                  <p className="text-[8px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 font-sans">Mirror Succ.</p>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      {/* 0.5. PROTOCOL ENDPOINTS GRID (9-BROKER SYNC) */}
+      <div className="space-y-6 md:space-y-10">
+         <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-end px-2">
+            <div className="space-y-2">
+               <h3 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight">Sync <span className="text-[#FFD700]">Endpoints</span></h3>
+               <p className="text-[9px] md:text-[11px] font-black text-white/20 uppercase tracking-widest italic font-sans px-1">Initialize direct propagation for global and Indian retail liquidity.</p>
+            </div>
+            <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 italic">
+               <div className="w-1.5 h-1.5 rounded-full bg-[#00E676]" />
+               <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.2em] font-sans">System Nominal</span>
+            </div>
+         </div>
+
+         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
+            {SUPPORTED_BROKERS.map((broker) => (
+               <button 
+                  key={broker.id}
+                  onClick={() => {
+                     setBrokerType(broker.id as any);
+                     setLinkingId('NEW_BROKER');
+                  }}
+                  className="group relative p-4 md:p-8 bg-[#161C2D] border border-white/5 rounded-[24px] md:rounded-[40px] hover:border-[#FFD700]/40 transition-all flex flex-col items-center justify-center gap-4 text-center overflow-hidden shadow-xl"
+               >
+                  <div className="absolute inset-0 bg-[#FFD700]/[0.01] group-hover:bg-[#FFD700]/[0.05] transition-colors" />
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-700 relative z-10">
+                     <broker.icon className="w-5 h-5 md:w-7 md:h-7 text-white/20 group-hover:text-[#FFD700] transition-colors" />
+                  </div>
+                  <div className="relative z-10">
+                     <h4 className="text-[10px] md:text-[14px] font-black text-white uppercase italic leading-none truncate w-full max-w-[100px] md:max-w-[120px]">{broker.name}</h4>
+                     <p className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 italic font-sans">{broker.region}</p>
+                  </div>
+               </button>
+            ))}
+         </div>
+      </div>
+
       {activeTab === 'PINE_SCRIPT_WEBHOOK' && strategies.length === 0 && (
           <div className="space-y-12">
             <div className="bg-[#00E676]/[0.02] border border-dashed border-[#00E676]/20 rounded-[48px] p-24 text-center space-y-10 relative overflow-hidden group">
@@ -428,10 +523,10 @@ function StrategyCard({
         <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className={`bg-[#0D121F]/60 border rounded-[48px] overflow-hidden group transition-all duration-700 hover:scale-[1.005] ${isOfficial ? 'border-[#FFD700]/20 hover:border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/5' : 'border-white/5 hover:border-white/10'}`}
+            className={`bg-[#0D121F]/60 border rounded-[32px] md:rounded-[48px] overflow-hidden group transition-all duration-700 hover:scale-[1.005] ${isOfficial ? 'border-[#FFD700]/20 hover:border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/5' : 'border-white/5 hover:border-white/10'}`}
         >
             <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="p-10 space-y-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 relative overflow-hidden">
+                <div className="p-6 md:p-10 space-y-6 md:space-y-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 relative overflow-hidden">
                     {isOfficial && (
                         <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#FFD700]/5 blur-[100px] pointer-events-none" />
                     )}
@@ -644,7 +739,7 @@ function StrategyCard({
                     </div>
                 </div>
 
-                <div className="p-10 flex flex-col justify-between bg-black/40 relative">
+                <div className="p-6 md:p-10 flex flex-col justify-between bg-black/40 relative min-h-[300px] md:min-h-auto">
                     <div className="flex justify-between items-center mb-6 px-1">
                         <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-3 font-sans italic">
                             <span className={`w-2 h-2 rounded-full animate-pulse ${isOfficial ? 'bg-[#FFD700]' : 'bg-[#00E676]'}`}></span>

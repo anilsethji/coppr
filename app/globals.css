@@ -4,13 +4,24 @@
 
 :root {
   --foreground-rgb: 255, 255, 255;
+  --navy-deep: #0A1A3A;
+  --navy-card: #161C2D;
+  --navy-accent: #1E293B;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: #080C14;
-  font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  background: var(--navy-deep);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-brand {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.mobile-container {
+  @apply px-4 sm:px-6 md:px-8 max-w-7xl mx-auto;
 }
 
 @layer components {
@@ -24,6 +35,13 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
+  }
+  .text-elegant {
+    @apply font-brand tracking-tight leading-tight;
+    font-weight: 600;
+  }
+  .bg-navy-radial {
+    background: radial-gradient(circle at top right, #162447, #0A1A3A 70%);
   }
 }
 
