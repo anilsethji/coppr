@@ -100,19 +100,19 @@ export default function DashboardHome() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
-              <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] font-sans">System Operational</p>
+              <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] font-sans">All Systems Online</p>
             </div>
                <h1 className="text-lg md:text-3xl font-extrabold text-white tracking-tight uppercase italic leading-none opacity-90">
-                Control Center: <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">{profile?.full_name?.split(' ')[0] || 'Member'}</span>
+                Welcome Back, <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">{profile?.full_name?.split(' ')[0] || 'Member'}</span>
               </h1>
           </div>
 
           <div className="flex items-center gap-4 md:gap-6 bg-black/40 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl">
              <div className="text-right">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-1">Mirroring Level</p>
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-1">Account Plan</p>
                 <div className="flex items-center gap-2 justify-end">
                    <ShieldCheck className="w-3 h-3 text-[#FFD700]" />
-                   <p className="text-[12px] md:text-[14px] font-black text-[#FFD700] uppercase italic leading-none">Pro Access</p>
+                   <p className="text-[12px] md:text-[14px] font-black text-[#FFD700] uppercase italic leading-none">Pro User</p>
                 </div>
              </div>
              <div className="w-[1px] h-8 md:h-10 bg-white/10" />
@@ -212,13 +212,13 @@ export default function DashboardHome() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
                <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1.5 md:p-0 bg-white/5 md:bg-transparent border border-white/10 md:border-none rounded-full">Official Direct Alpha</span>
+                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1.5 md:p-0 bg-white/5 md:bg-transparent border border-white/10 md:border-none rounded-full">Coppr Official Strategies</span>
                      <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
                   </div>
-                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Lab</span> Release</h3>
+                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Official</span> Release</h3>
                </div>
            <p className="text-[9px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right leading-relaxed">
-              Proprietary mirroring logic direct from the Coppr Labs propagation terminal.
+              Verified and reliable trading bots built securely by the Coppr Team.
            </p>
         </div>
 
@@ -236,10 +236,10 @@ export default function DashboardHome() {
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
                 <div className="lg:col-span-8 space-y-6">
                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="px-4 py-1 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">Elite Release</div>
+                      <div className="px-4 py-1 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">Featured Bot</div>
                       <div className="flex items-center gap-2">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
-                         <span className="text-[10px] font-black text-[#00E676] uppercase tracking-widest italic">Coppr Fiber Live</span>
+                         <span className="text-[10px] font-black text-[#00E676] uppercase tracking-widest italic">Fast Execution</span>
                       </div>
                    </div>
                    
@@ -248,7 +248,7 @@ export default function DashboardHome() {
                         {botLibrary[0].title}
                       </h2>
                       <p className="text-[11px] md:text-[14px] text-white/30 font-bold italic font-sans max-w-xl leading-relaxed uppercase tracking-wide">
-                        {botLibrary[0].description ? (botLibrary[0].description.startsWith('{') ? JSON.parse(botLibrary[0].description).desc : botLibrary[0].description) : 'Enterprise-grade alpha verified on the mainnet.'}
+                        {botLibrary[0].description ? (botLibrary[0].description.startsWith('{') ? JSON.parse(botLibrary[0].description).desc : botLibrary[0].description) : 'High-quality trading strategy tested in live markets.'}
                       </p>
                    </div>
 
@@ -268,7 +268,7 @@ export default function DashboardHome() {
                         href={botLibrary[0].external_link || `/dashboard/bots`}
                         className="inline-flex items-center gap-4 px-10 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] tracking-[0.3em] rounded-[24px] hover:scale-105 hover:bg-white transition-all shadow-2xl shadow-[#FFD700]/30"
                       >
-                         Initiate Propagation
+                         View Details
                          <ArrowUpRight className="w-5 h-5" />
                       </Link>
                    </div>
@@ -291,8 +291,8 @@ export default function DashboardHome() {
       <div className="space-y-10">
         <div className="flex justify-between items-end px-2">
            <div className="space-y-1">
-              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Community <span className="text-white/40 italic">Alphas</span></h3>
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans">Marketplace-wide signal repositories</p>
+              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Community <span className="text-white/40 italic">Strategies</span></h3>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans">Browse bots built by verified community creators</p>
            </div>
            <Link href="/dashboard/marketplace?filter=Coppr+Official" className="text-[11px] font-black text-[#FFD700] uppercase hover:underline tracking-widest italic decoration-2 underline-offset-4">Browse Hub →</Link>
         </div>
@@ -333,12 +333,12 @@ export default function DashboardHome() {
       <div className="space-y-8 pt-8">
         <div className="flex justify-between items-end px-2">
            <div className="space-y-1">
-              <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-[0.4em] font-sans mb-2 block">Live Sync Handshake Control</span>
-              <h3 className="text-3xl font-black text-white uppercase tracking-widest italic leading-none">Mission <span className="text-[#00E676]">Control</span> Output</h3>
+              <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-[0.4em] font-sans mb-2 block">Real-time Connection Status</span>
+              <h3 className="text-3xl font-black text-white uppercase tracking-widest italic leading-none">Live Trade <span className="text-[#00E676]">History</span></h3>
            </div>
            <div className="flex items-center gap-4 bg-[#00E676]/10 px-6 py-3 rounded-2xl border border-[#00E676]/20 backdrop-blur-xl">
               <Activity className="w-5 h-5 text-[#00E676] animate-pulse" />
-              <span className="text-[11px] font-black text-white uppercase tracking-widest italic">Propagation Protocol Operational</span>
+              <span className="text-[11px] font-black text-white uppercase tracking-widest italic">Connection is Active</span>
            </div>
         </div>
 
@@ -360,8 +360,8 @@ export default function DashboardHome() {
                  <Plus className="w-8 h-8 md:w-10 md:h-10 text-[#FFD700]" />
               </div>
               <div className="space-y-2">
-                 <h4 className="text-2xl md:text-5xl font-black text-white uppercase italic leading-none tracking-tighter">Monetize Your Alpha</h4>
-                 <p className="text-[10px] md:text-sm font-black text-white/30 uppercase tracking-[0.3em] font-sans italic max-w-xs md:max-w-none">Ship proprietary mirroring nodes on the global grid.</p>
+                 <h4 className="text-2xl md:text-5xl font-black text-white uppercase italic leading-none tracking-tighter">Share Your Strategy</h4>
+                 <p className="text-[10px] md:text-sm font-black text-white/30 uppercase tracking-[0.3em] font-sans italic max-w-xs md:max-w-none">Create and share your own trading bots with the community.</p>
               </div>
            </div>
            <div className="mt-8 md:mt-0 p-4 md:p-6 rounded-full border border-white/10 group-hover:text-[#FFD700] group-hover:border-[#FFD700]/40 transition-all relative z-10 backdrop-blur-xl hidden md:block">

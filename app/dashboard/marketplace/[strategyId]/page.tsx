@@ -78,14 +78,14 @@ export default function StrategyLandingPage() {
   if (loading) return (
     <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-4">
       <div className="w-12 h-12 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Syncing Strategy Alpha...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Loading Strategy Details...</p>
     </div>
   );
 
   if (!data) return (
     <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-6 p-10">
       <AlertTriangle className="w-10 h-10 text-red-500" />
-      <h2 className="text-2xl font-black text-white uppercase italic">Strategy Node Not Found</h2>
+      <h2 className="text-2xl font-black text-white uppercase italic">Strategy Not Found</h2>
       <Link href="/dashboard/marketplace" className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] rounded-2xl italic">Back to Marketplace</Link>
     </div>
   );
@@ -103,7 +103,7 @@ export default function StrategyLandingPage() {
                   <ArrowLeft className="w-3.5 h-3.5 text-white/40" />
                </div>
                <div className="flex flex-col">
-                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">Marketplace Hub</span>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">Marketplace</span>
                   <span className="text-[10px] md:text-[12px] font-black text-white uppercase italic tracking-tighter">{strategy.name}</span>
                </div>
             </Link>
@@ -117,7 +117,7 @@ export default function StrategyLandingPage() {
                   onClick={() => document.getElementById('subscribe-cta')?.scrollIntoView({ behavior: 'smooth' })}
                   className="px-4 md:px-6 py-2 md:py-3 bg-[#FFD700] text-black font-black uppercase text-[9px] md:text-[10px] rounded-lg md:rounded-xl hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10 italic"
                 >
-                   {isUserSubscribed ? 'Configured ✓' : 'Deploy Node'}
+                   {isUserSubscribed ? 'Configured ✓' : 'Subscribe Now'}
                 </button>
             </div>
          </div>
@@ -186,7 +186,7 @@ export default function StrategyLandingPage() {
                {/* 3. SCREENSHOT GALLERY */}
                <section className="space-y-6 md:space-y-8 pt-8 md:pt-10">
                   <div className="space-y-1">
-                     <span className="text-[10px] md:text-[11px] font-black text-white/20 uppercase tracking-[0.3em]">Evidence Log</span>
+                     <span className="text-[10px] md:text-[11px] font-black text-white/20 uppercase tracking-[0.3em]">Performance Screenshots</span>
                      <h3 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
                         Terminal <span className="text-[#FFD700]">Visuals</span>
                      </h3>
@@ -216,7 +216,7 @@ export default function StrategyLandingPage() {
                               <div className="flex flex-col gap-1">
                                  <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-[0.3em] italic">System Capture</span>
                                  <p className="text-[12px] md:text-[16px] font-black text-white uppercase tracking-wider italic">{
-                                   selectedImg === 0 ? 'Chart Heuristics' : selectedImg === 1 ? 'Profitable Hits' : 'Equity Curve'
+                                   selectedImg === 0 ? 'Trading Chart' : selectedImg === 1 ? 'Profit Log' : 'Equity Curve'
                                  }</p>
                               </div>
                            </div>
@@ -247,7 +247,7 @@ export default function StrategyLandingPage() {
 
                 <section className="space-y-6 md:space-y-10 pt-8 md:pt-10">
                    <div className="space-y-1">
-                      <h3 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">Strategic Protocol</h3>
+                      <h3 className="text-lg md:text-xl font-black text-white uppercase italic tracking-tighter">How this strategy works</h3>
                       <p className="text-[9px] md:text-[11px] font-black text-white/20 uppercase tracking-[0.3em]">Intelligence Brief</p>
                    </div>
 
@@ -257,9 +257,9 @@ export default function StrategyLandingPage() {
                                <TrendingUp className="w-5 h-5 md:w-6 md:h-6" />
                            </div>
                            <div className="space-y-1 md:space-y-2">
-                              <span className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Logic Breakdown</span>
+                              <span className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-widest">Strategy Rules</span>
                               <p className="text-[12px] md:text-[14px] text-white font-bold leading-relaxed uppercase italic">
-                                 {strategy.description || strategy.how_it_works?.[0] || 'Enterprise-grade alpha logic verified.'}
+                                 {strategy.description || strategy.how_it_works?.[0] || 'High-quality strategy logic verified.'}
                               </p>
                            </div>
                         </div>
@@ -357,11 +357,11 @@ export default function StrategyLandingPage() {
                          disabled={isSubscribing}
                          className="w-full py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#FFD700]/20 hover:scale-105 transition-all italic tracking-tighter flex items-center justify-center gap-3 disabled:opacity-50"
                        >
-                         {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Initialize Subscription Node'}
+                         {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Trading with this Bot'}
                        </button>
                      )}
                      <button className="w-full py-4 text-white/40 font-black uppercase text-[10px] rounded-[24px] border border-white/5 transition-all hover:text-white italic tracking-widest">
-                        Watch Setup Protocol
+                        Watch Setup Guide
                      </button>
                   </div>
 
@@ -409,10 +409,10 @@ export default function StrategyLandingPage() {
                <div className="p-8 rounded-[40px] border border-white/5 space-y-4">
                   <div className="flex items-center gap-3">
                      <ShieldCheck className="w-5 h-5 text-white/20" />
-                     <h5 className="text-[11px] font-black text-white uppercase italic">Zero-Code Mirroring</h5>
+                     <h5 className="text-[11px] font-black text-white uppercase italic">Automated Copy Trading</h5>
                   </div>
                   <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed italic">
-                     Our proprietary fiber network ensures 1:1 trade mirroring between the creator&apos;s node and your broker account. No complex setup or server required.
+                     Trades are copied instantly to your account. No coding or complex setup required. Connect your broker and you're good to go.
                   </p>
                </div>
 
@@ -439,7 +439,7 @@ export default function StrategyLandingPage() {
                   disabled={isSubscribing}
                   className="px-6 py-3 bg-[#FFD700] text-black font-black uppercase text-[9px] rounded-xl italic flex items-center gap-2 transform active:scale-95 transition-transform"
                >
-                  {isSubscribing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Deploy Node'}
+                  {isSubscribing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Subscribe Now'}
                </button>
             </div>
          </motion.div>

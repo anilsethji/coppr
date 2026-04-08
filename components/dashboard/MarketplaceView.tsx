@@ -86,7 +86,7 @@ export function MarketplaceView() {
                 <LayoutGrid className="w-5 h-5 text-[#FFD700]" />
                 <h1 className="text-[26px] font-extrabold tracking-tight text-white leading-none">Strategy Marketplace</h1>
             </div>
-            <p className="text-[13px] text-white/40 font-medium">Live-tested bots and indicators. Real trades. Real results.</p>
+            <p className="text-[13px] text-white/40 font-medium">Discover trusted trading bots and indicators from verified creators.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export function MarketplaceView() {
         <div className="flex flex-wrap items-center justify-between gap-4 px-1">
           {/* Main Filter Pills */}
           <div className="flex items-center gap-1.5 p-1 bg-white/[0.03] rounded-2xl border border-white/5 w-fit">
-            {['All', 'MT5 EA', 'Pine Script', 'Indicators', 'Coppr Official'].map(f => (
+            {['All', 'MT5 EA', 'Pine Script', 'Indicators', 'Coppr Originals'].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -186,10 +186,10 @@ export function MarketplaceView() {
                             {loadingMore ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Loading Execution...
+                                    Loading...
                                 </>
                             ) : (
-                                'Load More Strategies'
+                                'Load More'
                             )}
                         </button>
                     </div>

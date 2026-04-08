@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   const { subscriptionId, brokerType, accountId, apiKey, apiSecret } = await request.json();
 
-  if (!subscriptionId || !brokerType || !accountId) {
+  if (!brokerType || !accountId) {
     return NextResponse.json({ error: 'Missing connection parameters' }, { status: 400 });
   }
 
@@ -29,28 +29,31 @@ export async function POST(request: Request) {
           account_id: accountId,
           api_key: apiKey,
           api_secret: apiSecret
-      }, { onConflict: 'user_id, broker_type, account_id' })
+      }, { onConflict: 'user_id, broker_type_account_id_idx' }) // Note: Using the partial unique index name if known, but usually standard columns work.
       .select()
       .single();
 
     if (brokerError) throw brokerError;
 
-    // 2. Link Broker Account to Subscription
-    const { error: linkError } = await supabase
-      .from('user_strategies')
-      .update({ 
-          broker_account_id: broker.id,
-          sync_active: true,
-          mt5_account_number: brokerType === 'MT5' ? accountId : null
-      })
-      .eq('id', subscriptionId)
-      .eq('user_id', user.id);
+    // 2. Link Broker Account to Subscription if provided
+    if (subscriptionId) {
+      const { error: linkError } = await supabase
+        .from('user_strategies')
+        .update({ 
+            broker_account_id: broker.id,
+            sync_active: true,
+            mt5_account_number: brokerType === 'MT5' ? accountId : null
+        })
+        .eq('id', subscriptionId)
+        .eq('user_id', user.id);
 
-    if (linkError) throw linkError;
+      if (linkError) throw linkError;
+    }
 
     return NextResponse.json({ 
         status: 'CONNECTION_SUCCESSFUL',
-        broker_id: broker.id
+        broker_id: broker.id,
+        linked: !!subscriptionId
     });
 
   } catch (err: any) {
