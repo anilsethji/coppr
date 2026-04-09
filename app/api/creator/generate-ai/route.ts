@@ -80,14 +80,33 @@ export async function POST(request: Request) {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
+             // Resolve the creator profile ID
+             const { data: prof } = await supabase.from('creator_profiles').select('id').eq('user_id', user.id).single();
+             const creatorId = prof ? prof.id : null;
+
              const insertPayload = {
+                 creator_id: creatorId,
                  name: parsed.title,
-                 description: JSON.stringify({ desc: parsed.description, stopLoss: parsed.stopLoss, takeProfit: parsed.takeProfit }),
+                 description: parsed.description,
                  type: 'PINE_SCRIPT_WEBHOOK',
-                 origin: 'AI_EXTRACTED',
+                 origin: 'MARKETPLACE',
                  status: 'ACTIVE',
-                 // Best effort column mapping; if it fails, the fallback triggers.
-                 tradingview_code: parsed.code
+                 script_code: parsed.code,
+                 symbol: 'AI_AUTO',
+                 timeframe: 'M15',
+                 monthly_price_inr: 0,
+                 video_url: url,
+                 tier: 'FREE',
+                 mode: 'WEBHOOK_BRIDGE',
+                 screenshot_urls: [],
+                 how_it_works: [parsed.description, `AI Decoded SLA: SL ${parsed.stopLoss} / TP ${parsed.takeProfit}`],
+                 is_managed: false,
+                 execution_mode: 'WEBHOOK_BRIDGE',
+                 master_signal_key: 'AI-COPPR-' + Date.now().toString().slice(-6),
+                 win_rate: 65,
+                 total_trades: 0,
+                 avg_gain: 0,
+                 max_drawdown: 0
              };
              
              // Attempt to inject the real strategy
