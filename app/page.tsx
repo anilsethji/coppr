@@ -19,7 +19,8 @@ import {
   ArrowUpRight,
   ChevronRight,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  Youtube
 } from 'lucide-react';
 import { PriceTicker } from '@/components/PriceTicker';
 import { Logo } from '@/components/ui/Logo';
@@ -188,6 +189,67 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* SEBI 2026 COMPLIANCE MARKETING SECTION */}
+      <section className="py-24 relative border-t border-white/5 overflow-hidden">
+        <div className="absolute inset-0 bg-[#00E676]/[0.02] pointer-events-none" />
+        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-[#00E676]/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
+            <div className="space-y-8">
+                <div className="inline-flex flex-col space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-3 py-1.5 rounded-full w-fit">
+                        April 1, 2026 Framework Active
+                    </span>
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight italic">
+                    100% SEBI <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] to-[#00B0FF]">COMPLIANT.</span>
+                </h2>
+                <p className="text-lg text-white/40 leading-relaxed font-medium">
+                    The wild west of algo trading is over. Coppr operates as an empanelled technology agent under the new institutional framework. We handle the 2FA, Static IPs, & Strategy IDs so you can focus on alpha.
+                </p>
+                <div className="space-y-6">
+                    {[
+                        { t: 'Exchange-Assigned Strategy IDs', d: 'Full auditability tracking back to the source.' },
+                        { t: 'API Speed Threshold Optimization', d: 'Intelligent routing prevents breaking 10 orders/sec limit.' },
+                        { t: 'Encrypted Static IP Bridging', d: 'Completely securing your backend payload generation.' }
+                    ].map((feat, i) => (
+                        <div key={i} className="flex gap-4 items-start">
+                            <div className="mt-1 w-6 h-6 rounded-full bg-[#00E676]/10 flex items-center justify-center shrink-0 border border-[#00E676]/20">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-black text-white italic uppercase tracking-widest">{feat.t}</h4>
+                                <p className="text-xs text-white/40 mt-1">{feat.d}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            
+            <div className="relative">
+                <div className="p-10 rounded-[40px] bg-white/[0.02] border border-[#00E676]/20 backdrop-blur-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                        <ShieldCheck className="w-24 h-24 text-[#00E676]" />
+                    </div>
+                    <div className="space-y-8 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <Lock className="w-6 h-6 text-[#00E676]" />
+                            <h3 className="text-xl font-black text-white uppercase italic">Liability Transfer Protocol</h3>
+                        </div>
+                        <p className="text-sm font-medium text-white/60 leading-relaxed italic">
+                            Coppr is an execution bridge, not an advisory service. Our infrastructure completely decouples technology provision from financial advice, establishing a legally pristine moat against unregulated competitors.
+                        </p>
+                        <div className="p-4 bg-black/40 rounded-2xl border border-white/5 font-mono text-[9px] text-[#00E676]/80 uppercase leading-loose">
+                            &gt; Empanelled Agent Verified<br/>
+                            &gt; Not a SEBI Registered RIA<br/>
+                            &gt; Principal-Broker Mapping Integrity: 100%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
       {/* 4. CREATOR NETWORK SECTION */}
       <section className="py-32 bg-white/[0.01] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -269,6 +331,62 @@ export default function LandingPage() {
                     </div>
                 </div>
             </div>
+        </div>
+      </section>
+
+      {/* AI STRATEGY BUILDER CTA (LEAD MAGNET) */}
+      <section className="py-20 md:py-32 relative z-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="relative p-8 md:p-16 rounded-[48px] bg-gradient-to-r from-[#00E676]/[0.05] to-transparent border border-white/10 overflow-hidden flex flex-col md:flex-row items-center gap-10 md:gap-16 shadow-2xl group">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
+            <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00E676]/10 blur-[120px] rounded-full pointer-events-none" />
+
+            <div className="flex-1 space-y-6 relative z-10 text-center md:text-left">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-[#00E676]/30 bg-[#00E676]/10 backdrop-blur-md">
+                 <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+                 <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em]">Multi-Platform AI Extraction</span>
+              </div>
+              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                Paste a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FFD700] to-[#E1306C]">Video Link</span>.
+                <br />Get a live bot.
+              </h2>
+              <p className="text-sm md:text-lg text-white/50 max-w-2xl font-medium leading-relaxed">
+                Found an interesting trading strategy on YouTube or Instagram Reels? Simply paste the video link into Coppr. Our Multi-Modal AI will instantly extract the logic, calculate the optimal Stop Loss and Take Profit levels, and compile fully automated Pine Script.
+              </p>
+              <div className="pt-4 flex justify-center md:justify-start">
+                <Link href="/register" className="inline-flex items-center gap-4 px-10 py-5 bg-[#00E676] text-black font-black uppercase tracking-[0.2em] rounded-full hover:scale-105 transition-transform shadow-[0_0_30px_rgba(0,230,118,0.3)]">
+                  Try it for free
+                  <ArrowUpRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative w-full md:w-[400px] h-[300px] bg-black/40 rounded-[32px] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-white/20 transition-all duration-700">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#00E676]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 backdrop-blur-xl group-hover:scale-110 group-hover:bg-[#FF0000]/20 group-hover:border-[#FF0000] transition-all duration-500 shadow-2xl relative z-20">
+                    <Youtube className="w-8 h-8 text-white/40 group-hover:text-[#FF0000] transition-colors" />
+                </div>
+                
+                {/* Simulated URL Bar */}
+                <div className="absolute top-6 left-6 right-6 h-10 bg-white/5 border border-white/10 rounded-xl px-4 flex items-center gap-3 backdrop-blur-xl z-20">
+                    <Globe className="w-4 h-4 text-white/30" />
+                    <div className="h-2 w-1/2 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full w-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
+                    </div>
+                </div>
+
+                {/* Simulated Floating Code */}
+                <div className="absolute bottom-4 right-4 left-10 h-24 bg-gradient-to-t from-black to-transparent flex items-end justify-end p-4 z-10 pointer-events-none">
+                     <p className="text-[8px] text-[#00E676] font-mono tracking-widest opacity-0 group-hover:opacity-50 transition-opacity duration-1000 text-right">
+                        strategy("AI Extraction", overlay=true)<br/>
+                        long = ta.crossover(ta.sma(close, 14), ta.sma(close, 28))<br/>
+                        if (long)<br/>
+                        &nbsp;&nbsp;strategy.entry("Long", strategy.long)<br/>
+                        strategy.exit("Exit", "Long", stop=close*0.98, limit=close*1.05)
+                     </p>
+                </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -411,6 +529,14 @@ export default function LandingPage() {
                 </div>
             ))}
          </div>
+         
+         {/* SEBI DISCLAIMER */}
+         <div className="max-w-7xl mx-auto px-6 pt-4 pb-8 border-t border-white/5 mt-8">
+            <p className="text-[10px] font-bold text-white/30 leading-relaxed uppercase tracking-widest text-justify">
+                <strong>Legal Disclaimer:</strong> Coppr Trade Network provides algorithmic trading infrastructure and acts strictly as an empanelled technology agent as per the SEBI Algorithmic Trading Framework (April 1, 2026). We are not a SEBI-Registered Investment Advisor (RIA) or a Portfolio Management Service (PMS). All bots, logic, and strategies available on the marketplace are provided by third-party creators for educational and automated execution purposes only. They do not constitute financial advice. Algorithmic trading involves massive inherent risk, and systems may fail due to API limits, broker downtime, or internet connectivity issues. Past performance of any algorithm does not guarantee future results. By using this platform, you accept full liability for your trades and capital.
+            </p>
+         </div>
+
          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-black uppercase tracking-widest text-white/10">
             <span>© 2026 COPPR TRADE NETWORK</span>
             <span>SECURED BY COMTEL PROTOCOLS</span>

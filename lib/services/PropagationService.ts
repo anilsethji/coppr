@@ -65,9 +65,15 @@ export class PropagationService {
 
         console.log(`[PROPAGATION] Found ${subscribers.length} candidate nodes.`);
 
-        const propagationPromises = subscribers.map(async (sub: any) => {
-            try {
-                // Determine Broker Adapter
+        const CHUNK_SIZE = 8;
+        const DELAY_MS = 1100;
+
+        for (let i = 0; i < subscribers.length; i += CHUNK_SIZE) {
+            const chunk = subscribers.slice(i, i + CHUNK_SIZE);
+            
+            const chunkPromises = chunk.map(async (sub: any) => {
+                try {
+                    // Determine Broker Adapter
                 const broker = (Array.isArray(sub.broker_accounts) ? sub.broker_accounts[0] : sub.broker_accounts) as any;
                 
                 if (!broker) {
@@ -131,7 +137,7 @@ export class PropagationService {
                     api_secret: broker.api_secret
                 });
 
-                const order = {
+                const order: any = {
                     symbol: signalPayload.symbol,
                     action: signalPayload.action,
                     quantity: calculatedQty,
@@ -140,7 +146,8 @@ export class PropagationService {
                     price: signalPayload.price,
                     sl: signalPayload.sl,
                     tp: signalPayload.tp,
-                    leverage: sub.leverage_override || 1
+                    leverage: sub.leverage_override || 1,
+                    algoId: strategyId
                 };
 
                 // Place Order
@@ -162,7 +169,14 @@ export class PropagationService {
             }
         });
 
-        await Promise.allSettled(propagationPromises);
+            await Promise.allSettled(chunkPromises);
+
+            if (i + CHUNK_SIZE < subscribers.length) {
+                console.log(`[PROPAGATION] SEBI Throttling: Pausing ${DELAY_MS}ms before next block...`);
+                await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+            }
+        }
+
         console.log(`[PROPAGATION] Fan-out complete for Strategy ${strategyId}`);
     }
 

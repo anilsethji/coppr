@@ -37,6 +37,7 @@ export default function StrategyLandingPage() {
   const [data, setData] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState(0);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   useEffect(() => {
     async function fetchLandingData() {
@@ -323,9 +324,9 @@ export default function StrategyLandingPage() {
                </section>
 
                {/* 7. DISCLAIMER */}
-               <footer className="pt-20 pb-10 border-t border-white/5 opacity-20">
-                  <p className="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-widest leading-loose max-w-4xl italic">
-                     Past performance does not guarantee future results. {strategy.name} is a high-performance algorithmic trading tool designed for educational and strategic support — this is not financial advice. All algorithmic trading involves significant risk of loss. Coppr Labs is not a SEBI registered entity. Deploy capital at your own risk.
+               <footer className="pt-20 pb-10 border-t border-white/5 opacity-20 hover:opacity-100 transition-opacity">
+                  <p className="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-widest leading-loose max-w-4xl italic text-justify">
+                     <strong>SEBI Compliance Notice:</strong> Past performance does not guarantee future results. {strategy.name} is a high-performance algorithmic component designed for educational and strategic execution support by an empanelled technology provider — this is not financial advice, and Coppr Trade Network is not a SEBI-Registered Investment Advisor (RIA). All algorithmic trading involves significant risk of loss. API limits, slippage, and latency can severely impact results. Deploy capital at your own risk.
                   </p>
                </footer>
 
@@ -345,22 +346,35 @@ export default function StrategyLandingPage() {
 
                   <div className="relative z-10 w-full space-y-4 pt-4">
                      {isUserSubscribed ? (
-                       <button 
-                         onClick={() => router.push('/dashboard/vault')}
-                         className="w-full py-5 bg-[#00E676] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#00E676]/20 transition-all italic tracking-tighter"
-                       >
-                          Manage Mirror Subscription
-                       </button>
+                         <div className="space-y-4">
+                             <button 
+                               onClick={() => router.push('/dashboard/vault')}
+                               className="w-full py-5 bg-[#00E676] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#00E676]/20 transition-all italic tracking-tighter"
+                             >
+                                Manage Mirror Subscription
+                             </button>
+                         </div>
                      ) : (
-                       <button 
-                         onClick={handleSubscribe}
-                         disabled={isSubscribing}
-                         className="w-full py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#FFD700]/20 hover:scale-105 transition-all italic tracking-tighter flex items-center justify-center gap-3 disabled:opacity-50"
-                       >
-                         {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Trading with this Bot'}
-                       </button>
+                         <div className="space-y-4">
+                             <label className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors text-left">
+                                <div className="mt-1 relative flex items-center justify-center shrink-0">
+                                    <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md checked:bg-[#FFD700] checked:border-[#FFD700] transition-all cursor-pointer" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
+                                    <CheckCircle2 className="absolute w-3.5 h-3.5 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                                </div>
+                                <span className="text-[9px] text-white/50 leading-relaxed uppercase tracking-widest font-bold">
+                                    I understand this strategy is an educational tech tool. I accept that past performance does not guarantee future results and I trade at my own market risk.
+                                </span>
+                             </label>
+                             <button 
+                               onClick={handleSubscribe}
+                               disabled={isSubscribing || !legalAccepted}
+                               className="w-full py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#FFD700]/20 hover:scale-[1.02] transition-all italic tracking-tighter flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                             >
+                               {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Trading with this Bot'}
+                             </button>
+                         </div>
                      )}
-                     <button className="w-full py-4 text-white/40 font-black uppercase text-[10px] rounded-[24px] border border-white/5 transition-all hover:text-white italic tracking-widest">
+                     <button className="w-full py-4 text-white/40 font-black uppercase text-[10px] rounded-[24px] border border-white/5 transition-all hover:text-white italic tracking-widest mt-2">
                         Watch Setup Guide
                      </button>
                   </div>
@@ -434,13 +448,28 @@ export default function StrategyLandingPage() {
                   <span className="text-xl font-black text-[#FFD700] italic leading-none">₹{strategy.monthly_price_inr}</span>
                   <span className="text-[7px] font-black text-white/40 uppercase tracking-widest mt-1 italic">Monthly Pulse</span>
                </div>
-               <button 
-                  onClick={handleSubscribe}
-                  disabled={isSubscribing}
-                  className="px-6 py-3 bg-[#FFD700] text-black font-black uppercase text-[9px] rounded-xl italic flex items-center gap-2 transform active:scale-95 transition-transform"
-               >
-                  {isSubscribing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Subscribe Now'}
-               </button>
+               {isUserSubscribed ? (
+                   <button 
+                      onClick={() => router.push('/dashboard/vault')}
+                      className="px-6 py-3 bg-[#00E676] text-black font-black uppercase text-[9px] rounded-xl italic flex items-center gap-2 transform active:scale-95 transition-transform"
+                   >
+                      Manage Node
+                   </button>
+               ) : (
+                   <div className="flex flex-col items-end gap-2">
+                       <label className="flex items-center gap-2 cursor-pointer">
+                           <input type="checkbox" className="appearance-none w-3 h-3 border border-white/20 rounded-sm checked:bg-[#FFD700] checked:border-[#FFD700]" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
+                           <span className="text-[6px] font-bold text-white/40 uppercase tracking-widest">Accept Risk</span>
+                       </label>
+                       <button 
+                          onClick={handleSubscribe}
+                          disabled={isSubscribing || !legalAccepted}
+                          className="px-6 py-3 bg-[#FFD700] text-black font-black uppercase text-[9px] rounded-xl italic flex items-center gap-2 transform active:scale-95 transition-transform disabled:opacity-50 disabled:grayscale"
+                       >
+                          {isSubscribing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Subscribe Now'}
+                       </button>
+                   </div>
+               )}
             </div>
          </motion.div>
       </AnimatePresence>

@@ -184,8 +184,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         </nav>
 
+        {/* LEGAL COMPLIANCE */}
+        <div className="px-4 mb-6">
+            <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-center space-y-1">
+                <ShieldCheck className="w-4 h-4 mx-auto text-[#00E676]/40 mb-2" />
+                <p className="text-[7px] font-black tracking-widest uppercase text-white/30 italic">SEBI EMpanelled</p>
+                <p className="text-[6px] font-bold tracking-widest uppercase text-white/20">Technology Agent • Not an RIA</p>
+            </div>
+        </div>
+
         {/* LOGOUT BUTTON (Bottom) */}
-        <div className="px-4 py-6 border-t border-white/5 mt-auto">
+        <div className="px-4 py-6 border-t border-white/5">
           <motion.button 
             whileHover={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#FF4757' }}
             whileTap={{ scale: 0.95 }}

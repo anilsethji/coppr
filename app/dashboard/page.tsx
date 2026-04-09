@@ -17,7 +17,8 @@ import {
   Cpu,
   Plus,
   BookOpen,
-  Users
+  Users,
+  Youtube
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -40,10 +41,10 @@ const item = {
 
 // NAV GRID REFINEMENT (REFLECTIVE METALLIC SQUARES)
 const navCards = [
+  { icon: BookOpen, t: 'Knowledge', sub: 'Hub', href: '/dashboard/guides', color: '#00B0FF', glow: 'rgba(0, 176, 255, 0.25)' },
   { icon: Bot, t: 'EA Bots', sub: 'Hub', href: '/dashboard/bots', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.25)' },
   { icon: BarChart3, t: 'Indicators', sub: 'Suite', href: '/dashboard/indicators', color: '#00E676', glow: 'rgba(0, 230, 118, 0.25)' },
-  { icon: BookOpen, t: 'Knowledge', sub: 'Hub', href: '/dashboard/guides', color: '#00B0FF', glow: 'rgba(0, 176, 255, 0.25)' },
-  { icon: Users, t: 'Creators', sub: 'Hub', href: '/dashboard/creator', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.35)', isHighlight: true }
+  { icon: Youtube, t: 'AI Video', sub: 'Builder', href: '/dashboard/creator/ai-builder', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.35)', isHighlight: true }
 ];
 
 export default function DashboardHome() {
@@ -285,6 +286,38 @@ export default function DashboardHome() {
              </div>
           </motion.div>
         )}
+      </div>
+
+      {/* AI STRATEGY BUILDER CTA */}
+      <div className="py-4">
+        <Link href="/dashboard/creator/ai-builder" className="group block relative w-full rounded-[48px] overflow-hidden border border-white/5 bg-gradient-to-r from-[#00E676]/[0.02] to-transparent hover:border-[#00E676]/30 hover:bg-[#00E676]/[0.05] transition-all duration-700 shadow-2xl">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] opacity-[0.05] pointer-events-none mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00E676]/10 to-transparent transform -skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
+          
+          <div className="p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-12 relative z-10">
+            <div className="w-20 h-20 md:w-28 md:h-28 shrink-0 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(0,230,118,0.1)] group-hover:scale-110 group-hover:bg-white/10 group-hover:border-[#00E676]/40 transition-all duration-700 backdrop-blur-md">
+               <Youtube className="w-10 h-10 md:w-14 md:h-14 text-white/50 group-hover:text-[#00E676] transition-colors" />
+            </div>
+            <div className="flex-1 text-center md:text-left space-y-3">
+               <div className="flex items-center justify-center md:justify-start gap-3">
+                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
+                  <span className="text-[10px] md:text-xs font-black text-[#00E676] uppercase tracking-[0.3em] font-sans">AI Strategy Builder Active</span>
+               </div>
+               <h3 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter uppercase leading-tight">
+                 Turn any <span className="text-white opacity-60">YouTube Video</span><br/>into an Executable Bot
+               </h3>
+               <p className="text-xs md:text-sm font-bold text-white/30 uppercase tracking-widest max-w-2xl font-sans mt-2">
+                 Paste a YouTube trading strategy link, and our AI will instantaneously extract the entry criteria, stop-loss, and take-profit targets to compile it into Pine Script.
+               </p>
+            </div>
+            <div className="shrink-0 flex items-center justify-center min-w-[120px]">
+               <div className="px-6 py-4 bg-[#00E676] text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl group-hover:scale-105 transition-all shadow-xl shadow-[#00E676]/20 flex items-center gap-3 italic">
+                  Generate
+                  <ArrowUpRight className="w-4 h-4" />
+               </div>
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* 4. THE SMALL-SMALL BOXES: COMMUNITY ALPHAS (ENLARGED FOR BETTER FILL) */}

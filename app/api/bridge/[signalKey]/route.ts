@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { PropagationService } from '@/lib/services/PropagationService';
 
 /**
  * COPPR UNIVERSAL SIGNAL BRIDGE
@@ -61,16 +62,6 @@ export async function POST(
 
     // 🚩 OFFICIAL / MASTER FAN-OUT: Distribute to ALL active subscribers
     if (strategy.origin === 'OFFICIAL') {
-        const { data: subscribers, error: subsError } = await supabase
-            .from('user_strategies')
-            .select('user_id, strategy_id')
-            .eq('strategy_id', strategy.id)
-            .eq('status', 'ACTIVE');
-
-        if (subsError || !subscribers) {
-            return NextResponse.json({ error: 'Fan-Out Fetch Failure' }, { status: 500 });
-        }
-
         // Log Master Signal once
         await supabase.from('signal_logs').insert({
             strategy_id: strategy.id,
@@ -80,12 +71,10 @@ export async function POST(
             timestamp: new Date().toISOString()
         });
 
-        // Loop through all slaves and relay (Async)
-        for (const sub of subscribers) {
-            relaySignal(sub.user_id, sub.strategy_id, action, price, symbol, supabase);
-        }
+        // Trigger Async SEBI Throttled Fan-Out
+        PropagationService.fanOut(strategy.id, rawPayload, signalKey, supabase).catch(console.error);
 
-        return NextResponse.json({ status: 'MASTER_FAN_OUT_INITIATED', count: subscribers.length });
+        return NextResponse.json({ status: 'MASTER_FAN_OUT_INITIATED' });
     }
 
     return NextResponse.json({ status: 'NO_ACTION_REQUIRED' });

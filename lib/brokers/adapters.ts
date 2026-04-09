@@ -8,6 +8,7 @@ export interface BrokerOrder {
     sl?: number;
     tp?: number;
     leverage?: number;
+    algoId?: string;
 }
 
 export interface BrokerResponse {
@@ -24,7 +25,8 @@ export abstract class BrokerAdapter {
 export class ZerodhaAdapter extends BrokerAdapter {
     async placeOrder(order: BrokerOrder, credentials: any): Promise<BrokerResponse> {
         const typeStr = order.orderType === 'MARKET' ? 'MARKET' : `LIMIT @ ${order.limitPrice}`;
-        console.log(`[ZERODHA] [${credentials.account_id}] Execution: ${order.action} ${typeStr} ${order.symbol} x ${order.quantity}`);
+        const algoTag = order.algoId ? `[AlgoID: ${order.algoId}]` : '';
+        console.log(`[ZERODHA] [${credentials.account_id}] ${algoTag} Execution: ${order.action} ${typeStr} ${order.symbol} x ${order.quantity}`);
         return { success: true, orderId: `ZERR-${Math.random().toString(36).substr(2, 9).toUpperCase()}` };
     }
 
@@ -36,7 +38,8 @@ export class ZerodhaAdapter extends BrokerAdapter {
 export class AngelOneAdapter extends BrokerAdapter {
     async placeOrder(order: BrokerOrder, credentials: any): Promise<BrokerResponse> {
         const typeStr = order.orderType === 'MARKET' ? 'MARKET' : `LIMIT @ ${order.limitPrice}`;
-        console.log(`[ANGELONE] [${credentials.account_id}] Execution: ${order.action} ${typeStr} ${order.symbol} x ${order.quantity}`);
+        const algoTag = order.algoId ? `[AlgoID: ${order.algoId}]` : '';
+        console.log(`[ANGELONE] [${credentials.account_id}] ${algoTag} Execution: ${order.action} ${typeStr} ${order.symbol} x ${order.quantity}`);
         return { success: true, orderId: `ANGL-${Math.random().toString(36).substr(2, 9).toUpperCase()}` };
     }
 
