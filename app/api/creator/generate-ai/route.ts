@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { YoutubeTranscript } from 'youtube-transcript';
+import { YoutubeTranscript } from 'youtube-transcript/dist/youtube-transcript.esm.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(request: Request) {
@@ -25,8 +25,13 @@ export async function POST(request: Request) {
 
         try {
             console.log(`[AI-BUILDER] Extracting transcript for ${url}`);
-            const transcriptArray = await YoutubeTranscript.fetchTranscript(url);
-            transcriptRaw = transcriptArray.map(t => t.text).join(' ');
+            // Normalize shorts to watch URLs for library compatibility
+            const normalizedUrl = url.includes('/shorts/') 
+                ? `https://www.youtube.com/watch?v=${url.split('/shorts/')[1].split(/[?&]/)[0]}` 
+                : url;
+                
+            const transcriptArray = await YoutubeTranscript.fetchTranscript(normalizedUrl);
+            transcriptRaw = transcriptArray.map((t: any) => t.text).join(' ');
         } catch (err) {
             console.error("[AI-BUILDER] Transcript Error:", err);
             // If captions are disabled on the video, fallback to mock immediately
@@ -41,9 +46,9 @@ export async function POST(request: Request) {
             return fallbackMock(url);
         }
 
-        console.log(`[AI-BUILDER] Transcript acquired (${transcriptRaw.length} chars). Pushing to Gemini 1.5 Pro.`);
+        console.log(`[AI-BUILDER] Transcript acquired (${transcriptRaw.length} chars). Pushing to Gemini 2.5 Flash.`);
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
         You are an elite quantitative trading architect specialized in Pine Script.

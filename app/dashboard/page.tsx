@@ -41,10 +41,10 @@ const item = {
 
 // NAV GRID REFINEMENT (REFLECTIVE METALLIC SQUARES)
 const navCards = [
-  { icon: BookOpen, t: 'Knowledge', sub: 'Hub', href: '/dashboard/guides', color: '#00B0FF', glow: 'rgba(0, 176, 255, 0.25)' },
   { icon: Bot, t: 'EA Bots', sub: 'Hub', href: '/dashboard/bots', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.25)' },
   { icon: BarChart3, t: 'Indicators', sub: 'Suite', href: '/dashboard/indicators', color: '#00E676', glow: 'rgba(0, 230, 118, 0.25)' },
-  { icon: Youtube, t: 'AI Video', sub: 'Builder', href: '/dashboard/creator/ai-builder', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.35)', isHighlight: true }
+  { icon: Youtube, t: 'AI Video', sub: 'Builder', href: '/dashboard/creator/ai-builder', color: '#FF0000', glow: 'rgba(255, 0, 0, 0.25)' },
+  { icon: Users, t: 'Creators', sub: 'Hub', href: '/dashboard/creator', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.35)', isHighlight: true }
 ];
 
 export default function DashboardHome() {
