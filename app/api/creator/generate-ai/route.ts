@@ -66,8 +66,14 @@ export async function POST(request: Request) {
         "${transcriptRaw.substring(0, 35000)}"
         `;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        let responseText = "";
+        try {
+            const result = await model.generateContent(prompt);
+            responseText = result.response.text();
+        } catch (genErr: any) {
+            console.error("[AI-BUILDER] Gemini Generation Failed:", genErr.message || genErr);
+            return fallbackMock(url);
+        }
         
         let parsed;
         try {
@@ -140,7 +146,7 @@ export async function POST(request: Request) {
         return fallbackMock(url, parsed);
 
     } catch (e: any) {
-        console.error('AI Generation API Critical Error:', e);
+        console.error('AI Generation API Critical Error:', e.message || e);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
