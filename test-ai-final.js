@@ -17,9 +17,9 @@ async function test() {
         const transcriptRaw = transcriptArray.map(t => t.text).join(' ');
         console.log(`[1] Transcript length: ${transcriptRaw.length} chars`);
 
-        console.log(`[2] Running Gemini 2.5 Flash...`);
+        console.log(`[2] Running Gemini 2.0 Flash-Lite (v1)...`);
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" }, { apiVersion: 'v1' });
 
         const prompt = `
         Analyze the following transcript and return ONLY a JSON object:

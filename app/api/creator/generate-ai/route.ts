@@ -46,9 +46,9 @@ export async function POST(request: Request) {
             return fallbackMock(url);
         }
 
-        console.log(`[AI-BUILDER] Transcript acquired (${transcriptRaw.length} chars). Pushing to Gemini 2.5 Flash.`);
+        console.log(`[AI-BUILDER] Transcript acquired (${transcriptRaw.length} chars). Pushing to Gemini 2.5 Flash-Lite (v1).`);
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" }, { apiVersion: 'v1' });
 
         const prompt = `
         You are an elite quantitative trading architect specialized in Pine Script.
