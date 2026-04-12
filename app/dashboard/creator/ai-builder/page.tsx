@@ -56,8 +56,8 @@ export default function AIBuilderPage() {
             if (data.strategyId) {
                 setStatus('SUCCESS');
                 setTimeout(() => {
-                    router.push(`/dashboard/marketplace/${data.strategyId}`);
-                }, 2000);
+                    router.push(`/dashboard/creator/ai-builder/forge/${data.strategyId}`);
+                }, 1500);
             }
         } catch (error) {
             console.error('Generation failed', error);

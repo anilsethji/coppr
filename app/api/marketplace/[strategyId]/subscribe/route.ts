@@ -17,13 +17,17 @@ export async function POST(
     // 1. Check if strategy exists and is public/active
     const { data: strategy, error: stratError } = await supabase
       .from('strategies')
-      .select('id, name, type')
+      .select('id, name, type, creator_id, origin, status')
       .eq('id', strategyId)
-      .eq('is_public', true)
+      .or(`origin.eq.MARKETPLACE,creator_id.eq.${user.id},origin.eq.OFFICIAL`)
       .single();
 
     if (stratError || !strategy) {
-      return NextResponse.json({ error: 'Strategy not found or inactive' }, { status: 404 });
+      return NextResponse.json({ error: 'Alpha Protocol not found or deactivated.' }, { status: 404 });
+    }
+
+    if (strategy.status !== 'ACTIVE' && strategy.creator_id !== user.id) {
+       return NextResponse.json({ error: 'This strategy is currently in PENDING review or deactivated.' }, { status: 403 });
     }
 
     // 2. Check for existing subscription
@@ -45,8 +49,7 @@ export async function POST(
         user_id: user.id,
         strategy_id: strategyId,
         status: 'ACTIVE',
-        sync_active: false, // Wait for broker linking
-        is_public: true
+        sync_active: false // Wait for broker linking
       })
       .select()
       .single();

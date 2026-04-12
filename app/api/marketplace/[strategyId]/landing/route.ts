@@ -85,7 +85,8 @@ export async function GET(
         rating: avgRating
       },
       isUserSubscribed: subscription?.status === 'ACTIVE',
-      subscriptionData: subscription || null
+      subscriptionData: subscription || null,
+      isOwner: strategy.creator_id === user.id
     });
 
   } catch (error: any) {

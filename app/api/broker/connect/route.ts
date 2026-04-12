@@ -20,20 +20,47 @@ export async function POST(request: Request) {
   }
 
   try {
-    // 1. Create or Update Broker Account
-    const { data: broker, error: brokerError } = await supabase
+    // 1. MANUAL UPSERT: Check if account already exists
+    const { data: existingAccount } = await supabase
       .from('broker_accounts')
-      .upsert({
-          user_id: user.id,
-          broker_type: brokerType,
-          account_id: accountId,
-          api_key: apiKey,
-          api_secret: apiSecret
-      }, { onConflict: 'user_id, broker_type_account_id_idx' }) // Note: Using the partial unique index name if known, but usually standard columns work.
-      .select()
+      .select('id')
+      .eq('account_id', accountId)
       .single();
 
-    if (brokerError) throw brokerError;
+    let brokerId;
+    if (existingAccount) {
+        // Update existing
+        const { data: updated, error: updateError } = await supabase
+            .from('broker_accounts')
+            .update({
+                api_key: apiKey,
+                api_secret: apiSecret
+            })
+            .eq('id', existingAccount.id)
+            .select()
+            .single();
+        
+        if (updateError) throw updateError;
+        brokerId = updated.id;
+    } else {
+        // Insert new
+        const { data: inserted, error: insertError } = await supabase
+            .from('broker_accounts')
+            .insert({
+                user_id: user.id,
+                broker_type: brokerType,
+                account_id: accountId,
+                api_key: apiKey,
+                api_secret: apiSecret
+            })
+            .select()
+            .single();
+        
+        if (insertError) throw insertError;
+        brokerId = inserted.id;
+    }
+
+    const broker = { id: brokerId }; // Mock for subsequent logic
 
     // 2. Link Broker Account to Subscription if provided
     if (subscriptionId) {
@@ -47,7 +74,13 @@ export async function POST(request: Request) {
         .eq('id', subscriptionId)
         .eq('user_id', user.id);
 
-      if (linkError) throw linkError;
+      if (linkError) {
+          console.error('Handshake Link Error:', linkError.message);
+          return NextResponse.json({ 
+              error: `Handshake Failed: ${linkError.message}`,
+              details: linkError
+          }, { status: 400 });
+      }
     }
 
     return NextResponse.json({ 
@@ -57,7 +90,7 @@ export async function POST(request: Request) {
     });
 
   } catch (err: any) {
-    console.error('Broker Connection Error:', err.message);
-    return NextResponse.json({ error: 'Broker handshake failed' }, { status: 500 });
+    console.error('Broker Connection Exception:', err.message);
+    return NextResponse.json({ error: `System Exception: ${err.message}` }, { status: 500 });
   }
 }

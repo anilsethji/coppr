@@ -52,6 +52,11 @@ export default function StrategyLandingPage() {
   }, [strategyId]);
 
   const handleSubscribe = async () => {
+    if (!legalAccepted) {
+        alert("Action Blocked: You must accept the Risk Protocol before activating this strategy node.");
+        return;
+    }
+
     // 1. FREE TIER: Direct Activation
     if (strategy.tier === 'FREE') {
         setIsSubscribing(true);
@@ -63,10 +68,11 @@ export default function StrategyLandingPage() {
             if (json.success) {
                 router.push('/dashboard/vault');
             } else {
-                alert(json.error || 'Direct activation protocol failed.');
+                alert(json.error || 'Direct activation protocol failed. Check system logs.');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Subscription error:', err);
+            alert("Network Error: Activation handshake failed. Please try again.");
         } finally {
             setIsSubscribing(false);
         }
@@ -118,7 +124,7 @@ export default function StrategyLandingPage() {
                   onClick={() => document.getElementById('subscribe-cta')?.scrollIntoView({ behavior: 'smooth' })}
                   className="px-4 md:px-6 py-2 md:py-3 bg-[#FFD700] text-black font-black uppercase text-[9px] md:text-[10px] rounded-lg md:rounded-xl hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10 italic"
                 >
-                   {isUserSubscribed ? 'Configured ✓' : 'Subscribe Now'}
+                   {data.isOwner ? 'Manage Bot' : isUserSubscribed ? 'Configured ✓' : 'Subscribe Now'}
                 </button>
             </div>
          </div>
@@ -345,13 +351,13 @@ export default function StrategyLandingPage() {
                   </div>
 
                   <div className="relative z-10 w-full space-y-4 pt-4">
-                     {isUserSubscribed ? (
+                     {data.isOwner || isUserSubscribed ? (
                          <div className="space-y-4">
                              <button 
                                onClick={() => router.push('/dashboard/vault')}
                                className="w-full py-5 bg-[#00E676] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#00E676]/20 transition-all italic tracking-tighter"
                              >
-                                Manage Mirror Subscription
+                                {data.isOwner ? 'Manage My Creation' : 'Manage Mirror Subscription'}
                              </button>
                          </div>
                      ) : (

@@ -59,3 +59,21 @@ export class MT5Adapter extends BrokerAdapter {
         return 10000; // Mock balance
     }
 }
+
+export class TradingViewDemoAdapter extends BrokerAdapter {
+    async placeOrder(order: BrokerOrder, credentials: any): Promise<BrokerResponse> {
+        const typeStr = order.orderType === 'MARKET' ? 'MARKET' : `LIMIT @ ${order.limitPrice}`;
+        const algoTag = order.algoId ? `[AlgoID: ${order.algoId}]` : '';
+        console.log(`[TRADINGVIEW_DEMO] [${credentials.account_id}] ${algoTag} SIMULATED_EXECUTION: ${order.action} ${typeStr} ${order.symbol} x ${order.quantity}`);
+        
+        // Always simulate success for demo accounts
+        return { 
+            success: true, 
+            orderId: `TV-DEMO-${Math.random().toString(36).substr(2, 9).toUpperCase()}` 
+        };
+    }
+
+    async getAccountBalance(credentials: any): Promise<number> {
+        return 100000; // Large mock balance for demo
+    }
+}
