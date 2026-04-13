@@ -65,6 +65,9 @@ export default function TerminalLog({ logs }: TerminalLogProps) {
                             </p>
                             <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-white/5 opacity-40">
                                 <span>REF: {log.id?.slice(0,8) || 'COPP-' + i}</span>
+                                {log.details?.latency_ms && (
+                                    <span className="text-[#00E676]/60">Latency: {log.details.latency_ms}ms</span>
+                                )}
                                 <span>STATUS: 200_OK</span>
                                 <span>GRID: VERIFIED</span>
                             </div>

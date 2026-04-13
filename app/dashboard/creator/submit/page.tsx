@@ -1,4 +1,5 @@
 'use client';
+// Protocol Sync: Forced re-compilation to clear stale Next.js route cache.
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

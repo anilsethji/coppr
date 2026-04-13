@@ -24,7 +24,9 @@ import {
   Loader2, 
   TrendingUp, 
   Target,
-  PlayCircle
+  PlayCircle,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -50,6 +52,23 @@ export default function StrategyLandingPage() {
     }
     fetchLandingData();
   }, [strategyId]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-4">
+      <div className="w-12 h-12 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Loading Strategy Details...</p>
+    </div>
+  );
+
+  if (!data) return (
+    <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-6 p-10">
+      <AlertTriangle className="w-10 h-10 text-red-500" />
+      <h2 className="text-2xl font-black text-white uppercase italic">Strategy Not Found</h2>
+      <Link href="/dashboard/marketplace" className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] rounded-2xl italic">Back to Marketplace</Link>
+    </div>
+  );
+  
+  const { strategy, creator, stats, reviews, reviewStats, isUserSubscribed } = data;
 
   const handleSubscribe = async () => {
     if (!legalAccepted) {
@@ -82,22 +101,35 @@ export default function StrategyLandingPage() {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-4">
-      <div className="w-12 h-12 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Loading Strategy Details...</p>
-    </div>
-  );
-
-  if (!data) return (
-    <div className="min-h-screen bg-[#060A12] flex flex-col items-center justify-center gap-6 p-10">
-      <AlertTriangle className="w-10 h-10 text-red-500" />
-      <h2 className="text-2xl font-black text-white uppercase italic">Strategy Not Found</h2>
-      <Link href="/dashboard/marketplace" className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] rounded-2xl italic">Back to Marketplace</Link>
-    </div>
-  );
-
-  const { strategy, creator, stats, reviews, reviewStats, isUserSubscribed } = data;
+  const handleDelete = async () => {
+    console.log("MARKETPLACE_PURGE_PROTOCOL_INITIATED:", strategyId);
+    if (!confirm("PERMANENT DELETION PROTOCOL: Are you absolutely sure? This will purge the strategy and all subscriber records forever.")) {
+        console.log("MARKETPLACE_PURGE_CANCELLED");
+        return;
+    }
+    
+    setIsSubscribing(true); // Reusing loading state
+    console.log("MARKETPLACE_PURGE_HANDSHAKE_STARTING...");
+    try {
+        const resp = await fetch(`/api/creator/strategy/${strategyId}`, { method: 'DELETE' });
+        console.log("MARKETPLACE_PURGE_RESPONSE_STATUS:", resp.status);
+        const json = await resp.json();
+        console.log("MARKETPLACE_PURGE_RESPONSE_BODY:", json);
+        if (json.success) {
+            console.log("MARKETPLACE_PURGE_SUCCESSFUL_REDIRECTING...");
+            router.push('/dashboard/creator');
+        } else {
+            alert(json.error || "Deletion failed.");
+            console.error("MARKETPLACE_PURGE_REJECTION:", json.error);
+        }
+    } catch (err) {
+        console.error("MARKETPLACE_NETWORK_FAILURE:", err);
+        alert("Network error during deletion.");
+    } finally {
+        setIsSubscribing(false);
+        console.log("MARKETPLACE_PROTOCOL_TERMINATED");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0A1A3A] text-white selection:bg-[#FFD700] selection:text-black font-sans pb-32">
@@ -352,93 +384,114 @@ export default function StrategyLandingPage() {
 
                   <div className="relative z-10 w-full space-y-4 pt-4">
                      {data.isOwner || isUserSubscribed ? (
-                         <div className="space-y-4">
-                             <button 
-                               onClick={() => router.push('/dashboard/vault')}
-                               className="w-full py-5 bg-[#00E676] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#00E676]/20 transition-all italic tracking-tighter"
-                             >
-                                {data.isOwner ? 'Manage My Creation' : 'Manage Mirror Subscription'}
-                             </button>
+                          <div className="space-y-4">
+                              <button 
+                                onClick={() => router.push('/dashboard/vault')}
+                                className="w-full py-5 bg-[#00E676] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#00E676]/20 transition-all italic tracking-tighter"
+                              >
+                                 {data.isOwner ? 'Manage My Creation' : 'Manage Mirror Subscription'}
+                              </button>
+                          </div>
+                      ) : (
+                          <div className="space-y-4">
+                              <label className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors text-left">
+                                 <div className="mt-1 relative flex items-center justify-center shrink-0">
+                                     <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md checked:bg-[#FFD700] checked:border-[#FFD700] transition-all cursor-pointer" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
+                                     <CheckCircle2 className="absolute w-3.5 h-3.5 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                                 </div>
+                                 <span className="text-[9px] text-white/50 leading-relaxed uppercase tracking-widest font-bold">
+                                     I understand this strategy is an educational tech tool. I accept that past performance does not guarantee future results and I trade at my own market risk.
+                                 </span>
+                              </label>
+                              <button 
+                                onClick={handleSubscribe}
+                                disabled={isSubscribing || !legalAccepted}
+                                className="w-full py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#FFD700]/20 hover:scale-[1.02] transition-all italic tracking-tighter flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                              >
+                                {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Trading with this Bot'}
+                              </button>
+                          </div>
+                      )}
+
+                      {data.isOwner && (
+                         <div className="pt-6 border-t border-white/5 w-full space-y-3">
+                            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] block text-center">Creator Sovereignty</span>
+                            <div className="grid grid-cols-2 gap-3">
+                               <button 
+                                 onClick={() => router.push(`/dashboard/creator/edit/${strategyId}`)}
+                                 className="py-4 bg-white/5 border border-white/10 text-white font-black uppercase text-[9px] rounded-xl hover:bg-[#FFD700]/10 hover:text-[#FFD700] transition-all flex items-center justify-center gap-2 italic"
+                               >
+                                  <Pencil className="w-3.5 h-3.5" /> Edit Page
+                               </button>
+                               <button 
+                                 onClick={handleDelete}
+                                 className="py-4 bg-white/5 border border-white/10 text-white/40 font-black uppercase text-[9px] rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center gap-2 italic"
+                               >
+                                  <Trash2 className="w-3.5 h-3.5" /> Delete Bot
+                               </button>
+                            </div>
                          </div>
-                     ) : (
-                         <div className="space-y-4">
-                             <label className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors text-left">
-                                <div className="mt-1 relative flex items-center justify-center shrink-0">
-                                    <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-md checked:bg-[#FFD700] checked:border-[#FFD700] transition-all cursor-pointer" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
-                                    <CheckCircle2 className="absolute w-3.5 h-3.5 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
-                                </div>
-                                <span className="text-[9px] text-white/50 leading-relaxed uppercase tracking-widest font-bold">
-                                    I understand this strategy is an educational tech tool. I accept that past performance does not guarantee future results and I trade at my own market risk.
-                                </span>
-                             </label>
-                             <button 
-                               onClick={handleSubscribe}
-                               disabled={isSubscribing || !legalAccepted}
-                               className="w-full py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] rounded-[24px] shadow-2xl shadow-[#FFD700]/20 hover:scale-[1.02] transition-all italic tracking-tighter flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
-                             >
-                               {isSubscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Trading with this Bot'}
-                             </button>
+                      )}
+
+                      <button className="w-full py-4 text-white/40 font-black uppercase text-[10px] rounded-[24px] border border-white/5 transition-all hover:text-white italic tracking-widest mt-2">
+                         Watch Setup Guide
+                      </button>
+                   </div>
+
+                   <div className="relative z-10 w-full pt-4 space-y-4">
+                      {[
+                         { icon: Download, t: strategy.type === 'MT5_EA' ? '.mq5 Executable Download' : 'Indicator Logic Template' },
+                         { icon: Zap, t: 'Automated Webhook Mirroring' },
+                         { icon: Newspaper, t: 'Strategic Handshake Guide' },
+                         { icon: ShieldCheck, t: 'Creator Mirror Support' }
+                      ].map((b, i) => (
+                         <div key={i} className="flex items-center gap-3 px-4">
+                            <div className="p-1.5 rounded-lg bg-[#00E676]/10 text-[#00E676]">
+                               <CheckCircle2 className="w-3 h-3" />
+                            </div>
+                            <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest text-left">{b.t}</span>
                          </div>
-                     )}
-                     <button className="w-full py-4 text-white/40 font-black uppercase text-[10px] rounded-[24px] border border-white/5 transition-all hover:text-white italic tracking-widest mt-2">
-                        Watch Setup Guide
-                     </button>
-                  </div>
+                      ))}
+                   </div>
 
-                  <div className="relative z-10 w-full pt-4 space-y-4">
-                     {[
-                        { icon: Download, t: strategy.type === 'MT5_EA' ? '.mq5 Executable Download' : 'Indicator Logic Template' },
-                        { icon: Zap, t: 'Automated Webhook Mirroring' },
-                        { icon: Newspaper, t: 'Strategic Handshake Guide' },
-                        { icon: ShieldCheck, t: 'Creator Mirror Support' }
-                     ].map((b, i) => (
-                        <div key={i} className="flex items-center gap-3 px-4">
-                           <div className="p-1.5 rounded-lg bg-[#00E676]/10 text-[#00E676]">
-                              <CheckCircle2 className="w-3 h-3" />
-                           </div>
-                           <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest text-left">{b.t}</span>
-                        </div>
-                     ))}
-                  </div>
+                   <div className="relative z-10 pt-4">
+                      <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-[0.2em] italic">7-Day Refund Protocol Active</span>
+                   </div>
 
-                  <div className="relative z-10 pt-4">
-                     <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-[0.2em] italic">7-Day Refund Protocol Active</span>
-                  </div>
+                   <div className="w-full h-[1px] bg-white/5 relative z-10" />
 
-                  <div className="w-full h-[1px] bg-white/5 relative z-10" />
+                   {/* CREATOR MINI CARD */}
+                   <Link href={`/dashboard/creator/${creator?.handle || '#'}`} className="relative z-10 w-full group/creator p-4 hover:bg-white/[0.02] rounded-3xl transition-all border border-transparent hover:border-white/5">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center font-black text-[14px] italic text-[#FFD700]">
+                               {creator?.avatar_data || creator?.display_name?.[0] || '🤖'}
+                            </div>
+                            <div className="flex flex-col text-left">
+                               <span className="text-[12px] font-black text-white uppercase italic leading-none">{creator?.display_name || 'Protocol Master'}</span>
+                               <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-1">@{creator?.handle || 'creator'}</span>
+                            </div>
+                         </div>
+                         <ArrowRight className="w-5 h-5 text-white/5 group-hover/creator:text-white/40 transition-colors" />
+                      </div>
+                   </Link>
 
-                  {/* CREATOR MINI CARD */}
-                  <Link href={`/dashboard/creator/${creator?.handle || '#'}`} className="relative z-10 w-full group/creator p-4 hover:bg-white/[0.02] rounded-3xl transition-all border border-transparent hover:border-white/5">
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center font-black text-[14px] italic text-[#FFD700]">
-                              {creator?.avatar_data || creator?.display_name?.[0] || '🤖'}
-                           </div>
-                           <div className="flex flex-col text-left">
-                              <span className="text-[12px] font-black text-white uppercase italic leading-none">{creator?.display_name || 'Protocol Master'}</span>
-                              <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-1">@{creator?.handle || 'creator'}</span>
-                           </div>
-                        </div>
-                        <ArrowRight className="w-5 h-5 text-white/5 group-hover/creator:text-white/40 transition-colors" />
-                     </div>
-                  </Link>
+                </div>
 
-               </div>
+                {/* QUICK HELP / TRUST */}
+                <div className="p-8 rounded-[40px] border border-white/5 space-y-4">
+                   <div className="flex items-center gap-3">
+                      <ShieldCheck className="w-5 h-5 text-white/20" />
+                      <h5 className="text-[11px] font-black text-white uppercase italic">Automated Copy Trading</h5>
+                   </div>
+                   <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed italic">
+                      Trades are copied instantly to your account. No coding or complex setup required. Connect your broker and you're good to go.
+                   </p>
+                </div>
 
-               {/* QUICK HELP / TRUST */}
-               <div className="p-8 rounded-[40px] border border-white/5 space-y-4">
-                  <div className="flex items-center gap-3">
-                     <ShieldCheck className="w-5 h-5 text-white/20" />
-                     <h5 className="text-[11px] font-black text-white uppercase italic">Automated Copy Trading</h5>
-                  </div>
-                  <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed italic">
-                     Trades are copied instantly to your account. No coding or complex setup required. Connect your broker and you're good to go.
-                  </p>
-               </div>
+             </aside>
 
-            </aside>
-
-         </div>
+          </div>
 
       </main>
 

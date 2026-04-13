@@ -21,7 +21,10 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Eye
+  Eye,
+  Pencil,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -52,6 +55,8 @@ export default function CreatorTerminal() {
     fetchData();
   }, []);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const fetchData = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -75,6 +80,36 @@ export default function CreatorTerminal() {
     }
     
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    console.log("DELETION_PROTOCOL_INITIATED:", id);
+    if (!confirm("PERMANENT DELETION PROTOCOL: Are you absolutely sure? This will purge the strategy and all subscriber records forever.")) {
+        console.log("DELETION_NEGOTIATION_CANCELLED");
+        return;
+    }
+    
+    setDeletingId(id);
+    console.log("PURGE_HANDSHAKE_STARTING...");
+    try {
+        const resp = await fetch(`/api/creator/strategy/${id}`, { method: 'DELETE' });
+        console.log("PURGE_RESPONSE_STATUS:", resp.status);
+        const json = await resp.json();
+        console.log("PURGE_RESPONSE_BODY:", json);
+        if (json.success) {
+            setStrategies(prev => prev.filter(s => s.id !== id));
+            console.log("LOCAL_STATE_SYNCHRONIZED");
+        } else {
+            alert(json.error || "Deletion failed.");
+            console.error("PURGE_PROTOCOL_REJECTION:", json.error);
+        }
+    } catch (err) {
+        console.error("NETWORK_FAILURE_DURING_PURGE:", err);
+        alert("Network error during deletion.");
+    } finally {
+        setDeletingId(null);
+        console.log("PROTOCOL_TERMINATED");
+    }
   };
 
   if (loading) return (
@@ -169,11 +204,30 @@ export default function CreatorTerminal() {
                                 <span className="text-[8px] font-black text-white/10 uppercase tracking-widest">Protocol Status</span>
                             </div>
 
-                            {strat.status === 'ACTIVE' && (
-                                <Link href={`/dashboard/marketplace/${strat.id}`} className="p-4 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all">
-                                    <Eye className="w-5 h-5" />
+                            <div className="flex items-center gap-3">
+                                <Link 
+                                    href={`/dashboard/creator/edit/${strat.id}`} 
+                                    className="p-4 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all"
+                                    title="Edit Strategy"
+                                >
+                                    <Pencil className="w-5 h-5" />
                                 </Link>
-                            )}
+
+                                {strat.status === 'ACTIVE' && (
+                                    <Link href={`/dashboard/marketplace/${strat.id}`} className="p-4 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all" title="View Landing Page">
+                                        <Eye className="w-5 h-5" />
+                                    </Link>
+                                )}
+
+                                <button 
+                                    onClick={() => handleDelete(strat.id)}
+                                    disabled={deletingId === strat.id}
+                                    className="p-4 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-50"
+                                    title="Permanently Delete"
+                                >
+                                    {deletingId === strat.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Authentication Required' }, { status: 401 });
   }
 
-  const { subscriptionId, brokerType, accountId, apiKey, apiSecret } = await request.json();
+  const { subscriptionId, brokerType, accountId, apiKey, apiSecret, meta, activeAssets } = await request.json();
 
   if (!brokerType || !accountId) {
     return NextResponse.json({ error: 'Missing connection parameters' }, { status: 400 });
@@ -34,7 +34,8 @@ export async function POST(request: Request) {
             .from('broker_accounts')
             .update({
                 api_key: apiKey,
-                api_secret: apiSecret
+                api_secret: apiSecret,
+                meta: meta || {}
             })
             .eq('id', existingAccount.id)
             .select()
@@ -51,7 +52,8 @@ export async function POST(request: Request) {
                 broker_type: brokerType,
                 account_id: accountId,
                 api_key: apiKey,
-                api_secret: apiSecret
+                api_secret: apiSecret,
+                meta: meta || {}
             })
             .select()
             .single();
@@ -69,6 +71,7 @@ export async function POST(request: Request) {
         .update({ 
             broker_account_id: broker.id,
             sync_active: true,
+            active_assets: activeAssets || [],
             mt5_account_number: brokerType === 'MT5' ? accountId : null
         })
         .eq('id', subscriptionId)

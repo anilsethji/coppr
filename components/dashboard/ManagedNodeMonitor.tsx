@@ -87,7 +87,7 @@ export default function ManagedNodeMonitor({ strategyId, isCreator = false }: Ma
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 bg-white/[0.02] border border-white/5 rounded-[32px] backdrop-blur-xl overflow-hidden relative"
+      className="p-4 md:p-6 bg-white/[0.02] border border-white/5 rounded-2xl md:rounded-[32px] backdrop-blur-xl overflow-hidden relative"
     >
       {/* Background Pulse for RUNNING status */}
       <AnimatePresence>
@@ -102,28 +102,28 @@ export default function ManagedNodeMonitor({ strategyId, isCreator = false }: Ma
       </AnimatePresence>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500 ${
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center border transition-all duration-500 ${
             status === 'RUNNING' ? 'bg-[#00E676]/10 border-[#00E676]/30 shadow-[0_0_20px_rgba(0,230,118,0.2)]' :
             status === 'PROVISIONING' ? 'bg-orange-500/10 border-orange-500/30 animate-pulse' :
             'bg-white/5 border-white/10'
           }`}>
             {status === 'PROVISIONING' ? (
-              <RefreshCw className="w-6 h-6 text-orange-500 animate-spin" />
+              <RefreshCw className="w-5 h-5 md:w-6 md:h-6 text-orange-500 animate-spin" />
             ) : (
-              <Bot className={`w-6 h-6 ${status === 'RUNNING' ? 'text-[#00E676]' : 'text-white/20'}`} />
+              <Bot className={`w-5 h-5 md:w-6 md:h-6 ${status === 'RUNNING' ? 'text-[#00E676]' : 'text-white/20'}`} />
             )}
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="text-[11px] font-black text-white uppercase tracking-widest leading-none">Virtual Node Status</h4>
-              <div className={`w-2 h-2 rounded-full ${
+            <div className="flex items-center gap-2 mb-0.5 md:mb-1">
+              <h4 className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-widest leading-none">Virtual Node Status</h4>
+              <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${
                 status === 'RUNNING' ? 'bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]' :
                 status === 'PROVISIONING' ? 'bg-orange-500 animate-bounce' :
                 'bg-white/10'
               }`} />
             </div>
-            <p className={`text-[14px] font-black uppercase italic tracking-tight ${
+            <p className={`text-[12px] md:text-[14px] font-black uppercase italic tracking-tight ${
               status === 'RUNNING' ? 'text-[#00E676]' :
               status === 'PROVISIONING' ? 'text-orange-500' :
               'text-white/40'
@@ -158,15 +158,15 @@ export default function ManagedNodeMonitor({ strategyId, isCreator = false }: Ma
         )}
 
         {!isCreator && status === 'RUNNING' && (
-          <div className="flex items-center gap-6 px-6 py-3 bg-white/[0.03] border border-white/5 rounded-2xl">
+          <div className="flex items-center gap-4 md:gap-6 px-4 md:px-6 py-2.5 md:py-3 bg-white/[0.03] border border-white/5 rounded-xl md:rounded-2xl">
              <div className="flex flex-col">
-                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Network</span>
-                <span className="text-[10px] font-black text-[#00E676] uppercase italic">Coppr Fiber Live</span>
+                <span className="text-[7px] md:text-[8px] font-black text-white/20 uppercase tracking-widest">Network</span>
+                <span className="text-[9px] md:text-[10px] font-black text-[#00E676] uppercase italic">Coppr Fiber Live</span>
              </div>
-             <div className="w-[1px] h-6 bg-white/10" />
+             <div className="w-[1px] h-5 md:h-6 bg-white/10" />
              <div className="flex flex-col">
-                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Latency</span>
-                <span className="text-[10px] font-black text-white/60">~14ms</span>
+                <span className="text-[7px] md:text-[8px] font-black text-white/20 uppercase tracking-widest">Latency</span>
+                <span className="text-[9px] md:text-[10px] font-black text-white/60">~14ms</span>
              </div>
           </div>
         )}

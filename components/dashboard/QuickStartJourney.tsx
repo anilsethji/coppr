@@ -59,13 +59,13 @@ export default function QuickStartJourney({ type = 'subscriber' }: { type?: 'sub
       <div className="relative z-10 space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
            <div>
-              <p className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-3">Protocol Optimization</p>
-              <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">
+              <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-[0.3em] mb-3">Protocol Optimization</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                 {type === 'subscriber' ? 'Mirroring' : 'Creator'} <span className="text-white/40">QuickStart</span> Journey
               </h3>
            </div>
-           <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-3 italic">
-              <span className="text-[10px] font-black text-white/40 uppercase">Handshake v2.1</span>
+           <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-3">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Handshake v2.1</span>
               <div className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse" />
            </div>
         </div>

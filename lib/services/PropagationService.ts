@@ -14,9 +14,10 @@ export class PropagationService {
      * @param signalPayload Original signal data
      * @param providedKey Security key from the Master Bot
      */
-    static async fanOut(strategyId: string, signalPayload: any, providedKey?: string, customClient?: any) {
+    static async fanOut(strategyId: string, signalPayload: any, providedKey?: string, customClient?: any, ingestedAt?: number) {
         const supabase = customClient || createClient();
-        console.log(`[PROPAGATION] Starting Authorized Fan-out for Strategy ${strategyId}`);
+        const startExecution = new Date().getTime();
+        console.log(`[PROPAGATION] Starting Institutional Fan-out for Strategy ${strategyId} (2026.04.01 Protocol)`);
 
         // 0. VERIFY MASTER SECURITY KEY
         const { data: strategy, error: sError } = await supabase
@@ -52,6 +53,7 @@ export class PropagationService {
                 leverage_override,
                 is_paused,
                 broker_account_id,
+                active_assets,
                 broker_accounts!broker_account_id (*)
             `)
             .eq('strategy_id', strategyId)
@@ -65,8 +67,8 @@ export class PropagationService {
 
         console.log(`[PROPAGATION] Found ${subscribers.length} candidate nodes.`);
 
-        const CHUNK_SIZE = 8;
-        const DELAY_MS = 1100;
+        const CHUNK_SIZE = 10;
+        const DELAY_MS = 1000; // SEBI mandated 1.0s Pulse for Multi-Node Ingress
 
         for (let i = 0; i < subscribers.length; i += CHUNK_SIZE) {
             const chunk = subscribers.slice(i, i + CHUNK_SIZE);
@@ -85,6 +87,21 @@ export class PropagationService {
                 if (sub.is_paused) {
                     console.log(`[PROPAGATION] Node ${sub.id} is PAUSED. Dropping signal.`);
                     await this.logEvent(sub.id, "NODE_PAUSED", { message: sub.last_kill_reason || "Global stop active.", status: 'SKIPPED' }, supabase);
+                    return;
+                }
+
+                // ASSET WHITELIST FIREWALL
+                const activeAssets = sub.active_assets || [];
+                const signalSymbol = signalPayload.symbol;
+                
+                // If whitelist exists, enforce it
+                if (activeAssets.length > 0 && !activeAssets.includes(signalSymbol)) {
+                    console.warn(`[FIREWALL] Signal ${signalSymbol} rejected for Node ${sub.id} (Unauthorized Asset).`);
+                    await this.logEvent(sub.id, "SYMBOL_REJECTED", { 
+                       symbol: signalSymbol, 
+                       message: "This asset is not whitelisted in your risk protocol.",
+                       status: 'REJECTED' 
+                    }, supabase);
                     return;
                 }
 
@@ -151,17 +168,39 @@ export class PropagationService {
                     algoId: strategyId
                 };
 
-                // Place Order
+                // Place Order with full credential meta (Password, Server, etc.)
                 const result = await adapter.placeOrder(order, {
                     account_id: broker.account_id,
                     api_key: broker.api_key,
-                    api_secret: broker.api_secret
+                    api_secret: broker.api_secret,
+                    meta: broker.meta || {}
                 });
 
                 if (result.success) {
-                    await this.logEvent(sub.id, "EXECUTED", { orderId: result.orderId || 'N/A', order, status: 'SUCCESS' }, supabase);
+                    const executionLatency = new Date().getTime() - (ingestedAt || startExecution);
+                    await this.logEvent(sub.id, "EXECUTED", { 
+                        orderId: result.orderId || 'N/A', 
+                        order, 
+                        status: 'SUCCESS',
+                        latency_ms: executionLatency,
+                        protocol: 'SEBI_2026_COMPLIANT'
+                    }, supabase);
                 } else {
-                    await this.logEvent(sub.id, "EXECUTION_FAIL", { error: result.error || "Order execution failed.", status: 'FAILED' }, supabase);
+                    const isAuthError = result.error?.toLowerCase().includes('auth') || result.error?.toLowerCase().includes('api key');
+                    
+                    if (isAuthError) {
+                        await supabase.from('user_strategies')
+                            .update({ is_paused: true, last_kill_reason: 'REGULATORY_AUTH_FAILURE' })
+                            .eq('id', sub.id);
+                        
+                        await this.logEvent(sub.id, "AUTO_KILL", { 
+                            reason: 'REGULATORY_AUTH_FAILURE', 
+                            error: result.error,
+                            status: 'KILLED' 
+                        }, supabase);
+                    } else {
+                        await this.logEvent(sub.id, "EXECUTION_FAIL", { error: result.error || "Order execution failed.", status: 'FAILED' }, supabase);
+                    }
                 }
 
             } catch (err: any) {
@@ -173,7 +212,7 @@ export class PropagationService {
             await Promise.allSettled(chunkPromises);
 
             if (i + CHUNK_SIZE < subscribers.length) {
-                console.log(`[PROPAGATION] SEBI Throttling: Pausing ${DELAY_MS}ms before next block...`);
+                console.log(`[PROPAGATION] 2026.04.01 Protocol Enforcement: Pausing ${DELAY_MS}ms for High-Speed Guard...`);
                 await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
             }
         }

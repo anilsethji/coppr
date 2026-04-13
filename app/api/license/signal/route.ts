@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
  * BODY: { "action": "BUY", "symbol": "XAUUSD", "price": 1965.2, "sl": 1960, "tp": 1975 }
  */
 export async function POST(request: Request) {
+  const ingestedAt = new Date().getTime();
   const { searchParams } = new URL(request.url);
   const key = searchParams.get('key');
 
@@ -80,9 +81,9 @@ export async function POST(request: Request) {
 
         await supabase.from('subscription_logs').insert(propagationEntries);
 
-        // D. Trigger actual execution worker (Asynchronous Fan-out)
+        // D. Trigger actual execution worker (Asynchronous Fan-out) with latency tracking
         import('@/lib/services/PropagationService').then(({ PropagationService }) => {
-          PropagationService.fanOut(strategy.id, payload);
+          PropagationService.fanOut(strategy.id, payload, key!, undefined, ingestedAt);
         });
       }
 

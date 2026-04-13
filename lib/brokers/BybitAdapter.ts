@@ -121,4 +121,24 @@ export class BybitAdapter {
         const position = response.data.result?.list?.[0];
         return position ? (position.positionIdx !== 0) : true; // Default to true if no positions
     }
+
+    async getInstruments(): Promise<any[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/v5/market/instruments-info?category=linear`);
+            if (response.data.retCode !== 0) return [];
+
+            return response.data.result.list
+                .filter((s: any) => s.status === 'Trading' && s.quoteCoin === 'USDT')
+                .map((s: any) => ({
+                    symbol: s.symbol,
+                    baseAsset: s.baseCoin,
+                    quoteAsset: s.quoteCoin,
+                    displayName: `${s.baseCoin}/USDT`,
+                    type: 'CRYPTO'
+                }));
+        } catch (error: any) {
+            console.error('[BYBIT] Failed to fetch instruments:', error.message);
+            return [];
+        }
+    }
 }

@@ -38,15 +38,21 @@ export async function GET() {
                             .reduce((acc, curr) => acc + Number(curr.creator_net), 0) || 0;
 
     // 3. CALC ACTIVE SUBSCRIBERS
-    // We count rows in user_strategies where strategy belongs to this creator
+    // First fetch all strategy IDs belonging to this creator
+    const { data: strategies, error: sFetchError } = await supabase
+      .from('strategies')
+      .select('id')
+      .eq('creator_id', prof.id);
+
+    if (sFetchError) throw sFetchError;
+    const strategyIds = (strategies || []).map(s => s.id);
+
+    // Then count active subscriptions for those strategies
     const { count: activeSubs, error: sError } = await supabase
       .from('user_strategies')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'ACTIVE')
-      // Filtering through the strategies join
-      .filter('strategy_id', 'in', (
-        await supabase.from('strategies').select('id').eq('creator_id', prof.id)
-      ).data?.map(s => s.id) || []);
+      .in('strategy_id', strategyIds);
 
     if (sError) throw sError;
 

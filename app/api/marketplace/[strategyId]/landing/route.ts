@@ -69,6 +69,15 @@ export async function GET(
       .eq('strategy_id', strategyId)
       .maybeSingle();
 
+    // 6. Ownership Determination (Corrected Handshake)
+    const { data: userCreatorProfile } = await supabase
+      .from('creator_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isOwner = userCreatorProfile?.id === strategy.creator_id;
+
     return NextResponse.json({
       strategy,
       creator: strategy.creator_profiles,
@@ -86,7 +95,7 @@ export async function GET(
       },
       isUserSubscribed: subscription?.status === 'ACTIVE',
       subscriptionData: subscription || null,
-      isOwner: strategy.creator_id === user.id
+      isOwner: !!isOwner
     });
 
   } catch (error: any) {

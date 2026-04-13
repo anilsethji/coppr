@@ -25,7 +25,9 @@ import {
   BarChart3,
   Trash2,
   LineChart,
-  Terminal as Code
+  Terminal as Code,
+  Target,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -39,6 +41,96 @@ import ManagedNodeMonitor from './ManagedNodeMonitor';
 import QuickStartJourney from './QuickStartJourney';
 import BrokerGuardian from './BrokerGuardian';
 import ActivationModal from './ActivationModal';
+import AssetDiscoveryDrawer from './AssetDiscoveryDrawer';
+
+interface IntegrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  sub: any;
+  copyToClipboard: (text: string, label: string) => void;
+  copiedText: string | null;
+}
+
+const IntegrationModal: React.FC<IntegrationModalProps> = ({ isOpen, onClose, sub, copyToClipboard, copiedText }) => {
+  if (!isOpen) return null;
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="w-full max-w-lg bg-[#0D121F] border border-[#00B0FF]/30 rounded-[40px] shadow-2xl overflow-hidden"
+        >
+          <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-[#00B0FF]/10 rounded-xl">
+                <Globe className="w-6 h-6 text-[#00B0FF]" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white tracking-tight">Signal Integration</h3>
+                <p className="text-[10px] text-white/40 font-semibold uppercase tracking-widest">Institutional Access Protocol</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-all group">
+              <X className="w-5 h-5 text-white/20 group-hover:text-white" />
+            </button>
+          </div>
+
+          <div className="p-8 space-y-8">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <p className="text-[10px] font-bold text-[#00B0FF] uppercase tracking-wider">Webhook Mirror URL</p>
+                <button 
+                  onClick={() => copyToClipboard(`http://localhost:3000/api/license/signal?key=${sub.strategy.master_signal_key}`, 'URL')}
+                  className="text-[9px] font-black text-[#00B0FF] uppercase hover:underline"
+                >
+                  {copiedText === 'URL' ? 'Copied!' : 'Copy Link'}
+                </button>
+              </div>
+              <div className="p-4 bg-black/60 rounded-2xl border border-white/5 font-mono text-[10px] text-white/60 break-all leading-relaxed select-all">
+                {`http://localhost:3000/api/license/signal?key=${sub.strategy.master_signal_key}`}
+              </div>
+              <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest text-center italic">Point your Pine Script OR Expert Advisor alerts to this endpoint</p>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider px-2">Ready-to-Mirror Templates</p>
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  { name: 'Standard Unit (1.0)', symbol: 'BTCUSD', qty: 1 },
+                  { name: 'Micro Scalp (0.01)', symbol: 'XAUUSD', qty: 0.1 }
+                ].map(tmplt => (
+                  <div key={tmplt.name} className="p-5 rounded-3xl bg-white/[0.03] border border-white/5 flex items-center justify-between group/tmplt hover:bg-white/[0.08] transition-all">
+                    <div>
+                      <p className="text-[10px] font-black text-white/60 uppercase italic mb-1">{tmplt.name}</p>
+                      <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">JSON Handshake Message</p>
+                    </div>
+                    <button 
+                      onClick={() => copyToClipboard(`{ "action": "{{strategy.order.action}}", "symbol": "${tmplt.symbol}", "quantity": ${tmplt.qty}, "order_type": "MARKET" }`, tmplt.name)}
+                      className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:bg-[#00B0FF] hover:border-[#00B0FF] transition-all"
+                    >
+                      {copiedText === tmplt.name ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 bg-black/40 border-t border-white/5">
+            <button 
+              onClick={onClose}
+              className="w-full py-5 bg-[#00B0FF] text-black rounded-2xl text-[11px] font-black uppercase italic tracking-widest hover:scale-[1.02] transition-all shadow-xl shadow-[#00B0FF]/10"
+            >
+              Close Bridge Dashboard
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
 
 const SUPPORTED_BROKERS = [
   { id: 'MT5', name: 'MetaTrader 5', region: 'GLOBAL', icon: Globe },
@@ -75,12 +167,20 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
   const [userId, setUserId] = useState<string | null>(null);
   const [linkingId, setLinkingId] = useState<string | null>(null);
   const [brokerType, setBrokerType] = useState<'ZERODHA' | 'ANGELONE' | 'MT5' | 'BINANCE_FUTURES' | 'BYBIT' | 'DHAN' | 'MEXC' | 'BINGX' | 'GROWW' | 'TRADINGVIEW_DEMO'>('MT5');
-  const [brokerData, setBrokerData] = useState({ accountId: '', apiKey: '', apiSecret: '' });
+  const [brokerData, setBrokerData] = useState({ 
+    accountId: '', 
+    apiKey: '', 
+    apiSecret: '',
+    meta: {} as Record<string, string>
+  });
   const [activating, setActivating] = useState(false);
   const [globalLegalAccepted, setGlobalLegalAccepted] = useState(false);
   const [logs, setLogs] = useState<Record<string, any[]>>({});
   const [activeTab, setActiveTab] = useState<'MT5_EA' | 'PINE_SCRIPT_WEBHOOK'>(typeFilter || 'MT5_EA');
   const [activationTarget, setActivationTarget] = useState<any>(null);
+  const [isAssetDrawerOpen, setIsAssetDrawerOpen] = useState(false);
+  const [managingSub, setManagingSub] = useState<any>(null);
+  const [previewSymbol, setPreviewSymbol] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVault();
@@ -199,7 +299,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
     }
   };
 
-  const linkBrokerAccount = async (subscriptionId?: string, strategyIdForSelfSub?: string, setError?: (msg: string | null) => void) => {
+  const linkBrokerAccount = async (subscriptionId?: string, strategyIdForSelfSub?: string, setError?: (msg: string | null) => void, activeAssets?: string[]) => {
     setError?.(null);
     if (!brokerData.accountId) {
         if (setError) setError("Missing Account ID / Simulation Name.");
@@ -233,14 +333,16 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                 brokerType, 
                 accountId: brokerData.accountId,
                 apiKey: brokerData.apiKey,
-                apiSecret: brokerData.apiSecret
+                apiSecret: brokerData.apiSecret,
+                meta: brokerData.meta,
+                activeAssets: activeAssets || []
             })
         });
         
         const data = await res.json();
         if (res.ok) {
             setLinkingId(null);
-            setBrokerData({ accountId: '', apiKey: '', apiSecret: '' });
+            setBrokerData({ accountId: '', apiKey: '', apiSecret: '', meta: {} });
             alert("Digital Broker Link Established. Status: Operational.");
             fetchVault();
         } else {
@@ -327,28 +429,30 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
 
   return (
     <div className="space-y-16 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
-        <div className="space-y-4">
-            <div>
-              <h2 className="text-3xl font-black text-white mb-2 italic uppercase tracking-tighter">My Linked Brokers</h2>
-              <p className="text-[12px] text-white/40 font-medium tracking-wide">Manage your broker accounts and active bots.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
+        <div className="space-y-4 w-full md:w-auto">
+            <div className="px-1">
+              <h2 className="text-2xl md:text-3xl font-black text-white mb-1 md:mb-2 italic uppercase tracking-tighter">My Linked Brokers</h2>
+              <p className="text-[10px] md:text-[12px] text-white/40 font-medium tracking-wide">Manage your broker accounts and active bots.</p>
             </div>
             
-            {/* Tab Switcher */}
-            <div className="flex items-center gap-1.5 p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-fit">
-              <button 
-                onClick={() => setActiveTab('MT5_EA')}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-xl shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}
-              >
-                MT5 Institutional Bots
-              </button>
-              <button 
-                onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-xl shadow-[#00E676]/10' : 'text-white/20 hover:text-white/40'}`}
-              >
-                TradingView Indicators
-              </button>
-            </div>
+            {/* Tab Switcher - Only visible if no typeFilter is provided */}
+            {!typeFilter && (
+              <div className="flex items-center gap-1 p-1 bg-white/[0.03] border border-white/5 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar">
+                <button 
+                  onClick={() => setActiveTab('MT5_EA')}
+                  className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-xl shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}
+                >
+                  MT5 Institutional Bots
+                </button>
+                <button 
+                  onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-xl shadow-[#00E676]/10' : 'text-white/20 hover:text-white/40'}`}
+                >
+                  TradingView Indicators
+                </button>
+              </div>
+            )}
         </div>
         <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-3 italic">
              <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
@@ -373,21 +477,21 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       <div className="space-y-6 md:space-y-10 relative">
           {timelineMode && (
               <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
-                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-[0_0_15px_rgba(0,0,0,0.5)] ${timelineMode === 'bots' ? 'border-[#FFD700] text-[#FFD700]' : 'border-[#00E676] text-[#00E676]'}`}>1</div>
+                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>1</div>
               </div>
           )}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-end px-2">
             <div className="space-y-2">
-               <h3 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tight">Add a <span className="text-[#FFD700]">Broker</span></h3>
+               <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight">Add a <span className="text-[#FFD700]">Broker</span></h3>
                <p className="text-[11px] font-medium text-white/40 leading-relaxed px-1">Select your broker below to link your account securely.</p>
             </div>
-            <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 italic">
+            <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-[#00E676]" />
-               <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.2em] font-sans">All Systems Working</span>
+               <span className="text-[9px] font-bold text-[#00E676] uppercase tracking-wider font-sans">All Systems Working</span>
             </div>
          </div>
 
-         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
+         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 md:gap-6">
             {SUPPORTED_BROKERS.map((broker) => (
                <button 
                   key={broker.id}
@@ -395,15 +499,15 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                      setBrokerType(broker.id as any);
                      setLinkingId('NEW_BROKER');
                   }}
-                  className={`group relative p-4 md:p-8 bg-[#161C2D] border transition-all flex flex-col items-center justify-center gap-4 text-center overflow-hidden shadow-xl ${linkingId === 'NEW_BROKER' && brokerType === broker.id ? 'border-[#FFD700] ring-1 ring-[#FFD700]/20' : 'border-white/5 hover:border-[#FFD700]/40'} rounded-[24px] md:rounded-[40px]`}
+                  className={`group relative p-3.5 md:p-8 bg-[#161C2D] border transition-all flex flex-col items-center justify-center gap-2.5 md:gap-4 text-center overflow-hidden shadow-xl ${linkingId === 'NEW_BROKER' && brokerType === broker.id ? 'border-[#FFD700] ring-1 ring-[#FFD700]/20' : 'border-white/5 hover:border-[#FFD700]/40'} rounded-2xl md:rounded-[40px]`}
                >
                   <div className="absolute inset-0 bg-[#FFD700]/[0.01] group-hover:bg-[#FFD700]/[0.05] transition-colors" />
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-700 relative z-10">
-                     <broker.icon className={`w-5 h-5 md:w-7 md:h-7 transition-colors ${linkingId === 'NEW_BROKER' && brokerType === broker.id ? 'text-[#FFD700]' : 'text-white/20 group-hover:text-[#FFD700]'}`} />
+                     <broker.icon className={`w-4 h-4 md:w-7 md:h-7 transition-colors ${linkingId === 'NEW_BROKER' && brokerType === broker.id ? 'text-[#FFD700]' : 'text-white/20 group-hover:text-[#FFD700]'}`} />
                   </div>
                   <div className="relative z-10">
-                     <h4 className="text-[10px] md:text-[14px] font-black text-white uppercase italic leading-none truncate w-full max-w-[100px] md:max-w-[120px]">{broker.name}</h4>
-                     <p className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mt-1 italic font-sans">{broker.region}</p>
+                     <h4 className="text-[12px] md:text-[14px] font-bold text-white tracking-tight truncate w-full max-w-[80px] md:max-w-[120px]">{broker.name}</h4>
+                     <p className="text-[8px] md:text-[9px] font-semibold text-white/20 uppercase tracking-widest mt-1 font-sans">{broker.region}</p>
                   </div>
                </button>
             ))}
@@ -446,32 +550,113 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                                     />
                                 </div>
 
-                                {(brokerType !== 'MT5' && brokerType !== 'ZERODHA' && brokerType !== 'ANGELONE') && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">API Key</label>
-                                            <input 
-                                                type="password" 
-                                                placeholder="Key" 
-                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
-                                                value={brokerData.apiKey} 
-                                                onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} 
-                                            />
-                                        </div>
-                                        {(brokerType !== 'DHAN' && brokerType !== 'GROWW') && (
-                                            <div className="space-y-2">
-                                                <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">API Secret</label>
-                                                <input 
-                                                    type="password" 
-                                                    placeholder="Secret" 
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
-                                                    value={brokerData.apiSecret} 
-                                                    onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} 
-                                                />
+                                    {/* DYNAMIC FIELD ENGINE (GLOBAL) */}
+                                    <div className="space-y-4">
+                                        {/* MT5 Fields */}
+                                        {brokerType === 'MT5' && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">MT5 Server</label>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="e.g. MetaQuotes-Demo" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.server || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, server: e.target.value}})} 
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">Trading Password</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Password" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.password || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* AngelOne Fields */}
+                                        {brokerType === 'ANGELONE' && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">Trading Password</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Password" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.password || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">TOTP Secret</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Token" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.totp_secret || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, totp_secret: e.target.value}})} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Groww Fields */}
+                                        {brokerType === 'GROWW' && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">Groww Password</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Password" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.password || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">4-Digit PIN</label>
+                                                    <input 
+                                                        type="password" 
+                                                        maxLength={4}
+                                                        placeholder="PIN" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.meta.pin || ''} 
+                                                        onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, pin: e.target.value}})} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Standard Crypto / API Key Fields */}
+                                        {(['BINANCE_FUTURES', 'BYBIT', 'MEXC', 'BINGX', 'ZERODHA', 'DHAN'].includes(brokerType)) && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">API Key / Client ID</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Key" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.apiKey} 
+                                                        onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} 
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[8px] font-black text-white/20 uppercase ml-2 tracking-widest italic">Secret / Token</label>
+                                                    <input 
+                                                        type="password" 
+                                                        placeholder="Secret" 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                        value={brokerData.apiSecret} 
+                                                        onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} 
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                )}
                             </div>
                         </div>
 
@@ -518,7 +703,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       <div className="relative mt-8 md:mt-16 pt-2">
          {timelineMode && (
               <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
-                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-[0_0_15px_rgba(0,0,0,0.5)] ${timelineMode === 'bots' ? 'border-[#FFD700] text-[#FFD700]' : 'border-[#00E676] text-[#00E676]'}`}>2</div>
+                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>2</div>
               </div>
          )}
          {timelineMode && (
@@ -529,21 +714,21 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
              </div>
          )}
       {activeTab === 'PINE_SCRIPT_WEBHOOK' && strategies.length === 0 && (
-          <div className="space-y-12">
-            <div className="bg-[#00E676]/[0.02] border border-dashed border-[#00E676]/20 rounded-[48px] p-24 text-center space-y-10 relative overflow-hidden group">
+          <div className="space-y-12 -ml-2 md:ml-0 pr-2 md:pr-0">
+            <div className="bg-[#00E676]/[0.02] border border-dashed border-[#00E676]/20 rounded-[32px] md:rounded-[48px] p-8 md:p-24 text-center space-y-8 md:space-y-10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-[#00E676]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[100px]" />
-                <div className="w-24 h-24 bg-[#00E676]/10 rounded-[32px] flex items-center justify-center mx-auto border border-[#00E676]/20 relative z-10 transition-transform group-hover:scale-110">
-                      <BarChart3 className="w-10 h-10 text-[#00E676] animate-pulse" />
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#00E676]/10 rounded-2xl md:rounded-[32px] flex items-center justify-center mx-auto border border-[#00E676]/20 relative z-10 transition-transform group-hover:scale-110">
+                      <BarChart3 className="w-7 h-7 md:w-10 md:h-10 text-[#00E676] animate-pulse" />
                 </div>
-                <div className="space-y-3 relative z-10">
-                  <h4 className="text-xl font-black text-white uppercase italic tracking-[0.1em]">No Active <span className="text-[#00E676]">Signals</span> Found</h4>
-                  <p className="text-[12px] font-medium text-white/50 leading-relaxed max-w-sm mx-auto">
+                <div className="space-y-2 md:space-y-3 relative z-10">
+                  <h4 className="text-lg md:text-xl font-black text-white uppercase italic tracking-[0.1em]">No Active <span className="text-[#00E676]">Signals</span> Found</h4>
+                  <p className="text-[10px] md:text-[12px] font-medium text-white/50 leading-relaxed max-w-sm mx-auto p-1">
                     Your institutional-grade signal bridge is hungry for data. Discover official Alphas to begin mirroring today.
                   </p>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/dashboard/marketplace?filter=Pine+Script'} 
-                  className="px-12 py-5 bg-[#00E676] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#00E676]/20 relative z-10 italic"
+                  className="mx-auto block px-8 md:px-12 py-4 md:py-5 bg-[#00E676] text-black font-black uppercase text-[10px] md:text-[11px] rounded-xl md:rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#00E676]/20 relative z-10 italic"
                 >
                   Explore TradingView Alphas
                 </button>
@@ -552,23 +737,25 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       )}
 
       {strategies.length === 0 && activeTab === 'MT5_EA' && (
-          <div className="bg-[#FFD700]/[0.02] border border-dashed border-[#FFD700]/20 rounded-[48px] p-24 text-center space-y-10 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[100px]" />
-                <div className="w-24 h-24 bg-[#FFD700]/10 rounded-[32px] flex items-center justify-center mx-auto border border-[#FFD700]/20 relative z-10 transition-transform group-hover:scale-110">
-                      <Lock className="w-10 h-10 text-[#FFD700] animate-pulse" />
-                </div>
-                <div className="space-y-3 relative z-10">
-                  <h4 className="text-xl font-black text-white uppercase italic tracking-[0.1em]">No <span className="text-[#FFD700]">Managed</span> Nodes Detected</h4>
-                  <p className="text-[12px] font-medium text-white/50 leading-relaxed max-w-sm mx-auto">
-                    Mirror institutional Expert Advisors directly to your terminal. Begin your mirroring journey in the marketplace.
-                  </p>
-                </div>
-                <button 
-                  onClick={() => window.location.href = '/dashboard/marketplace'} 
-                  className="px-12 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#FFD700]/20 relative z-10 italic"
-                >
-                  Browse Official Alphas
-                </button>
+          <div className="space-y-12 -ml-2 md:ml-0 pr-2 md:pr-0">
+            <div className="bg-[#FFD700]/[0.02] border border-dashed border-[#FFD700]/20 rounded-[32px] md:rounded-[48px] p-8 md:p-24 text-center space-y-8 md:space-y-10 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[100px]" />
+                  <div className="w-16 h-16 md:w-24 md:h-24 bg-[#FFD700]/10 rounded-2xl md:rounded-[32px] flex items-center justify-center mx-auto border border-[#FFD700]/20 relative z-10 transition-transform group-hover:scale-110">
+                        <Lock className="w-7 h-7 md:w-10 md:h-10 text-[#FFD700] animate-pulse" />
+                  </div>
+                  <div className="space-y-2 md:space-y-3 relative z-10">
+                    <h4 className="text-lg md:text-xl font-black text-white uppercase italic tracking-[0.1em]">No <span className="text-[#FFD700]">Managed</span> Nodes Detected</h4>
+                    <p className="text-[10px] md:text-[12px] font-medium text-white/50 leading-relaxed max-w-sm mx-auto p-1">
+                      Mirror institutional Expert Advisors directly to your terminal. Begin your mirroring journey in the marketplace.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => window.location.href = '/dashboard/marketplace'} 
+                    className="mx-auto block px-8 md:px-12 py-4 md:py-5 bg-[#FFD700] text-black font-black uppercase text-[10px] md:text-[11px] rounded-xl md:rounded-2xl hover:scale-105 transition-all tracking-[0.2em] shadow-2xl shadow-[#FFD700]/20 relative z-10 italic"
+                  >
+                    Browse Official Alphas
+                  </button>
+            </div>
           </div>
       )}
       {strategies.length > 0 && (
@@ -581,9 +768,9 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center border bg-[#00B0FF]/10 border-[#00B0FF]/20">
                                 <Bot className="w-6 h-6 text-[#00B0FF]" />
                             </div>
-                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Your <span className="text-[#00B0FF]">Proprietary</span> Bots</h3>
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Your <span className="text-[#00B0FF]">Proprietary</span> Bots</h3>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] font-sans italic text-[#00B0FF]/60">Private Ecosystem</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider font-sans text-[#00B0FF]/60">Private Ecosystem</span>
                     </div>
 
                     <div className="space-y-8">
@@ -610,6 +797,12 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                                 logs={logs[sub.id.startsWith('own-') ? sub.strategy_id : sub.id] || []} 
                                 fetchLogs={fetchLogs} 
                                 removeSubscription={removeSubscription}
+                                previewSymbol={managingSub?.id === sub.id ? previewSymbol : null}
+                                onManageAssets={(subRecord: any) => {
+                                    setManagingSub(subRecord);
+                                    setPreviewSymbol(subRecord.active_assets?.[0] || 'XAUUSD');
+                                    setIsAssetDrawerOpen(true);
+                                }}
                             />
                         ))}
                     </div>
@@ -623,9 +816,9 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${activeTab === 'MT5_EA' ? 'bg-[#FFD700]/10 border-[#FFD700]/20' : 'bg-[#00E676]/10 border-[#00E676]/20'}`}>
                        <ShieldCheck className={`w-6 h-6 ${activeTab === 'MT5_EA' ? 'text-[#FFD700]' : 'text-[#00E676]'}`} />
                     </div>
-                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Coppr <span className={activeTab === 'MT5_EA' ? 'text-[#FFD700]' : 'text-[#00E676]'}>Institutional</span> Alphas</h3>
+                    <h3 className="text-2xl font-bold text-white tracking-tight">Coppr <span className={activeTab === 'MT5_EA' ? 'text-[#FFD700]' : 'text-[#00E676]'}>Institutional</span> Alphas</h3>
                  </div>
-                 <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-sans italic ${activeTab === 'MT5_EA' ? 'text-[#FFD700]/60' : 'text-[#00E676]/60'}`}>Running Securely</span>
+                 <span className={`text-[10px] font-bold uppercase tracking-wider font-sans ${activeTab === 'MT5_EA' ? 'text-[#FFD700]/60' : 'text-[#00E676]/60'}`}>Running Securely</span>
               </div>
 
               <div className="space-y-8">
@@ -652,6 +845,11 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                         fetchLogs={fetchLogs} 
                         removeSubscription={removeSubscription}
                         setActivationTarget={setActivationTarget}
+                        onManageAssets={(subRecord: any) => {
+                            setManagingSub(subRecord);
+                            setPreviewSymbol(subRecord.active_assets?.[0] || 'XAUUSD');
+                            setIsAssetDrawerOpen(true);
+                        }}
                     />
                 ))}
               </div>
@@ -664,9 +862,9 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                     <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
                        <LayoutGrid className="w-6 h-6 text-white/40" />
                     </div>
-                    <h3 className="text-xl font-black text-white/40 uppercase italic tracking-tighter leading-none">Community <span className="text-white/20">Marketplace</span> Mirrored</h3>
+                    <h3 className="text-xl font-bold text-white/40 tracking-tight leading-none">Community <span className="text-white/20">Marketplace</span> Mirrored</h3>
                  </div>
-                 <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic">Third-Party Alphas</span>
+                 <span className="text-[10px] font-bold text-white/20 uppercase tracking-wider font-sans">Third-Party Alphas</span>
               </div>
 
               <div className="space-y-8">
@@ -693,6 +891,12 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                         fetchLogs={fetchLogs} 
                         removeSubscription={removeSubscription}
                         setActivationTarget={setActivationTarget}
+                        previewSymbol={managingSub?.id === sub.id ? previewSymbol : null}
+                        onManageAssets={(subRecord: any) => {
+                            setManagingSub(subRecord);
+                            setPreviewSymbol(subRecord.active_assets?.[0] || 'XAUUSD');
+                            setIsAssetDrawerOpen(true);
+                        }}
                     />
                 ))}
               </div>
@@ -729,7 +933,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       <div className="relative mt-8 md:mt-16 pt-2 pb-10">
          {timelineMode && (
               <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
-                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-[0_0_15px_rgba(0,0,0,0.5)] ${timelineMode === 'bots' ? 'border-[#FFD700] text-[#FFD700]' : 'border-[#00E676] text-[#00E676]'}`}>3</div>
+                 <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>3</div>
               </div>
          )}
          {timelineMode && (
@@ -751,8 +955,40 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
         strategyId={activationTarget?.strategy_id || ''}
         supportedBrokers={SUPPORTED_BROKERS}
         onActivate={async (data) => {
-            await linkBrokerAccount(activationTarget.id.startsWith('own-') ? undefined : activationTarget.id);
+            const strategyIdSelf = activationTarget.id.startsWith('own-') ? activationTarget.strategy_id : undefined;
+            const subId = activationTarget.id.startsWith('own-') ? undefined : activationTarget.id;
+            
+            await linkBrokerAccount(
+                subId, 
+                strategyIdSelf, 
+                undefined, 
+                data.activeAssets
+            );
         }}
+      />
+
+      <AssetDiscoveryDrawer 
+        isOpen={isAssetDrawerOpen}
+        onClose={() => {
+            setIsAssetDrawerOpen(false);
+            setManagingSub(null);
+            setPreviewSymbol(null);
+        }}
+        brokerType={managingSub?.broker_accounts?.broker_type || brokerType}
+        selectedAssets={managingSub?.active_assets || []}
+        onAssetToggle={async (sym) => {
+            const current = managingSub?.active_assets || [];
+            const next = current.includes(sym) ? current.filter((s: string) => s !== sym) : [...current, sym];
+            
+            // Optimistic UI update
+            setStrategies(prev => prev.map(s => s.id === managingSub.id ? { ...s, active_assets: next }: s));
+            setManagingSub((prev: any) => ({ ...prev, active_assets: next }));
+
+            // Persist to DB
+            const supabase = createClient();
+            await supabase.from('user_strategies').update({ active_assets: next }).eq('id', managingSub.id);
+        }}
+        onPreviewSymbol={setPreviewSymbol}
       />
 
       </div>
@@ -781,7 +1017,9 @@ function StrategyCard({
     linkBrokerAccount, 
     logs,
     fetchLogs,
-    removeSubscription
+    removeSubscription,
+    onManageAssets,
+    previewSymbol
 }: any) {
     const logId = sub.id.startsWith('own-') ? sub.strategy_id : sub.id;
     const [localLegalAccepted, setLocalLegalAccepted] = useState(false);
@@ -789,6 +1027,25 @@ function StrategyCard({
     const [copiedText, setCopiedText] = useState<string | null>(null);
     const [cardError, setCardError] = useState<string | null>(null);
     const [isVisualMode, setIsVisualMode] = useState(true);
+    const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+    const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+    const isUniversal = 
+        sub.strategy.type === 'PINE_SCRIPT_WEBHOOK' || 
+        sub.strategy.execution_mode === 'WEBHOOK_BRIDGE' ||
+        sub.strategy.name.toLowerCase().includes('universal') || 
+        sub.strategy.name.toLowerCase().includes('multi') ||
+        (sub.active_assets && sub.active_assets.length > 1);
+
+    // Dynamic Symbol Resolution Hierarchy
+    const activeSymbol = previewSymbol || 
+                        selectedSymbol || 
+                        (sub.active_assets && sub.active_assets.length > 0 ? sub.active_assets[0] : 
+                        sub.strategy.name.toUpperCase().includes("BTC") ? "BTCUSD" : 
+                        sub.strategy.name.toUpperCase().includes("ETH") ? "ETHUSD" : 
+                        sub.strategy.name.toUpperCase().includes("SOL") ? "SOLUSD" :
+                        sub.strategy.name.toUpperCase().includes("XRP") ? "XRPUSD" :
+                        (sub.strategy.name.toUpperCase().includes("XAU") || sub.strategy.name.toUpperCase().includes("GOLD")) ? "XAUUSD" : 
+                        "XAUUSD");
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -803,22 +1060,28 @@ function StrategyCard({
             className={`bg-[#0D121F]/60 border rounded-[32px] md:rounded-[48px] overflow-hidden group transition-all duration-700 hover:scale-[1.005] ${isOfficial ? 'border-[#FFD700]/20 hover:border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/5' : 'border-white/5 hover:border-white/10'}`}
         >
             <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="p-6 md:p-10 space-y-6 md:space-y-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 relative overflow-hidden">
+                <div className="p-5 md:p-10 space-y-5 md:space-y-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 relative overflow-hidden">
                     {isOfficial && (
                         <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#FFD700]/5 blur-[100px] pointer-events-none" />
                     )}
                     
                     <div className="flex justify-between items-start relative z-10">
-                        <div className="flex items-center gap-6">
-                            <div className={`w-16 h-16 rounded-[28px] flex items-center justify-center border transition-all ${isOfficial ? 'bg-[#FFD700]/10 border-[#FFD700]/20' : 'bg-white/5 border-white/5'}`}>
-                                <Zap className={`w-8 h-8 ${isOfficial ? 'text-[#FFD700]' : 'text-white/20'}`} />
+                        <div className="flex items-center gap-4 md:gap-6">
+                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[28px] flex items-center justify-center border transition-all ${isOfficial ? 'bg-[#FFD700]/10 border-[#FFD700]/20' : 'bg-white/5 border-white/5'}`}>
+                                <Zap className={`w-6 h-6 md:w-8 md:h-8 ${isOfficial ? 'text-[#FFD700]' : 'text-white/20'}`} />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-black text-white uppercase italic leading-none tracking-tighter mb-2">{sub.strategy.name}</h3>
+                                <h3 className="text-xl md:text-2xl font-bold text-white leading-none tracking-tight mb-2">{sub.strategy.name}</h3>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase font-sans tracking-widest ${isOfficial ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/10' : 'bg-white/10 text-white/40'}`}>
+                                    <span className={`text-[8px] md:text-[10px] font-bold px-2.5 py-0.5 md:px-3 md:py-1 rounded-full uppercase font-sans tracking-widest ${isOfficial ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/10' : 'bg-white/10 text-white/40'}`}>
                                         {isOfficial ? 'Coppr Official Alpha' : 'Community Mirror'}
                                     </span>
+                                    {isUniversal && (
+                                        <span className="flex items-center gap-1.5 text-[8px] md:text-[10px] font-bold px-2.5 py-0.5 md:px-3 md:py-1 rounded-full uppercase font-sans tracking-widest bg-[#00B0FF]/10 text-[#00B0FF] border border-[#00B0FF]/20 shadow-lg shadow-[#00B0FF]/5">
+                                            <Globe className="w-2.5 h-2.5" />
+                                            Universal
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -833,19 +1096,19 @@ function StrategyCard({
                         )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-5 rounded-3xl bg-white/5 border border-white/5">
-                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Protocol</p>
-                             <div className="flex items-center gap-3">
-                                <Activity className="w-4 h-4 text-[#00E676]" />
-                                <span className="text-[11px] font-black text-white uppercase italic">{RETAIL_JARGON[sub.engine_mode || 'MULTIPLIER']?.label}</span>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4 px-0.5">
+                        <div className="p-3.5 md:p-5 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5">
+                             <p className="text-[7px] md:text-[8px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Protocol</p>
+                             <div className="flex items-center gap-2.5">
+                                <Activity className="w-3.5 h-3.5 text-[#00E676]" />
+                                <span className="text-[10px] md:text-[11px] font-bold text-white uppercase truncate">{RETAIL_JARGON[sub.engine_mode || 'MULTIPLIER']?.label}</span>
                              </div>
                         </div>
-                        <div className="p-5 rounded-3xl bg-white/5 border border-white/5">
-                             <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Risk Value</p>
-                             <div className="flex items-center gap-3">
-                                <Zap className="w-4 h-4 text-[#FFD700]" />
-                                <span className="text-[11px] font-black text-white uppercase italic">{sub.engine_value || '1.0'}x</span>
+                        <div className="p-3.5 md:p-5 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5">
+                             <p className="text-[7px] md:text-[8px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Risk Value</p>
+                             <div className="flex items-center gap-2.5">
+                                <Zap className="w-3.5 h-3.5 text-[#FFD700]" />
+                                <span className="text-[10px] md:text-[11px] font-bold text-white uppercase">{sub.engine_value || '1.0'}x</span>
                              </div>
                         </div>
                     </div>
@@ -860,17 +1123,17 @@ function StrategyCard({
                         </div>
                     )}
 
-                    <div className={`p-5 rounded-[24px] border transition-all ${isOfficial && sub.sync_active ? 'bg-[#FFD700]/5 border-[#FFD700]/20' : 'bg-white/5 border-white/10 group-hover:border-white/20'}`}>
+                    <div className={`p-4 md:p-5 rounded-2xl md:rounded-[24px] border transition-all ${isOfficial && sub.sync_active ? 'bg-[#FFD700]/5 border-[#FFD700]/20' : 'bg-white/5 border-white/10 group-hover:border-white/20'}`}>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-2.5 h-2.5 rounded-full ${sub.sync_active ? 'bg-[#00E676] shadow-[0_0_12px_#00E676]' : 'bg-white/20'}`}></div>
-                                <span className="text-[11px] font-black text-white uppercase tracking-widest font-sans italic">{sub.sync_active ? 'Node Operational' : 'Node Halted'}</span>
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${sub.sync_active ? 'bg-[#00E676] shadow-[0_0_12px_#00E676]' : 'bg-white/20'}`}></div>
+                                <span className="text-[10px] md:text-[11px] font-black text-white uppercase tracking-widest font-sans italic">{sub.sync_active ? 'Node Operational' : 'Node Halted'}</span>
                             </div>
                             <button 
                                 onClick={() => toggleSync(sub.id, sub.sync_active)}
-                                className={`relative w-12 h-6 rounded-full transition-all duration-500 ${sub.sync_active ? 'bg-[#00E676]' : 'bg-white/10'}`}
+                                className={`relative w-10 h-5 md:w-12 md:h-6 rounded-full transition-all duration-500 ${sub.sync_active ? 'bg-[#00E676]' : 'bg-white/10'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-500 ${sub.sync_active ? 'left-7' : 'left-1'}`}></div>
+                                <div className={`absolute top-0.5 md:top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-white transition-all duration-500 ${sub.sync_active ? 'left-6 md:left-7' : 'left-0.5 md:left-1'}`}></div>
                             </button>
                         </div>
                     </div>
@@ -899,14 +1162,116 @@ function StrategyCard({
                                         value={brokerData.accountId} 
                                         onChange={e => setBrokerData({...brokerData, accountId: e.target.value})} 
                                     />
-                                    {(brokerType !== 'MT5' && brokerType !== 'ZERODHA' && brokerType !== 'ANGELONE' && brokerType !== 'TRADINGVIEW_DEMO') && (
-                                        <>
-                                            <input type="password" placeholder={`${brokerType.replace('_', ' ')} API Key`} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiKey} onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} />
-                                            {(brokerType !== 'DHAN' && brokerType !== 'GROWW') && (
-                                                <input type="password" placeholder={`${brokerType.replace('_', ' ')} Secret Key`} className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" value={brokerData.apiSecret} onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} />
-                                            )}
-                                        </>
-                                    )}
+                                    {/* DYNAMIC FIELD ENGINE */}
+                                    <div className="space-y-4">
+                                        {/* MT5 Fields */}
+                                        {brokerType === 'MT5' && (
+                                            <>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="MT5 Server (e.g. MetaQuotes-Demo)" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.server || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, server: e.target.value}})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="Trading Password" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.password || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* AngelOne Fields */}
+                                        {brokerType === 'ANGELONE' && (
+                                            <>
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="Trading Password" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.password || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="TOTP Secret Token" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.totp_secret || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, totp_secret: e.target.value}})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="AngelOne API Key" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.apiKey} 
+                                                    onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} 
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* Groww Fields */}
+                                        {brokerType === 'GROWW' && (
+                                            <>
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="Groww Password" 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.password || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, password: e.target.value}})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder="4-Digit PIN" 
+                                                    maxLength={4}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.meta.pin || ''} 
+                                                    onChange={e => setBrokerData({...brokerData, meta: {...brokerData.meta, pin: e.target.value}})} 
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* Crypto / Standard API Key Brokers */}
+                                        {(['BINANCE_FUTURES', 'BYBIT', 'MEXC', 'BINGX'].includes(brokerType)) && (
+                                            <>
+                                                <input 
+                                                    type="password" 
+                                                    placeholder={`${brokerType.replace('_', ' ')} API Key`} 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.apiKey} 
+                                                    onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder={`${brokerType.replace('_', ' ')} Secret Key`} 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.apiSecret} 
+                                                    onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} 
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* Zerodha / Dhan */}
+                                        {(brokerType === 'ZERODHA' || brokerType === 'DHAN') && (
+                                            <>
+                                                <input 
+                                                    type="password" 
+                                                    placeholder={brokerType === 'ZERODHA' ? 'Zerodha API Key' : 'Dhan Client ID'} 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.apiKey} 
+                                                    onChange={e => setBrokerData({...brokerData, apiKey: e.target.value})} 
+                                                />
+                                                <input 
+                                                    type="password" 
+                                                    placeholder={brokerType === 'ZERODHA' ? 'Zerodha API Secret' : 'Dhan Access Token'} 
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs text-white outline-none focus:border-[#FFD700]/40 transition-colors" 
+                                                    value={brokerData.apiSecret} 
+                                                    onChange={e => setBrokerData({...brokerData, apiSecret: e.target.value})} 
+                                                />
+                                            </>
+                                        )}
+                                    </div>
                                     
                                     <label className="flex items-start gap-3 p-3 mt-4 rounded-xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors">
                                         <div className="mt-0.5 relative flex items-center justify-center">
@@ -1049,103 +1414,49 @@ function StrategyCard({
                                     >
                                         {sub.sync_active ? 'API Linked' : 'Connect API'}
                                     </button>
+                                    
                                     <button 
-                                        onClick={() => {
-                                            if (configuringId === sub.id) {
-                                                setConfiguringId(null);
-                                            } else {
-                                                setConfiguringId(sub.id);
-                                                setRiskData({ 
-                                                    engineMode: sub.engine_mode || 'MULTIPLIER', 
-                                                    engineValue: sub.engine_value || (sub.strategy.type === 'MT5_EA' ? 0.01 : 1.0), 
-                                                    leverageOverride: sub.leverage_override || 1,
-                                                    drawdownThreshold: sub.drawdown_threshold || 50.0
-                                                });
-                                            }
-                                        }} 
-                                        className={`px-8 py-6 rounded-[32px] transition-all group ${configuringId === sub.id ? 'bg-[#00E676]/10 border border-[#00E676]' : 'bg-white/5 border border-white/10 text-[#00E676] hover:bg-[#00E676]/10'}`}
+                                        onClick={() => onManageAssets?.(sub)}
+                                        className="px-8 py-6 rounded-[32px] transition-all group border bg-[#00E676]/5 border-[#00E676]/20 text-[#00E676] hover:bg-[#00E676]/10"
+                                        title="Manage Targets"
                                     >
-                                        <Settings className={`w-5 h-5 group-hover:rotate-90 transition-transform ${sub.is_paused ? 'animate-spin-slow' : ''}`} />
+                                        <Target className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                     </button>
 
-                                    {sub.sync_active && (
-                                        <button 
-                                            onClick={() => setShowIntegration(!showIntegration)}
-                                            className={`px-8 py-6 rounded-[32px] transition-all group border ${showIntegration ? 'bg-[#00B0FF]/10 border-[#00B0FF] text-[#00B0FF]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}
-                                            title="Signal Integration"
-                                        >
-                                            <Globe className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                        </button>
-                                    )}
+                                    <button 
+                                        onClick={() => setIsIntegrationModalOpen(true)}
+                                        className={`px-8 py-6 rounded-[32px] transition-all group border ${isIntegrationModalOpen ? 'bg-[#00B0FF]/10 border-[#00B0FF] text-[#00B0FF]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}
+                                        title="Signal Integration"
+                                    >
+                                        <Globe className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
                         )}
 
-                        <AnimatePresence>
-                            {showIntegration && (
-                                <motion.div 
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="pt-8 space-y-6"
-                                >
-                                    <div className="p-6 rounded-[32px] bg-[#00B0FF]/5 border border-[#00B0FF]/20 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-[10px] font-black text-[#00B0FF] uppercase tracking-[0.2em] italic">Signal Webhook URL</p>
-                                            <button 
-                                                onClick={() => copyToClipboard(`http://localhost:3000/api/license/signal?key=${sub.strategy.master_signal_key}`, 'URL')}
-                                                className="text-[9px] font-black text-[#00B0FF] uppercase hover:underline"
-                                            >
-                                                {copiedText === 'URL' ? 'Copied!' : 'Copy Link'}
-                                            </button>
-                                        </div>
-                                        <div className="p-4 bg-black/60 rounded-2xl border border-white/5 font-mono text-[9px] text-white/60 break-all leading-relaxed">
-                                            http://localhost:3000/api/license/signal?key={sub.strategy.master_signal_key}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {[
-                                            { name: 'Bitcoin (BTCUSD)', symbol: 'BTCUSD', qty: 1 },
-                                            { name: 'Ethereum (ETHUSD)', symbol: 'ETHUSD', qty: 10 },
-                                            { name: 'Gold (XAUUSD)', symbol: 'XAUUSD', qty: 0.1 }
-                                        ].map(tmplt => (
-                                            <div key={tmplt.symbol} className="p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between group/tmplt hover:bg-white/[0.08] transition-all">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-white/60 uppercase italic mb-1">{tmplt.name}</p>
-                                                    <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">JSON Alert Message</p>
-                                                </div>
-                                                <button 
-                                                    onClick={() => copyToClipboard(`{
-  "action": "{{strategy.order.action}}",
-  "symbol": "${tmplt.symbol}",
-  "quantity": ${tmplt.qty},
-  "order_type": "MARKET"
-}`, tmplt.symbol)}
-                                                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:bg-[#00B0FF] hover:border-[#00B0FF] transition-all"
-                                                >
-                                                    {copiedText === tmplt.symbol ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        <IntegrationModal 
+                            isOpen={isIntegrationModalOpen}
+                            onClose={() => setIsIntegrationModalOpen(false)}
+                            sub={sub}
+                            copyToClipboard={copyToClipboard}
+                            copiedText={copiedText}
+                        />
                     </div>
                 </div>
 
                 <div className="p-6 md:p-10 flex flex-col justify-between bg-black/40 relative min-h-[300px] md:min-h-auto">
-                    <div className="flex justify-between items-center mb-6 px-1">
-                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-3 font-sans italic">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 px-1 gap-4">
+                        <div className="flex items-center gap-3">
                             <span className={`w-2 h-2 rounded-full animate-pulse ${isOfficial ? 'bg-[#FFD700]' : 'bg-[#00E676]'}`}></span>
-                            Mirror Propagation Terminal
-                        </span>
-                        <div className="flex items-center gap-4">
+                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">
+                                Mirror Propagation Terminal
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
                             {(sub.strategy.name.toUpperCase().includes('XAU') || sub.strategy.name.toUpperCase().includes('GOLD')) && (
-                                <div className="flex items-center gap-2 px-3 py-1 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full animate-pulse">
-                                    <Zap className="w-3 h-3 text-[#FFD700]" />
-                                    <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest leading-none">Mirroring Gold Protocol</span>
+                                <div className="flex items-center gap-2 px-2.5 py-1 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full animate-pulse shrink-0">
+                                    <Zap className="w-2.5 h-2.5 text-[#FFD700]" />
+                                    <span className="text-[7px] md:text-[8px] font-bold text-[#FFD700] uppercase tracking-widest leading-none">Mirroring Gold Protocol</span>
                                 </div>
                             )}
                             <button 
@@ -1155,27 +1466,22 @@ function StrategyCard({
                             >
                                 {isVisualMode ? <Code className="w-4 h-4" /> : <LineChart className="w-4 h-4" />}
                             </button>
-                            <span className="text-[11px] font-black text-[#00E676]/40 uppercase tracking-widest font-sans italic animate-pulse">Live</span>
+                            <span className="text-[11px] font-bold text-[#00E676]/40 uppercase tracking-widest font-sans animate-pulse">Live</span>
                             <span className="text-[9px] font-mono text-white/10 uppercase tracking-widest">Latency: 24ms</span>
                         </div>
                     </div>
                     {isVisualMode ? (
                         <SignalVisualizer 
-                            symbol={
-                                sub.strategy.name.toUpperCase().includes("BTC") ? "BTCUSD" : 
-                                sub.strategy.name.toUpperCase().includes("ETH") ? "ETHUSD" : 
-                                sub.strategy.name.toUpperCase().includes("SOL") ? "SOLUSD" :
-                                sub.strategy.name.toUpperCase().includes("XRP") ? "XRPUSD" :
-                                (sub.strategy.name.toUpperCase().includes("XAU") || sub.strategy.name.toUpperCase().includes("GOLD")) ? "XAUUSD" : 
-                                "XAUUSD"
-                            } 
+                            symbol={activeSymbol} 
+                            activeSymbols={sub.active_assets || []}
+                            onSymbolChange={setSelectedSymbol}
                             logs={logs} 
                         />
                     ) : (
                         <TerminalLog logs={logs} />
                     )}
                     <div className="mt-8 flex justify-between items-center px-1">
-                        <div className={`text-[10px] font-black uppercase tracking-widest leading-loose max-w-[280px] font-sans italic ${isOfficial ? 'text-[#FFD700]/40' : 'text-white/20'}`}>
+                        <div className={`text-[10px] font-bold uppercase tracking-widest leading-loose max-w-[280px] font-sans ${isOfficial ? 'text-[#FFD700]/40' : 'text-white/20'}`}>
                             {isOfficial ? 'Elite Enterprise Hub: Mirrored via Coppr Proprietary High-Performance Fiber Network.' : 'Marketplace Alpha: Mirror propagated via standard virtual hosting nodes.'}
                         </div>
                         <button onClick={() => fetchLogs(logId)} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group/btn">

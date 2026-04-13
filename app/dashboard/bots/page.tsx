@@ -53,7 +53,7 @@ export default function BotsPage() {
       </motion.div>
 
       {/* TIMELINE WIZARD CONTAINER */}
-      <div className="relative border-l-2 border-dashed border-white/10 ml-6 md:ml-8 pl-6 md:pl-8 mt-12 mb-24 min-h-[400px]">
+      <div className="relative border-l-2 border-dashed border-white/10 ml-10 md:ml-8 pl-6 md:pl-8 mt-12 mb-24 min-h-[400px]">
           <VaultView typeFilter="MT5_EA" timelineMode="bots" />
       </div>
 

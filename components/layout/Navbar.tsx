@@ -42,13 +42,13 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-[#0A1A3A]/70 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-      <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#0A1A3A] border-b border-white/5 shadow-2xl">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         
         {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity z-[60] relative">
-          <Logo variant="dark" className="w-12 h-12 shadow-[0_0_20px_rgba(255,215,0,0.2)] rounded-full" />
-          <span className="text-[1.5rem] font-bold tracking-tight hidden sm:block text-white font-brand mt-1">Coppr</span>
+        <Link href="/" className="flex items-center gap-[6px] hover:opacity-80 transition-opacity z-[60] relative">
+          <Logo variant="dark" className="w-11 h-11" />
+          <span className="text-[1.5rem] font-bold tracking-tight hidden sm:block text-white font-brand">Coppr</span>
         </Link>
         
         {/* DESKTOP NAV LINKS (Centered) */}

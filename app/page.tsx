@@ -53,24 +53,39 @@ export default function LandingPage() {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
         {/* Background Glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-gradient-to-b from-[#FFD700]/[0.03] to-transparent pointer-events-none" />
         <div className="absolute top-[20%] left-[10%] w-64 h-64 bg-[#00E676]/5 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute top-[40%] right-[10%] w-96 h-96 bg-[#FFD700]/5 blur-[150px] rounded-full pointer-events-none" />
+        
+        {/* Living Ambient Glow (User Requested) */}
+        <motion.div 
+          animate={{
+            x: [0, 40, -40, 0],
+            y: [0, -30, 30, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FFD700]/[0.025] blur-[180px] rounded-full pointer-events-none z-0"
+        />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col items-center text-center space-y-8">
             <motion.div 
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
-               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md"
+               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10"
             >
                 <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Marketplace V2.0 is Live</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00E676]">Marketplace V2.0 is Live</span>
             </motion.div>
 
-            <div className="relative h-[220px] md:h-[300px] w-full flex flex-col items-center justify-center overflow-hidden">
+            <div className="relative min-h-[280px] w-full flex flex-col items-center justify-center">
+                <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/20 to-transparent pointer-events-none opacity-0" />
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={headlineIndex}
@@ -115,7 +130,7 @@ export default function LandingPage() {
       </section>
 
       {/* 2. PLATFORM STATS */}
-      <section className="py-20 border-b border-white/5">
+      <section className="py-12 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
                 { label: 'Trade Volume', value: '$850k+', icon: Zap, color: '#FFD700' },
@@ -133,7 +148,7 @@ export default function LandingPage() {
       </section>
 
       {/* 3. FEATURED STRATEGIES (Preview) */}
-      <section id="marketplace" className="py-32 relative overflow-hidden">
+      <section id="marketplace" className="py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
                 <div className="space-y-4">
@@ -190,7 +205,7 @@ export default function LandingPage() {
       </section>
 
       {/* SEBI 2026 COMPLIANCE MARKETING SECTION */}
-      <section className="py-24 relative border-t border-white/5 overflow-hidden">
+      <section className="py-20 relative border-t border-white/5 overflow-hidden">
         <div className="absolute inset-0 bg-[#00E676]/[0.02] pointer-events-none" />
         <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-[#00E676]/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         
@@ -251,7 +266,7 @@ export default function LandingPage() {
       </section>
 
       {/* 4. CREATOR NETWORK SECTION */}
-      <section className="py-32 bg-white/[0.01] border-y border-white/5">
+      <section className="py-20 bg-white/[0.01] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-8">
                 <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">JOIN THE TOP <span className="text-[#FFD700]">1%</span> OF STRATEGY CREATORS.</h2>
@@ -283,7 +298,7 @@ export default function LandingPage() {
             {/* Visual Abstract */}
             <div className="relative">
                 <div className="absolute inset-0 bg-[#FFD700]/5 blur-[200px] rounded-full" />
-                <div className="p-8 md:p-12 rounded-[60px] bg-white/[0.02] border border-white/10 relative z-10 backdrop-blur-3xl overflow-hidden">
+                <div className="p-6 md:p-12 rounded-[40px] md:rounded-[60px] bg-white/[0.02] border border-white/10 relative z-10 backdrop-blur-3xl overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
                     <div className="space-y-8">
                         <div className="flex items-center justify-between">
@@ -302,7 +317,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                         
-                        <div className="h-[200px] w-full bg-white/[0.02] rounded-3xl border border-white/5 flex items-center justify-center overflow-hidden">
+                        <div className="h-[160px] md:h-[200px] w-full bg-white/[0.02] rounded-3xl border border-white/5 flex items-center justify-center overflow-hidden">
                             <svg className="w-full h-full p-4" viewBox="0 0 400 150">
                                 <path d="M0 100 Q50 90 100 110 T200 60 T300 80 T400 30" fill="none" stroke="#FFD700" strokeWidth="2" strokeDasharray="5,5" className="opacity-20" />
                                 <motion.path 
@@ -346,7 +361,7 @@ export default function LandingPage() {
                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
                  <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em]">Multi-Platform AI Extraction</span>
               </div>
-              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-[1.1]">
                 Paste a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FFD700] to-[#E1306C]">Video Link</span>.
                 <br />Get a live bot.
               </h2>
@@ -391,7 +406,7 @@ export default function LandingPage() {
       </section>
 
       {/* 5. PRICING SECTION */}
-      <section id="pricing" className="py-32">
+      <section id="pricing" className="py-24">
         <div className="max-w-7xl mx-auto px-6">
             <div className="text-center space-y-4 mb-20">
                 <h2 className="text-4xl md:text-6xl font-black tracking-tighter italic">CHOOSE YOUR <span className="text-white/20">SPEED.</span></h2>
@@ -454,7 +469,7 @@ export default function LandingPage() {
       </section>
 
       {/* 6. FAQ SECTION */}
-      <section className="py-32 border-t border-white/5">
+      <section className="py-24 border-t border-white/5">
         <div className="max-w-3xl mx-auto px-6">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-center mb-16 underline underline-offset-[16px] decoration-white/5">TECHNICAL FAQ.</h2>
             <div className="space-y-4">

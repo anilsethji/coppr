@@ -121,4 +121,22 @@ export class BinanceFuturesAdapter {
 
         return response.data.dualSidePosition; // true = Hedge Mode
     }
+
+    async getInstruments(): Promise<any[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/fapi/v1/exchangeInfo`);
+            return response.data.symbols
+                .filter((s: any) => s.status === 'TRADING' && s.quoteAsset === 'USDT')
+                .map((s: any) => ({
+                    symbol: s.symbol,
+                    baseAsset: s.baseAsset,
+                    quoteAsset: s.quoteAsset,
+                    displayName: `${s.baseAsset}/USDT`,
+                    type: 'CRYPTO'
+                }));
+        } catch (error: any) {
+            console.error('[BINANCE_FUTURES] Failed to fetch instruments:', error.message);
+            return [];
+        }
+    }
 }
