@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, CandlestickSeries, IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
 import { Loader2 } from 'lucide-react';
 
 interface SignalVisualizerProps {
@@ -83,7 +83,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
             },
         });
 
-        const candlestickSeries = chart.addSeries(CandlestickSeries, {
+        const candlestickSeries = chart.addCandlestickSeries({
             upColor: '#00E676',
             downColor: '#FF5252',
             borderVisible: false,
