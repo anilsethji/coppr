@@ -36,3 +36,15 @@ export async function deleteUpdate(id: string) {
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
+
+export async function updateStrategy(id: string, payload: any) {
+  const { error } = await supabaseAdmin.from('strategies').update(payload).eq('id', id);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function deleteStrategy(id: string) {
+  const { error } = await supabaseAdmin.from('strategies').delete().eq('id', id);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}

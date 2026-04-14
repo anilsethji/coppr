@@ -83,6 +83,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
             },
         });
 
+        // V4: Use addCandlestickSeries instead of addSeries
         const candlestickSeries = chart.addCandlestickSeries({
             upColor: '#00E676',
             downColor: '#FF5252',
@@ -155,6 +156,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
                 });
 
                 if (markers.length > 0) {
+                    // V4: Use setMarkers directly on series
                     markers.sort((a, b) => (a.time as number) - (b.time as number));
                     candlestickSeries.setMarkers(markers);
                 }

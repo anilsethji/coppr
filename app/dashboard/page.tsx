@@ -52,6 +52,8 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<any[]>([]);
   const [botLibrary, setBotLibrary] = useState<any[]>([]);
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [official, setOfficial] = useState<any | null>(null);
   const [latestEA, setLatestEA] = useState<string | null>(null);
   const [latestInd, setLatestInd] = useState<string | null>(null);
 
@@ -61,16 +63,20 @@ export default function DashboardHome() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [pRes, uRes, cRes, eaRes, indRes] = await Promise.all([
+      const [pRes, uRes, cRes, featRes, offRes, eaRes, indRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('updates').select('*').order('created_at', { ascending: false }).limit(20),
-        supabase.from('content').select('*').eq('type', 'bot').order('created_at', { ascending: false }).limit(12),
-        supabase.from('strategies').select('name').eq('type', 'MT5_EA').order('created_at', { ascending: false }).limit(1).single(),
-        supabase.from('strategies').select('name').eq('type', 'PINE_SCRIPT_WEBHOOK').order('created_at', { ascending: false }).limit(1).single()
+        supabase.from('strategies').select('*').eq('status', 'ACTIVE').eq('is_official', false).order('created_at', { ascending: false }).limit(12),
+        supabase.from('strategies').select('*').eq('is_featured', true).order('created_at', { ascending: false }).limit(4),
+        supabase.from('strategies').select('*').eq('is_official', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('strategies').select('name').eq('type', 'MT5_EA').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('strategies').select('name').eq('type', 'PINE_SCRIPT_WEBHOOK').order('created_at', { ascending: false }).limit(1).maybeSingle()
       ]);
 
       setProfile(pRes.data);
       setBotLibrary(cRes.data || []);
+      setFeatured(featRes.data || []);
+      setOfficial(offRes.data || null);
       setLogs(uRes.data || []);
       setLatestEA(eaRes.data?.name || null);
       setLatestInd(indRes.data?.name || null);
@@ -223,8 +229,8 @@ export default function DashboardHome() {
            </p>
         </div>
 
-        {/* FEATURED HERO (THE MARQUEE) */}
-        {botLibrary.length > 0 && (
+        {/* FEATURED HERO (THE MARQUEE) - NOW DRIVEN BY OFFICIAL FLAG */}
+        {official && (
           <motion.div 
             variants={item}
             whileHover={{ y: -5 }}
@@ -237,39 +243,39 @@ export default function DashboardHome() {
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
                 <div className="lg:col-span-8 space-y-6">
                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="px-4 py-1 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">Featured Bot</div>
+                      <div className="px-4 py-1 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">Coppr Official</div>
                       <div className="flex items-center gap-2">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]" />
-                         <span className="text-[10px] font-black text-[#00E676] uppercase tracking-widest italic">Fast Execution</span>
+                         <span className="text-[10px] font-black text-[#00E676] uppercase tracking-widest italic">Verified Strategy</span>
                       </div>
                    </div>
                    
                    <div className="space-y-3">
                       <h2 className="text-2xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-[0.9] group-hover:text-[#FFD700] transition-colors duration-700">
-                        {botLibrary[0].title}
+                        {official.name}
                       </h2>
                       <p className="text-[11px] md:text-[14px] text-white/30 font-bold italic font-sans max-w-xl leading-relaxed uppercase tracking-wide">
-                        {botLibrary[0].description ? (botLibrary[0].description.startsWith('{') ? JSON.parse(botLibrary[0].description).desc : botLibrary[0].description) : 'High-quality trading strategy tested in live markets.'}
+                        {official.description || 'Institutional grade algorithmic trading strategy maintained by the Coppr core team.'}
                       </p>
                    </div>
 
                    <div className="grid grid-cols-2 gap-6 pt-2">
                       <div className="space-y-1">
-                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Efficiency</p>
-                         <p className="text-sm font-black text-white uppercase italic">99.9% Uptime</p>
+                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Asset Class</p>
+                         <p className="text-sm font-black text-white uppercase italic">{official.symbol || 'Global'}</p>
                       </div>
                       <div className="space-y-1 border-l border-white/5 pl-6">
-                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Latency</p>
-                         <p className="text-sm font-black text-[#00E676] uppercase italic">24ms Node</p>
+                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Proprietary Node</p>
+                         <p className="text-sm font-black text-[#00E676] uppercase italic">Active</p>
                       </div>
                    </div>
 
                    <div className="pt-4">
                       <Link 
-                        href={botLibrary[0].external_link || `/dashboard/bots`}
+                        href={`/dashboard/marketplace?id=${official.id}`}
                         className="inline-flex items-center gap-4 px-10 py-4 bg-[#FFD700] text-black font-black uppercase text-[10px] tracking-[0.3em] rounded-[24px] hover:scale-105 hover:bg-white transition-all shadow-2xl shadow-[#FFD700]/30"
                       >
-                         View Details
+                         Initialize Mirror
                          <ArrowUpRight className="w-5 h-5" />
                       </Link>
                    </div>
@@ -286,6 +292,37 @@ export default function DashboardHome() {
              </div>
           </motion.div>
         )}
+
+      {/* FEATURED SPOTLIGHTS (HORIZONTAL SCROLL OR FLEX) */}
+      {featured.length > 0 && (
+         <div className="space-y-8">
+            <div className="flex items-center gap-3 px-2">
+               <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]" />
+               <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">Community <span className="text-yellow-400">Spotlights</span></h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {featured.map((s) => (
+                  <Link key={s.id} href={`/dashboard/marketplace?id=${s.id}`} className="group relative block p-6 bg-gradient-to-br from-[#1E293B] to-[#0F172A] border border-yellow-400/20 rounded-[32px] hover:border-yellow-400/50 transition-all shadow-xl overflow-hidden">
+                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
+                        <Star className="w-12 h-12 text-yellow-400 fill-yellow-400" />
+                     </div>
+                     <div className="flex items-center gap-5 relative z-10">
+                        <div className="w-14 h-14 rounded-2xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20">
+                           <Zap className="w-7 h-7 text-yellow-400" />
+                        </div>
+                        <div>
+                           <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[8px] font-black text-yellow-400 uppercase tracking-widest px-2 py-0.5 bg-yellow-400/10 rounded-full border border-yellow-400/20">Featured Alpha</span>
+                              <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">{s.symbol}</span>
+                           </div>
+                           <h4 className="text-lg font-black text-white uppercase italic leading-none">{s.name}</h4>
+                        </div>
+                     </div>
+                  </Link>
+               ))}
+            </div>
+         </div>
+      )}
       </div>
 
       {/* AI STRATEGY BUILDER CTA */}
@@ -331,15 +368,13 @@ export default function DashboardHome() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {(botLibrary.length > 1 ? botLibrary.slice(1) : [
-            { id: 'm1', title: 'Momentum Algo NSE', roi: '94%' },
-            { id: 'm2', title: 'News Filter EA', roi: '82%' },
-            { id: 'm3', title: 'Regression Bot', roi: '88%' },
-            { id: 'm4', title: 'Coppr Mirror', roi: '91%' },
-            { id: 'm5', title: 'Grid Pulse', roi: '85%' },
-            { id: 'm6', title: 'Fiber Alpha', roi: '93%' }
+          {(botLibrary.length > 0 ? botLibrary : [
+            { id: 'm1', name: 'Momentum Algo NSE', roi: '94%', symbol: 'NIFTY' },
+            { id: 'm2', name: 'News Filter EA', roi: '82%', symbol: 'XAUUSD' },
+            { id: 'm3', name: 'Regression Bot', roi: '88%', symbol: 'BTC' },
+            { id: 'm4', name: 'Coppr Mirror', roi: '91%', symbol: 'ETH' }
           ]).map((item: any) => (
-            <Link key={item.id} href={item.external_link || `/dashboard/bots`} className="group relative">
+            <Link key={item.id} href={`/dashboard/marketplace?id=${item.id}`} className="group relative">
                <motion.div 
                  whileHover={{ y: -5, scale: 1.02 }}
                  className="p-5 md:p-6 bg-[#161C2D] border border-white/5 rounded-[24px] md:rounded-[32px] hover:border-[#FFD700]/30 transition-all flex flex-col gap-4 md:gap-6 aspect-auto overflow-hidden relative shadow-lg"
@@ -349,11 +384,11 @@ export default function DashboardHome() {
                      <Bot className="w-6 h-6 md:w-8 md:h-8 text-[#FFD700]/60 group-hover:text-[#FFD700]" />
                   </div>
                   <div>
-                     <h4 className="text-[13px] md:text-[16px] font-black text-white uppercase italic leading-tight mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{item.title}</h4>
+                     <h4 className="text-[13px] md:text-[16px] font-black text-white uppercase italic leading-tight mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{item.name}</h4>
                      <div className="flex items-center gap-2 opacity-40">
                         <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-white font-sans italic">{item.roi || '99%'} ROI</span>
                         <div className="w-[1px] h-3 bg-white/20" />
-                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-[#00E676] font-sans italic">Broadcast</span>
+                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-[#00E676] font-sans italic">{item.symbol || 'SYNC'}</span>
                      </div>
                   </div>
                </motion.div>

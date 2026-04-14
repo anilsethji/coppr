@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { addAsset, deleteAsset, updateAsset, addUpdate, deleteUpdate } from './actions';
-import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { addAsset, deleteAsset, updateAsset, addUpdate, deleteUpdate, updateStrategy, deleteStrategy } from './actions';
+import { CheckCircle2, XCircle, Clock, Activity, Star, Shield, Trash2 } from 'lucide-react';
 
 export default function AdminPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -212,6 +212,9 @@ export default function AdminPage() {
           {/* PENDING MARKETPLACE APPROVALS */}
           <PendingStrategiesPanel supabase={supabase} />
 
+          {/* ACTIVE PRODUCTION STRATEGIES */}
+          <ActiveStrategiesPanel supabase={supabase} />
+
           <div>
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white font-black tracking-tight underline underline-offset-8 decoration-white/10">
               Active Terminal Assets
@@ -397,6 +400,127 @@ function LiveUpdatesManager({ supabase }: { supabase: any }) {
           </div>
         ))}
         {updates.length === 0 && <p className="text-xs text-gray-700 italic px-4 py-8 border border-dashed border-white/5 rounded-card text-center">No broadcast history found.</p>}
+      </div>
+    </div>
+  );
+}
+
+function ActiveStrategiesPanel({ supabase }: { supabase: any }) {
+  const [active, setActive] = useState<any[]>([]);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const fetchActive = useCallback(async () => {
+    const { data } = await supabase
+      .from('strategies')
+      .select('*, creator_profiles(display_name, handle)')
+      .eq('status', 'ACTIVE')
+      .order('created_at', { ascending: false });
+    setActive(data || []);
+  }, [supabase]);
+
+  useEffect(() => { fetchActive(); }, [fetchActive]);
+
+  const handleToggleFeatured = async (id: string, current: boolean) => {
+    setActionLoading(id + '_feature');
+    await updateStrategy(id, { is_featured: !current });
+    await fetchActive();
+    setActionLoading(null);
+  };
+
+  const handleToggleOfficial = async (id: string, current: boolean) => {
+    setActionLoading(id + '_official');
+    await updateStrategy(id, { is_official: !current });
+    await fetchActive();
+    setActionLoading(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Permanent deletion: Are you sure?')) return;
+    setActionLoading(id + '_delete');
+    await deleteStrategy(id);
+    await fetchActive();
+    setActionLoading(null);
+  };
+
+  return (
+    <div className="mt-12">
+      <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-[#00E676] font-black tracking-tight">
+        <Activity className="w-5 h-5" />
+        Live Production Strategies
+        {active.length > 0 && (
+          <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#00E676]/10 border border-[#00E676]/30 text-[#00E676] font-black">{active.length}</span>
+        )}
+      </h2>
+      <div className="grid grid-cols-1 gap-3">
+        {active.map((s) => (
+          <div key={s.id} className="bot-card p-4 border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-[#00E676]/20 transition-all bg-[#131929]">
+            {/* Info Part */}
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+               {/* Theme Swatch */}
+              <div className="w-10 h-10 rounded-lg shrink-0 border border-white/10 flex items-center justify-center relative" style={{ backgroundColor: (s.theme_color || '#00E676') + '20' }}>
+                 <div className="w-4 h-4 rounded-full" style={{ backgroundColor: s.theme_color || '#00E676' }} />
+                 {s.is_official && (
+                   <div className="absolute -top-1 -right-1 bg-[#00E676] p-0.5 rounded-full shadow-lg">
+                     <Shield className="w-2.5 h-2.5 text-black" />
+                   </div>
+                 )}
+              </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0 text-left">
+                <h3 className="text-sm font-black text-white truncate flex items-center gap-2">
+                  {s.name}
+                  {s.is_featured && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />}
+                </h3>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{s.type?.replace('_', ' ')}</span>
+                  <span className="text-[9px] font-bold text-white/30">·</span>
+                  <span className="text-[9px] font-bold text-[#00E676]/50">@{s.creator_profiles?.handle || 'unknown'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Control Matrix */}
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => handleToggleFeatured(s.id, s.is_featured)}
+                disabled={!!actionLoading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all text-[9px] font-black uppercase tracking-widest ${
+                  s.is_featured 
+                  ? 'bg-yellow-400/10 border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/20' 
+                  : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                }`}
+              >
+                <Star className={`w-3 h-3 ${s.is_featured ? 'fill-yellow-400' : ''}`} />
+                {s.is_featured ? 'Featured' : 'Feature'}
+              </button>
+              
+              <button
+                onClick={() => handleToggleOfficial(s.id, s.is_official)}
+                disabled={!!actionLoading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all text-[9px] font-black uppercase tracking-widest ${
+                  s.is_official
+                  ? 'bg-[#00E676]/10 border-[#00E676]/30 text-[#00E676] hover:bg-[#00E676]/20'
+                  : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                }`}
+              >
+                <Shield className="w-3 h-3" />
+                {s.is_official ? 'Official' : 'Mark Official'}
+              </button>
+
+              <button
+                onClick={() => handleDelete(s.id)}
+                className="p-2 rounded-lg bg-red-500/5 border border-red-500/10 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all font-black text-[10px]"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+        {active.length === 0 && (
+          <div className="py-10 text-center text-gray-700 italic border border-dashed border-white/5 rounded-xl">
+            No active strategies yet.
+          </div>
+        )}
       </div>
     </div>
   );
