@@ -48,3 +48,13 @@ export async function deleteStrategy(id: string) {
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
+
+export async function deployStrategy(payload: any) {
+  const { data, error } = await supabaseAdmin
+    .from('strategies')
+    .insert(payload)
+    .select('id')
+    .single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, id: data.id };
+}

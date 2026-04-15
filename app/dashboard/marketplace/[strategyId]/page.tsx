@@ -31,6 +31,7 @@ import {
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import PremiumStrategyView from '@/components/marketplace/PremiumStrategyView';
 
 export default function StrategyLandingPage() {
   const { strategyId } = useParams();
@@ -80,14 +81,16 @@ export default function StrategyLandingPage() {
     if (strategy.tier === 'FREE') {
         setIsSubscribing(true);
         try {
-            const resp = await fetch(`/api/marketplace/${strategyId}/subscribe`, {
+            const resp = await fetch(`/api/marketplace/direct-activate`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ strategyId })
             });
             const json = await resp.json();
-            if (json.success) {
+            if (json.status === 'ACTIVATION_SUCCESSFUL' || json.status === 'ALREADY_ACTIVE') {
                 router.push('/dashboard/vault');
             } else {
-                alert(json.error || 'Direct activation protocol failed. Check system logs.');
+                alert(json.error || 'Direct activation handshake failed.');
             }
         } catch (err: any) {
             console.error('Subscription error:', err);
@@ -130,6 +133,22 @@ export default function StrategyLandingPage() {
         console.log("MARKETPLACE_PROTOCOL_TERMINATED");
     }
   };
+
+  // CHECK FOR PREMIUM OFFICIAL VIEW (Link with Spotlight Manager toggle)
+  if (strategy.origin === 'OFFICIAL' || strategy.is_official) {
+    return (
+      <PremiumStrategyView 
+        strategy={strategy}
+        creator={creator}
+        stats={stats}
+        handleSubscribe={handleSubscribe}
+        isSubscribing={isSubscribing}
+        legalAccepted={legalAccepted}
+        setLegalAccepted={setLegalAccepted}
+        isUserSubscribed={isUserSubscribed}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A1A3A] text-white selection:bg-[#FFD700] selection:text-black font-sans pb-32">
