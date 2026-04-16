@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
@@ -52,7 +53,12 @@ export async function POST(request: Request) {
     }
 
     // 3. PROVISION LICENSE
-    const { data: sub, error: fulfillmentError } = await supabase
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: sub, error: fulfillmentError } = await supabaseAdmin
       .from('user_strategies')
       .insert({
           user_id: user.id,
