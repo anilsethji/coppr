@@ -30,13 +30,14 @@ import {
   X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { TerminalLog } from './TerminalLog';
+import { AstralTerminalWelcome } from './AstralTerminalWelcome';
 
-const SignalVisualizer = dynamic(
-  () => import('./SignalVisualizer').then(mod => mod.SignalVisualizer),
-  { ssr: false }
-);
+const SignalVisualizer = dynamic(() => import('./SignalVisualizer').then(m => m.SignalVisualizer), { 
+    ssr: false,
+    loading: () => <div className="h-[300px] md:h-[500px] flex items-center justify-center bg-black/20 rounded-3xl border border-white/5 animate-pulse"><Loader2 className="w-8 h-8 text-[#FFD700] animate-spin" /></div>
+});
 
-import TerminalLog from './TerminalLog';
 import ManagedNodeMonitor from './ManagedNodeMonitor';
 import QuickStartJourney from './QuickStartJourney';
 import BrokerGuardian from './BrokerGuardian';
@@ -1028,6 +1029,7 @@ function StrategyCard({
     const [cardError, setCardError] = useState<string | null>(null);
     const [isVisualMode, setIsVisualMode] = useState(true);
     const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+    const [isTerminalWelcomeOpen, setIsTerminalWelcomeOpen] = useState(false);
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
     const isUniversal = 
         sub.strategy.type === 'PINE_SCRIPT_WEBHOOK' || 
@@ -1059,8 +1061,71 @@ function StrategyCard({
             animate={{ opacity: 1, y: 0 }}
             className={`bg-[#0D121F]/60 border rounded-[32px] md:rounded-[48px] overflow-hidden group transition-all duration-700 hover:scale-[1.005] ${isOfficial ? 'border-[#FFD700]/20 hover:border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/5' : 'border-white/5 hover:border-white/10'}`}
         >
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="p-5 md:p-10 space-y-5 md:space-y-8 border-b lg:border-b-0 lg:border-r border-white/5 bg-black/20 relative overflow-hidden">
+            <div className="grid grid-cols-1 xl:grid-cols-4">
+                {/* 1. CINEMATIC COMMAND FRAME (CHART AREA) - Left 3 Columns */}
+                <div className="xl:col-span-3 p-6 md:p-10 flex flex-col justify-between bg-black/40 relative min-h-[400px] md:min-h-[600px] border-b xl:border-b-0 xl:border-r border-white/5">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 px-1 gap-4 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <span className={`w-2.5 h-2.5 rounded-full animate-pulse ${isOfficial ? 'bg-[#FFD700] shadow-[0_0_12px_#FFD700]' : 'bg-[#00E676] shadow-[0_0_12px_#00E676]'}`}></span>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] md:text-[12px] font-black text-white uppercase tracking-[0.2em] font-sans leading-none mb-1">
+                                    {isOfficial ? 'Institutional Fiber Node' : 'Community Mirror Protocol'}
+                                </span>
+                                <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest">Mirror Propagation Terminal // LIVE</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+                            {(sub.strategy.name.toUpperCase().includes('XAU') || sub.strategy.name.toUpperCase().includes('GOLD')) && (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full animate-pulse shrink-0">
+                                    <Zap className="w-3 h-3 text-[#FFD700]" />
+                                    <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest leading-none">GOLD_HANDSHAKE_ACTIVE</span>
+                                </div>
+                            )}
+                            <button 
+                                onClick={() => setIsVisualMode(!isVisualMode)}
+                                className={`p-2.5 rounded-xl transition-all border ${isVisualMode ? 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]' : 'bg-white/5 border-white/10 text-white/20 hover:bg-white/10'}`}
+                                title={isVisualMode ? "Switch to Technical Terminal" : "Switch to Visual Flow"}
+                            >
+                                {isVisualMode ? <Code className="w-5 h-5" /> : <LineChart className="w-5 h-5" />}
+                            </button>
+                            <div className="flex flex-col items-end gap-1">
+                                <span className="text-[11px] font-black text-[#00E676] uppercase tracking-widest font-sans animate-pulse">24ms_LATENCY</span>
+                                <span className="text-[8px] font-mono text-white/10 uppercase tracking-widest">SECURE_TUNNEL_READY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 flex-1 flex flex-col justify-center">
+                        {isVisualMode ? (
+                            <SignalVisualizer 
+                                symbol={activeSymbol} 
+                                activeSymbols={sub.active_assets || []}
+                                onSymbolChange={setSelectedSymbol}
+                                logs={logs} 
+                            />
+                        ) : (
+                            <div className="h-[500px]">
+                                <TerminalLog logs={logs} />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-8 flex flex-col md:flex-row justify-between items-center px-1 gap-6 relative z-10 border-t border-white/5 pt-8">
+                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] leading-relaxed max-w-lg font-mono ${isOfficial ? 'text-[#FFD700]/30' : 'text-white/20'}`}>
+                            {isOfficial ? '>> PRO_PROTOCOL_ENFORCED: Mirrored via Coppr Proprietary High-Performance Fiber Network. Sub-second execution parity confirmed.' : '>> COMMUNITY_MIRROR_ACTIVE: Local propagation active via standard virtual hosting nodes. Respect execution buffer.'}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => fetchLogs(logId)} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group/btn">
+                                <Settings className="w-5 h-5 text-white/30 group-hover/btn:text-white transition-colors" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2. INSTITUTIONAL METRIC SIDEBAR (CONTROL AREA) - Right 1 Column */}
+                <div className="xl:col-span-1 p-5 md:p-10 space-y-8 bg-white/[0.01] relative overflow-hidden flex flex-col">
                     {isOfficial && (
                         <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#FFD700]/5 blur-[100px] pointer-events-none" />
                     )}
@@ -1409,10 +1474,20 @@ function StrategyCard({
 
                                 <div className="flex gap-4 w-full">
                                     <button 
-                                        onClick={() => setLinkingId(sub.id)} 
-                                        className={`flex-1 py-6 rounded-[32px] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-4 transition-all duration-500 italic ${sub.sync_active ? 'bg-white/5 border border-white/10 text-white/20' : 'bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20'}`}
+                                        onClick={() => {
+                                            if (sub.sync_active) {
+                                                setIsTerminalWelcomeOpen(true);
+                                            } else {
+                                                setLinkingId(sub.id);
+                                            }
+                                        }} 
+                                        className={`flex-1 py-6 rounded-[32px] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-4 transition-all duration-500 italic ${sub.sync_active ? 'bg-[#FFD700]/5 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10' : 'bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20'}`}
                                     >
-                                        {sub.sync_active ? 'API Linked' : 'Connect API'}
+                                        {sub.sync_active ? (
+                                            <><Terminal className="w-4 h-4" /> Entry Point</>
+                                        ) : (
+                                            'Connect API'
+                                        )}
                                     </button>
                                     
                                     <button 
@@ -1441,53 +1516,15 @@ function StrategyCard({
                             copyToClipboard={copyToClipboard}
                             copiedText={copiedText}
                         />
+
+                        <AstralTerminalWelcome 
+                            isOpen={isTerminalWelcomeOpen}
+                            onClose={() => setIsTerminalWelcomeOpen(false)}
+                            strategyName={sub.strategy.name}
+                        />
                     </div>
                 </div>
 
-                <div className="p-6 md:p-10 flex flex-col justify-between bg-black/40 relative min-h-[300px] md:min-h-auto">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 px-1 gap-4">
-                        <div className="flex items-center gap-3">
-                            <span className={`w-2 h-2 rounded-full animate-pulse ${isOfficial ? 'bg-[#FFD700]' : 'bg-[#00E676]'}`}></span>
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">
-                                Mirror Propagation Terminal
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-                            {(sub.strategy.name.toUpperCase().includes('XAU') || sub.strategy.name.toUpperCase().includes('GOLD')) && (
-                                <div className="flex items-center gap-2 px-2.5 py-1 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-full animate-pulse shrink-0">
-                                    <Zap className="w-2.5 h-2.5 text-[#FFD700]" />
-                                    <span className="text-[7px] md:text-[8px] font-bold text-[#FFD700] uppercase tracking-widest leading-none">Mirroring Gold Protocol</span>
-                                </div>
-                            )}
-                            <button 
-                                onClick={() => setIsVisualMode(!isVisualMode)}
-                                className={`p-2 rounded-lg transition-all ${isVisualMode ? 'bg-[#00E676]/10 text-[#00E676]' : 'bg-white/5 text-white/20 hover:bg-white/10'}`}
-                                title={isVisualMode ? "Switch to Technical Terminal" : "Switch to Visual Flow"}
-                            >
-                                {isVisualMode ? <Code className="w-4 h-4" /> : <LineChart className="w-4 h-4" />}
-                            </button>
-                            <span className="text-[11px] font-bold text-[#00E676]/40 uppercase tracking-widest font-sans animate-pulse">Live</span>
-                            <span className="text-[9px] font-mono text-white/10 uppercase tracking-widest">Latency: 24ms</span>
-                        </div>
-                    </div>
-                    {isVisualMode ? (
-                        <SignalVisualizer 
-                            symbol={activeSymbol} 
-                            activeSymbols={sub.active_assets || []}
-                            onSymbolChange={setSelectedSymbol}
-                            logs={logs} 
-                        />
-                    ) : (
-                        <TerminalLog logs={logs} />
-                    )}
-                    <div className="mt-8 flex justify-between items-center px-1">
-                        <div className={`text-[10px] font-bold uppercase tracking-widest leading-loose max-w-[280px] font-sans ${isOfficial ? 'text-[#FFD700]/40' : 'text-white/20'}`}>
-                            {isOfficial ? 'Elite Enterprise Hub: Mirrored via Coppr Proprietary High-Performance Fiber Network.' : 'Marketplace Alpha: Mirror propagated via standard virtual hosting nodes.'}
-                        </div>
-                        <button onClick={() => fetchLogs(logId)} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group/btn">
-                            <Settings className="w-5 h-5 text-white/30 group-hover/btn:text-white transition-colors" />
-                        </button>
-                    </div>
                 </div>
             </div>
         </motion.div>

@@ -32,6 +32,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import PremiumStrategyView from '@/components/marketplace/PremiumStrategyView';
+import { HandshakeSuccess } from '@/components/dashboard/HandshakeSuccess';
 
 export default function StrategyLandingPage() {
   const { strategyId } = useParams();
@@ -41,6 +42,7 @@ export default function StrategyLandingPage() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [handshakeSuccess, setHandshakeSuccess] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchLandingData() {
@@ -88,7 +90,11 @@ export default function StrategyLandingPage() {
             });
             const json = await resp.json();
             if (json.status === 'ACTIVATION_SUCCESSFUL' || json.status === 'ALREADY_ACTIVE') {
-                router.push('/dashboard/vault');
+                // Instead of direct redirect, show cinematic success handshake
+                setHandshakeSuccess({
+                    strategyName: strategy.name,
+                    signalKey: json.signalKey || `COPPR-NODE-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+                });
             } else {
                 alert(json.error || 'Direct activation handshake failed.');
             }
@@ -550,6 +556,19 @@ export default function StrategyLandingPage() {
                )}
             </div>
          </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {handshakeSuccess && (
+          <HandshakeSuccess 
+            strategyName={handshakeSuccess.strategyName}
+            signalKey={handshakeSuccess.signalKey}
+            onClose={() => {
+                setHandshakeSuccess(null);
+                router.refresh();
+            }}
+          />
+        )}
       </AnimatePresence>
 
     </div>

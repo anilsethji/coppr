@@ -24,6 +24,7 @@ import {
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import TerminalLog from '@/components/dashboard/TerminalLog';
+import { SpotlightCarousel } from '@/components/dashboard/SpotlightCarousel';
 
 const container = {
   hidden: { opacity: 0 },
@@ -230,138 +231,27 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      {/* 3. COPPR LABS: NEW RELEASE RELEASE (FEATURED MARQUEE) */}
+      {/* 3. COMMAND HUB SPOTLIGHTS (CINEMATIC CAROUSEL) */}
       <div className="space-y-8 md:space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
                <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none px-3 py-1.5 md:p-0 bg-white/5 md:bg-transparent border border-white/10 md:border-none rounded-full">Coppr Official Strategies</span>
+                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none">Marketplace Highlights</span>
                      <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
                   </div>
-                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">New <span className="text-[#00E676] animate-pulse">Coppr Official</span> Release</h3>
+                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">Top <span className="text-[#00E676]">Alpha</span> Spotlights</h3>
                </div>
            <p className="text-[9px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right leading-relaxed">
-              Verified and reliable trading bots built securely by the Coppr Team.
+              Consolidated command feed of the most successful algorithmic nodes on the network.
            </p>
         </div>
 
-        {/* FEATURED HERO (THE MARQUEE) - NOW DRIVEN BY OFFICIAL FLAG */}
-        {official && (
-          <motion.div 
-            variants={item}
-            whileHover={{ y: -5 }}
-            className="relative p-6 md:p-10 bg-[#0B111D] border border-white/10 rounded-[40px] md:rounded-[56px] overflow-hidden group shadow-[0_0_80px_rgba(0,0,0,0.8)] transition-all duration-700"
-          >
-             {/* 1. LAYERED PREMIUM GLOWS */}
-             <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/[0.02] to-transparent pointer-events-none" />
-             <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-[#FFD700]/[0.1] blur-[120px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
-             
-             {/* 2. METALLIC REFLECTIVE BORDER */}
-             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFD700]/30 to-transparent z-20" />
-             
-             {/* 3. DYNAMIC SHINE STREAK */}
-             <motion.div 
-                initial={{ x: '-100%' }}
-                animate={{ x: '200%' }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 6 }}
-                className="absolute inset-0 z-10 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%)',
-                  transform: 'skewX(-25deg)'
-                }}
-             />
-
-             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10 items-center">
-                <div className="lg:col-span-9 space-y-6">
-                   <div className="flex flex-wrap items-center gap-3">
-                      <div className="px-5 py-1.5 bg-[#FFD700] text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-lg skew-x-[-10deg] flex items-center gap-2">
-                         <ShieldCheck className="w-3 h-3" />
-                         OFFICIAL
-                      </div>
-                      
-                      <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-md">
-                         <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.2em] italic">VERIFIED</span>
-                      </div>
-                   </div>
-                   
-                   <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-10">
-                      <div className="space-y-1">
-                         <h2 className="text-3xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-xl">
-                           {official.name}
-                         </h2>
-                         <p className="text-[11px] md:text-[13px] text-white/30 font-black italic font-sans uppercase tracking-[0.3em] leading-none">
-                           {official.symbol || 'XAU/USD'} • {official.type === 'MT5_EA' ? 'ALGORITHMIC EA' : 'INDICATOR BRIDGE'}
-                         </p>
-                      </div>
-
-                      <div className="flex gap-8 border-l border-white/10 pl-8">
-                         <div className="space-y-1">
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">PRECISION</p>
-                            <p className="text-xl font-black text-[#00E676] uppercase italic tracking-tight">{official.win_rate}%</p>
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">NODE</p>
-                            <p className="text-xl font-black text-[#00B0FF] uppercase italic tracking-tight">24MS</p>
-                         </div>
-                      </div>
-                   </div>
-
-                   <div className="pt-4">
-                      <Link 
-                        href={official.is_legacy ? `/dashboard/marketplace` : `/dashboard/marketplace/${official.id}`}
-                        className="inline-flex items-center gap-4 px-10 py-4 bg-white text-black font-black uppercase text-[10px] tracking-[0.3em] rounded-[24px] transition-all hover:scale-105 hover:bg-[#FFD700] italic shadow-xl"
-                      >
-                         INITIALIZE COMMAND
-                         <ArrowUpRight className="w-4 h-4" />
-                      </Link>
-                   </div>
-                </div>
-
-                <div className="lg:col-span-3 hidden lg:flex items-center justify-center">
-                   <div className="relative w-32 h-32 md:w-48 md:h-48">
-                      <div className="absolute inset-0 bg-[#FFD700]/10 blur-[80px] rounded-full animate-pulse" />
-                      <div className="relative w-full h-full bg-white/5 border border-white/10 rounded-[40px] md:rounded-[60px] flex items-center justify-center backdrop-blur-3xl group-hover:border-[#FFD700]/30 transition-all duration-1000">
-                         <Bot className="w-16 h-16 md:w-24 md:h-24 text-white/10 group-hover:text-[#FFD700] transition-all duration-1000" />
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </motion.div>
-        )}
-
-      {/* FEATURED SPOTLIGHTS (THE ALPHA ROW) */}
-      {featured.length > 0 && (
-         <div className="space-y-8">
-            <div className="flex items-center gap-3 px-2">
-               <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.4)]" />
-               <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Community <span className="text-yellow-400">Spotlights</span></h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-               {featured.map((s) => (
-                  <Link key={s.id} href={`/dashboard/marketplace?id=${s.id}`} className="group relative block p-8 bg-gradient-to-br from-[#1E293B] to-[#0F172A] border border-yellow-400/20 rounded-[40px] hover:border-yellow-400/50 transition-all shadow-xl overflow-hidden min-h-[160px] flex flex-col justify-between">
-                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity">
-                        <Star className="w-16 h-16 text-yellow-400 fill-yellow-400" />
-                     </div>
-                     <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-14 h-14 rounded-2xl bg-yellow-400/10 flex items-center justify-center border border-yellow-400/20 group-hover:bg-yellow-400/20 transition-all">
-                           <Zap className="w-7 h-7 text-yellow-400" />
-                        </div>
-                        <div className="space-y-1">
-                           <div className="flex items-center gap-2">
-                              <span className="text-[8px] font-black text-yellow-400 uppercase tracking-widest px-2 py-0.5 bg-yellow-400/10 rounded-full border border-yellow-400/20">Featured Alpha</span>
-                           </div>
-                           <h4 className="text-lg font-black text-white uppercase italic leading-none group-hover:text-yellow-400 transition-colors">{s.name}</h4>
-                        </div>
-                     </div>
-                     <div className="flex justify-between items-center relative z-10 pt-4">
-                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest italic">{s.roi || (Math.floor(Math.random() * 20) + 75) + '%'} ROI</span>
-                        <span className="text-[10px] font-black text-[#00E676] uppercase tracking-widest italic animate-pulse">BROADCAST</span>
-                     </div>
-                  </Link>
-               ))}
-            </div>
-         </div>
-      )}
+        <motion.div variants={item}>
+            <SpotlightCarousel items={[
+                ...(official ? [official] : []),
+                ...featured.filter(f => f.id !== official?.id)
+            ]} />
+        </motion.div>
       </div>
 
       {/* AI STRATEGY BUILDER CTA */}

@@ -63,7 +63,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
                 horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
             },
             width: chartContainerRef.current.clientWidth,
-            height: window.innerWidth < 768 ? 240 : 300,
+            height: window.innerWidth < 768 ? 400 : 500,
             crosshair: {
                 mode: 0,
                 vertLine: { color: 'rgba(255, 215, 0, 0.2)', labelBackgroundColor: '#FFD700' },
@@ -187,7 +187,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
     }, [symbol, logs, timeframe]);
 
     return (
-        <div className="relative w-full h-[240px] md:h-[300px] group bg-black/60 rounded-2xl md:rounded-[32px] border border-white/5 overflow-hidden shadow-2xl">
+        <div className="relative w-full h-[400px] md:h-[500px] group bg-transparent overflow-hidden">
             {loading && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
                     <Loader2 className="w-8 h-8 text-[#FFD700] animate-spin" />

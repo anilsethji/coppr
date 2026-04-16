@@ -25,6 +25,7 @@ import {
 import { PriceTicker } from '@/components/PriceTicker';
 import { Logo } from '@/components/ui/Logo';
 import Navbar from '@/components/layout/Navbar';
+import { TrustMarquee } from '@/components/ui/TrustMarquee';
 
 export default function LandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -404,6 +405,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* 4.5 COMMUNITY TRUST WALL */}
+      <TrustMarquee />
 
       {/* 5. PRICING SECTION */}
       <section id="pricing" className="py-24">
