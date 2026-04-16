@@ -140,19 +140,32 @@ export default function StrategyLandingPage() {
     }
   };
 
-  // CHECK FOR PREMIUM OFFICIAL VIEW (Link with Spotlight Manager toggle)
   if (strategy.origin === 'OFFICIAL' || strategy.is_official) {
     return (
-      <PremiumStrategyView 
-        strategy={strategy}
-        creator={creator}
-        stats={stats}
-        handleSubscribe={handleSubscribe}
-        isSubscribing={isSubscribing}
-        legalAccepted={legalAccepted}
-        setLegalAccepted={setLegalAccepted}
-        isUserSubscribed={isUserSubscribed}
-      />
+      <>
+        <PremiumStrategyView 
+          strategy={strategy}
+          creator={creator}
+          stats={stats}
+          handleSubscribe={handleSubscribe}
+          isSubscribing={isSubscribing}
+          legalAccepted={legalAccepted}
+          setLegalAccepted={setLegalAccepted}
+          isUserSubscribed={isUserSubscribed}
+        />
+        <AnimatePresence>
+          {handshakeSuccess && (
+            <HandshakeSuccess 
+              strategyName={handshakeSuccess.strategyName}
+              signalKey={handshakeSuccess.signalKey}
+              onClose={() => {
+                  setHandshakeSuccess(null);
+                  router.push(strategy.type === 'PINE_SCRIPT_WEBHOOK' ? '/dashboard/indicators' : '/dashboard/bots');
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
@@ -565,7 +578,7 @@ export default function StrategyLandingPage() {
             signalKey={handshakeSuccess.signalKey}
             onClose={() => {
                 setHandshakeSuccess(null);
-                router.refresh();
+                router.push(strategy.type === 'PINE_SCRIPT_WEBHOOK' ? '/dashboard/indicators' : '/dashboard/bots');
             }}
           />
         )}
