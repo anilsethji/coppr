@@ -65,7 +65,6 @@ export async function POST(request: Request) {
           strategy_id: strategyId,
           status: 'ACTIVE',
           signal_key: crypto.randomUUID(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 Days (Renewable)
           mt5_account_number: null, 
       })
       .select()
@@ -80,7 +79,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('Direct Activation Error:', error.message);
-    return NextResponse.json({ error: 'Fulfillment Handshake Failed' }, { status: 500 });
+    console.error('Direct Activation Error:', error);
+    return NextResponse.json({ error: 'Fulfillment Handshake Failed', details: error }, { status: 500 });
   }
 }
