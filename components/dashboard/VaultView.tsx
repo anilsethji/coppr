@@ -30,7 +30,7 @@ import {
   X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { TerminalLog } from './TerminalLog';
+import TerminalLog from './TerminalLog';
 import { AstralTerminalWelcome } from './AstralTerminalWelcome';
 
 const SignalVisualizer = dynamic(() => import('./SignalVisualizer').then(m => m.SignalVisualizer), { 
@@ -1523,8 +1523,6 @@ function StrategyCard({
                             strategyName={sub.strategy.name}
                         />
                     </div>
-                </div>
-
                 </div>
             </div>
         </motion.div>
