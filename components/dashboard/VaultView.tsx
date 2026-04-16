@@ -25,7 +25,7 @@ import {
   BarChart3,
   Trash2,
   LineChart,
-  Terminal as Code,
+  Terminal,
   Target,
   X
 } from 'lucide-react';
@@ -1088,7 +1088,7 @@ function StrategyCard({
                                 className={`p-2.5 rounded-xl transition-all border ${isVisualMode ? 'bg-[#00E676]/10 border-[#00E676]/20 text-[#00E676]' : 'bg-white/5 border-white/10 text-white/20 hover:bg-white/10'}`}
                                 title={isVisualMode ? "Switch to Technical Terminal" : "Switch to Visual Flow"}
                             >
-                                {isVisualMode ? <Code className="w-5 h-5" /> : <LineChart className="w-5 h-5" />}
+                                {isVisualMode ? <CheckCircle2 className="w-5 h-5" /> : <LineChart className="w-5 h-5" />}
                             </button>
                             <div className="flex flex-col items-end gap-1">
                                 <span className="text-[11px] font-black text-[#00E676] uppercase tracking-widest font-sans animate-pulse">24ms_LATENCY</span>
