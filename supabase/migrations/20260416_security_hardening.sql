@@ -42,11 +42,23 @@ FOR SELECT
 USING (auth.uid() = creator_id);
 
 -- 5. Define Policies for public.user_strategies (Subscriptions)
--- Goal: Users can only see their own strategy activations/subscriptions.
+-- Goal: Users can only see and manage their own strategy activations.
 DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.user_strategies;
 CREATE POLICY "Users can view own subscriptions" 
 ON public.user_strategies 
 FOR SELECT 
+USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own subscriptions" ON public.user_strategies;
+CREATE POLICY "Users can insert own subscriptions" 
+ON public.user_strategies 
+FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own subscriptions" ON public.user_strategies;
+CREATE POLICY "Users can update own subscriptions" 
+ON public.user_strategies 
+FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- 6. Define Policies for public.strategy_reviews

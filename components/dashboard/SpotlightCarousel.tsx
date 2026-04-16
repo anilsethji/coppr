@@ -85,7 +85,7 @@ export function SpotlightCarousel({ items }: { items: Strategy[] }) {
                 {current.name}
               </h2>
               <p className="text-[11px] md:text-[13px] text-white/30 font-black italic uppercase tracking-[0.3em] leading-none">
-                {current.symbol} • {current.type.replace('_', ' ')} • INSTITUTIONAL GRADE
+                {current.symbol} • {current.type?.replace('_', ' ') || 'ALGO BOT'} • INSTITUTIONAL GRADE
               </p>
             </div>
 
