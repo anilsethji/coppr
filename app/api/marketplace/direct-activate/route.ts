@@ -65,7 +65,6 @@ export async function POST(request: Request) {
           user_id: user.id,
           strategy_id: strategyId,
           status: 'ACTIVE',
-          mt5_account_number: null, 
       })
       .select()
       .single();

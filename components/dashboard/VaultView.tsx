@@ -477,7 +477,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       {/* 0.5. PROTOCOL ENDPOINTS GRID (9-BROKER SYNC) */}
       <div className="space-y-6 md:space-y-10 relative">
           {timelineMode && (
-              <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
+              <div className="absolute -left-[48px] md:-left-[56px] top-1 z-20">
                  <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>1</div>
               </div>
           )}
@@ -703,7 +703,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
 
       <div className="relative mt-8 md:mt-16 pt-2">
          {timelineMode && (
-              <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
+              <div className="absolute -left-[48px] md:-left-[56px] top-1 z-20">
                  <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>2</div>
               </div>
          )}
@@ -933,7 +933,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
       {/* 3. LIVE MONITORING FEED (NEW) */}
       <div className="relative mt-8 md:mt-16 pt-2 pb-10">
          {timelineMode && (
-              <div className="absolute -left-[40px] md:-left-[48px] top-1 z-20">
+              <div className="absolute -left-[48px] md:-left-[56px] top-1 z-20">
                  <div className={`w-8 h-8 rounded-full border bg-[#0D121F] flex items-center justify-center font-black shadow-2xl ${timelineMode === 'bots' ? 'border-[#FFD700]/40 text-[#FFD700] shadow-[#FFD700]/10' : 'border-[#00E676]/40 text-[#00E676] shadow-[#00E676]/10'}`}>3</div>
               </div>
          )}
@@ -1061,7 +1061,7 @@ function StrategyCard({
             animate={{ opacity: 1, y: 0 }}
             className={`bg-[#0D121F]/60 border rounded-[32px] md:rounded-[48px] overflow-hidden group transition-all duration-700 hover:scale-[1.005] ${isOfficial ? 'border-[#FFD700]/20 hover:border-[#FFD700]/40 shadow-2xl shadow-[#FFD700]/5' : 'border-white/5 hover:border-white/10'}`}
         >
-            <div className="grid grid-cols-1 xl:grid-cols-4">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_0.45fr]">
                 {/* 1. CINEMATIC COMMAND FRAME (CHART AREA) - Left 3 Columns */}
                 <div className="xl:col-span-3 p-6 md:p-10 flex flex-col justify-between bg-black/40 relative min-h-[400px] md:min-h-[600px] border-b xl:border-b-0 xl:border-r border-white/5">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
@@ -1481,7 +1481,7 @@ function StrategyCard({
                                                 setLinkingId(sub.id);
                                             }
                                         }} 
-                                        className={`flex-1 py-6 rounded-[32px] font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-4 transition-all duration-500 italic ${sub.sync_active ? 'bg-[#FFD700]/5 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10' : 'bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20'}`}
+                                        className={`flex-[2] py-4 md:py-6 px-4 rounded-[24px] md:rounded-[32px] font-black uppercase tracking-widest text-[9px] md:text-[10px] whitespace-nowrap flex items-center justify-center gap-2 md:gap-4 transition-all duration-500 italic shadow-xl ${sub.sync_active ? 'bg-[#FFD700]/5 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 shadow-[#FFD700]/5' : 'bg-[#FFD700] border border-[#FFD700] text-black hover:bg-[#FFD700]/90 shadow-[#FFD700]/20'}`}
                                     >
                                         {sub.sync_active ? (
                                             <><Terminal className="w-4 h-4" /> Entry Point</>

@@ -15,7 +15,7 @@ import {
 
 export default function BotsPage() {
   return (
-    <div className="max-w-[1400px] mx-auto pb-20 px-4 md:px-8 mt-8">
+    <div className="w-full max-w-[1920px] mx-auto pb-20 px-4 md:px-8 xl:px-12 mt-8">
       
       {/* 1. HERO HEADER (COMPACT) */}
       <motion.div 
@@ -53,7 +53,7 @@ export default function BotsPage() {
       </motion.div>
 
       {/* TIMELINE WIZARD CONTAINER */}
-      <div className="relative border-l-2 border-dashed border-white/10 ml-10 md:ml-8 pl-6 md:pl-8 mt-12 mb-24 min-h-[400px]">
+      <div className="relative border-l-[3px] border-dashed border-[#FFD700]/20 ml-6 md:ml-4 pl-8 md:pl-10 mt-12 mb-24 min-h-[400px]">
           <VaultView typeFilter="MT5_EA" timelineMode="bots" />
       </div>
 
