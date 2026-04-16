@@ -58,13 +58,13 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const signalKey = crypto.randomUUID();
     const { data: sub, error: fulfillmentError } = await supabaseAdmin
       .from('user_strategies')
       .insert({
           user_id: user.id,
           strategy_id: strategyId,
           status: 'ACTIVE',
-          signal_key: crypto.randomUUID(),
           mt5_account_number: null, 
       })
       .select()
@@ -75,7 +75,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       status: 'ACTIVATION_SUCCESSFUL',
       strategy_name: strat.name,
-      subscriptionId: sub.id
+      subscriptionId: sub.id,
+      signalKey: signalKey
     });
 
   } catch (error: any) {
