@@ -447,7 +447,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="p-4 md:p-10 flex-1 w-full max-w-[1440px] mx-auto overflow-visible z-10"
+          className="p-4 md:p-10 flex-1 w-full max-w-[1920px] mx-auto overflow-visible z-10"
         >
           {children}
         </motion.div>

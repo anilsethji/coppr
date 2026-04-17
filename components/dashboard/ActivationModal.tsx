@@ -45,6 +45,7 @@ export default function ActivationModal({
   const [accountId, setAccountId] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
+  const [serverName, setServerName] = useState('');
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activeAssets, setActiveAssets] = useState<string[]>([]);
@@ -60,7 +61,10 @@ export default function ActivationModal({
       accountId,
       apiKey,
       apiSecret,
-      activeAssets
+      activeAssets,
+      meta: {
+        server: serverName
+      }
     });
     setIsActivating(false);
     onClose();
@@ -152,7 +156,7 @@ export default function ActivationModal({
                 </motion.div>
               )}
 
-              {/* Step 2: Credentials */}
+              {/* Step 2: "Invisible Execution" Handshake */}
               {step === 2 && (
                  <motion.div 
                     key="step2"
@@ -162,47 +166,76 @@ export default function ActivationModal({
                     className="space-y-8"
                  >
                     <div className="space-y-1">
-                        <h3 className="text-lg font-black text-white uppercase italic">Secure <span className="text-[#00B0FF]">Authentication</span></h3>
-                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest italic">Coppr uses end-to-end proprietary encryption.</p>
+                        <h3 className="text-lg font-black text-white uppercase italic">Invisible <span className="text-[#00B0FF]">Execution Handshake</span></h3>
+                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest italic">Pairing your broker node with the Coppr Propagation Engine.</p>
                     </div>
 
-                    <div className="space-y-4">
-                       <div className="space-y-2">
-                          <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">Account Identifier</label>
-                          <input 
-                            type="text" 
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#FFD700]/40 transition-all font-sans"
-                            placeholder="Primary Account ID"
-                            value={accountId}
-                            onChange={e => setAccountId(e.target.value)}
-                          />
-                       </div>
+                     <div className="space-y-4">
+                        <div className="space-y-2">
+                           <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">
+                              {['ZERODHA', 'ANGELONE', 'DHAN', 'GROWW'].includes(selectedBroker?.id) ? 'Institutional Client ID' : 'Account Identifier'}
+                           </label>
+                           <input 
+                             type="text" 
+                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#FFD700]/40 transition-all font-sans"
+                             placeholder={selectedBroker?.id === 'MT5' ? "MT5 Login ID" : "Secure Node Identifier"}
+                             value={accountId}
+                             onChange={e => setAccountId(e.target.value)}
+                           />
+                        </div>
 
-                       {selectedBroker?.id !== 'MT5' && selectedBroker?.id !== 'ZERODHA' && (
-                          <div className="grid grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">API Token</label>
-                                <input 
-                                  type="password" 
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#00B0FF]/40 transition-all font-sans"
-                                  placeholder="Secret Key"
-                                  value={apiKey}
-                                  onChange={e => setApiKey(e.target.value)}
-                                />
-                             </div>
-                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">Secret IV</label>
-                                <input 
-                                  type="password" 
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#00B0FF]/40 transition-all font-sans"
-                                  placeholder="IV / Salt"
-                                  value={apiSecret}
-                                  onChange={e => setApiSecret(e.target.value)}
-                                />
-                             </div>
-                          </div>
-                       )}
-                    </div>
+                        {selectedBroker?.id === 'MT5' ? (
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                 <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">Master Password</label>
+                                 <input 
+                                   type="password" 
+                                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#FFD700]/40 transition-all font-sans"
+                                   placeholder="Broker Password"
+                                   value={apiKey}
+                                   onChange={e => setApiKey(e.target.value)}
+                                 />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">Meta Server</label>
+                                 <input 
+                                   type="text" 
+                                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#FFD700]/40 transition-all font-sans"
+                                   placeholder="e.g. MetaQuotes-Demo"
+                                   value={serverName}
+                                   onChange={e => setServerName(e.target.value)}
+                                 />
+                              </div>
+                           </div>
+                        ) : (
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                 <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">
+                                    Execution API Token
+                                 </label>
+                                 <input 
+                                   type="password" 
+                                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#00B0FF]/40 transition-all font-sans"
+                                   placeholder="Enter Key"
+                                   value={apiKey}
+                                   onChange={e => setApiKey(e.target.value)}
+                                 />
+                              </div>
+                              <div className="space-y-2">
+                                 <label className="text-[9px] font-black text-white/20 uppercase italic tracking-widest ml-1">
+                                    Secure Secret Bridge
+                                 </label>
+                                 <input 
+                                   type="password" 
+                                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs outline-none focus:border-[#00B0FF]/40 transition-all font-sans"
+                                   placeholder="Enter Secret"
+                                   value={apiSecret}
+                                   onChange={e => setApiSecret(e.target.value)}
+                                 />
+                              </div>
+                           </div>
+                        )}
+                     </div>
 
                     <div className="flex justify-between pt-6">
                         <button onClick={() => setStep(1)} className="text-[10px] font-black text-white/20 uppercase italic tracking-widest hover:text-white transition-colors">Back</button>
@@ -210,14 +243,14 @@ export default function ActivationModal({
                          disabled={!accountId}
                          onClick={handleNext}
                          className="px-10 py-4 bg-[#FFD700] text-black rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10 disabled:opacity-50"
-                      >
-                         Next Phase <ChevronRight className="inline w-4 h-4 ml-1" />
-                      </button>
+                       >
+                          Next Phase <ChevronRight className="inline w-4 h-4 ml-1" />
+                       </button>
                     </div>
                  </motion.div>
               )}
 
-              {/* Step 3: Global Handshake */}
+              {/* Step 3: SEBI 2026 Compliance Handshake */}
               {step === 3 && (
                  <motion.div 
                     key="step3"
@@ -226,23 +259,33 @@ export default function ActivationModal({
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-8"
                  >
-                    <div className="p-5 md:p-8 rounded-2xl md:rounded-[32px] bg-[#FF5252]/5 border border-[#FF5252]/20 space-y-3 md:space-y-4">
-                        <div className="flex items-center gap-2 md:gap-3 text-[#FF5252]">
-                           <AlertTriangle className="w-4 h-4 md:w-5 h-5" />
-                           <h4 className="text-[10px] md:text-[11px] font-black uppercase italic tracking-widest">Market Risk Acknowledgement</h4>
+                    <div className="p-6 md:p-10 rounded-[40px] bg-[#FF5252]/5 border border-[#FF5252]/20 space-y-4 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                           <AlertTriangle className="w-24 h-24 text-[#FF5252]" />
                         </div>
-                        <p className="text-[9px] md:text-[10px] text-[#FF5252]/60 font-medium leading-relaxed md:leading-loose italic">
-                           By initiating this mirror, you acknowledge that algorithmic trading involves significant risk. Coppr Trade Network is an empanelled technology provider and does not provide financial advice. Your capital is exposed to live market conditions.
-                        </p>
+                        <div className="flex items-center gap-3 text-[#FF5252]">
+                           <ShieldCheck className="w-5 h-5" />
+                           <h4 className="text-[11px] font-black uppercase italic tracking-widest">Regulatory Compliance Header (SEBI 2026)</h4>
+                        </div>
+                        <div className="space-y-4 relative z-10">
+                           <p className="text-[10px] text-[#FF5252]/70 font-bold leading-relaxed italic uppercase tracking-wider">
+                              Algotrading and signal mirroring carry extreme market risk. Coppr is a technology-agent service bridging master nodes to retail proxies. 
+                           </p>
+                           <ul className="space-y-2 text-[9px] text-white/30 uppercase font-black italic tracking-widest list-none">
+                              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FF5252]" /> No guaranteed returns</li>
+                              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FF5252]" /> Full capital exposure</li>
+                              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#FF5252]" /> Manual kill-switch available</li>
+                           </ul>
+                        </div>
                     </div>
  
-                    <label className="flex items-start gap-4 p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-all">
-                        <div className="mt-1 relative flex items-center justify-center">
-                           <input type="checkbox" className="peer appearance-none w-4 h-4 md:w-5 h-5 border-2 border-white/20 rounded-md checked:bg-[#00E676] checked:border-[#00E676] transition-all cursor-pointer" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
-                           <Check className="absolute w-3 h-3 md:w-3.5 md:h-3.5 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                    <label className="flex items-start gap-5 p-6 md:p-8 rounded-[40px] bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-all group">
+                        <div className="mt-1 relative flex items-center justify-center shrink-0">
+                           <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded-lg checked:bg-[#00E676] checked:border-[#00E676] transition-all cursor-pointer" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} />
+                           <Check className="absolute w-4 h-4 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                         </div>
-                        <span className="text-[8px] md:text-[9px] text-white/50 leading-relaxed uppercase tracking-widest font-black italic">
-                           I authorize the mirroring of signals from {strategyName} to my {selectedBroker?.name} account. I accept the SEBI framework (April 2026) guidelines for institutional copy-trading.
+                        <span className="text-[9px] text-white/50 leading-relaxed uppercase tracking-widest font-black italic group-hover:text-white/70 transition-colors">
+                           I authorize {strategyName} to mirror execution commands to my {selectedBroker?.name} node. I accept all regulatory frameworks effective April 1, 2026.
                         </span>
                     </label>
 
@@ -251,15 +294,15 @@ export default function ActivationModal({
                         <button 
                          disabled={!legalAccepted}
                          onClick={handleNext}
-                         className="flex-1 md:flex-none px-10 py-4 bg-[#FFD700] text-black rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10"
-                      >
-                         Discovery Phase <ChevronRight className="inline w-4 h-4 ml-1" />
-                      </button>
+                         className="flex-1 md:flex-none px-12 py-5 bg-[#FFD700] text-black rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:scale-105 transition-all shadow-xl shadow-[#FFD700]/10"
+                       >
+                          Discovery Phase <ChevronRight className="inline w-4 h-4 ml-1" />
+                       </button>
                     </div>
                  </motion.div>
                )}
 
-               {/* Step 4: Asset Discovery & Chart Sync */}
+               {/* Step 4: Asset Discovery & Dynamic Sync */}
                {step === 4 && (
                   <motion.div 
                     key="step4"
@@ -270,32 +313,39 @@ export default function ActivationModal({
                   >
                      <div className="space-y-1">
                         <h3 className="text-lg font-black text-white uppercase italic">Target <span className="text-[#00E676]">Whitelisting</span></h3>
-                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest italic">Only signals for your whitelisted assets will be mirrored.</p>
+                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest italic">Only signals for authorized assets will be mirrored.</p>
                      </div>
 
-                     <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                           <span className="text-xl font-black text-[#00E676] italic">{activeAssets.length} Assets</span>
-                           <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest leading-none">Authorization Queue</span>
+                     <div className="p-6 md:p-8 rounded-[40px] bg-white/[0.02] border border-white/5 flex items-center justify-between group overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#00E676]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="flex flex-col gap-1 relative z-10">
+                           <span className="text-2xl font-black text-[#00E676] italic tracking-tighter">{activeAssets.length} Assets Authorized</span>
+                           <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em] leading-none">Institutional Whitelist Pool</span>
                         </div>
                         <button 
                           onClick={() => setIsAssetDrawerOpen(true)}
-                          className="px-6 py-3 bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#00E676]/20 transition-all italic"
+                          className="px-8 py-4 bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#00E676]/20 transition-all italic relative z-10"
                         >
-                          Discover & Sync
+                          Discover & Add
                         </button>
                      </div>
 
-                     {/* Live Chart Preview (Synced with selection) */}
-                     <div className="space-y-3">
-                        <div className="flex items-center justify-between px-2">
-                           <h4 className="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Signal Performance Preview</h4>
-                           <div className="flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
-                              <span className="text-[9px] font-bold text-[#00E676] uppercase tracking-tighter">{previewSymbol} LIVE</span>
+                     {/* Live Chart Preview (Instantly Synced) */}
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between px-3">
+                           <div className="flex flex-col">
+                              <h4 className="text-[9px] font-black text-white uppercase tracking-widest italic opacity-40">Dynamic Data Link</h4>
+                              <div className="flex items-center gap-2">
+                                 <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+                                 <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{previewSymbol} LIVE</span>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-1.5 opacity-20">
+                              <span className="text-[8px] font-mono uppercase tracking-widest font-black italic">Mirror_Ready</span>
                            </div>
                         </div>
-                        <div className="h-[200px] rounded-3xl border border-white/5 bg-black/40 overflow-hidden relative group">
+                        
+                        <div className="h-[220px] rounded-[40px] border border-white/5 bg-black/60 overflow-hidden relative group shadow-2xl">
                            <SignalVisualizer symbol={previewSymbol} logs={[]} />
                         </div>
 
@@ -305,7 +355,7 @@ export default function ActivationModal({
                            brokerType={selectedBroker?.id}
                            selectedAssets={activeAssets}
                            onAssetToggle={(sym) => {
-                              setActiveAssets(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym]);
+                               setActiveAssets(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym]);
                            }}
                            onPreviewSymbol={setPreviewSymbol}
                         />
@@ -316,11 +366,11 @@ export default function ActivationModal({
                         <button 
                          disabled={isActivating}
                          onClick={handleFinalActivate}
-                         className="flex-1 md:flex-none px-8 md:px-12 py-4 md:py-5 bg-[#00E676] text-black rounded-2xl text-[10px] md:text-[11px] font-black uppercase italic tracking-widest md:tracking-[0.2em] hover:scale-105 transition-all shadow-2xl shadow-[#00E676]/20 disabled:opacity-50 flex items-center justify-center gap-2 md:gap-3"
-                      >
-                         {isActivating ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4 md:w-5 h-5" />}
-                         Initiate Global Mirror
-                      </button>
+                         className="flex-1 md:flex-none px-12 py-5 bg-[#00E676] text-black rounded-3xl text-[10px] md:text-[11px] font-black uppercase italic tracking-[0.2em] hover:scale-105 transition-all shadow-2xl shadow-[#00E676]/20 disabled:opacity-50 flex items-center justify-center gap-3"
+                       >
+                          {isActivating ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                          Initialize Global Mirror
+                       </button>
                     </div>
                  </motion.div>
                )}

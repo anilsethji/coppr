@@ -50,12 +50,26 @@ export default function AssetDiscoveryDrawer({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('ALL');
 
+  const dynamicCategories = useMemo(() => {
+    const categories = [ { id: 'ALL', label: 'All Assets', icon: Globe } ];
+    
+    if (brokerType === 'BINANCE_FUTURES' || brokerType === 'BYBIT') {
+      categories.push({ id: 'CRYPTO', label: 'Crypto', icon: Zap });
+    } else if (brokerType === 'MT5') {
+      categories.push({ id: 'FOREX', label: 'ForeX', icon: TrendingUp }, { id: 'INDEX', label: 'Indices', icon: Activity }, { id: 'COMMODITY', label: 'Commodities', icon: Layers });
+    } else if (brokerType === 'ZERODHA' || brokerType === 'ANGELONE') {
+      categories.push({ id: 'EQUITY', label: 'Equity', icon: Target }, { id: 'OPTIONS', label: 'Options', icon: Layers }, { id: 'INDEX', label: 'Indices', icon: Activity });
+    }
+    
+    return categories;
+  }, [brokerType]);
+
   useEffect(() => {
     if (isOpen) {
       fetchInstruments();
+      setActiveCategory('ALL');
     }
   }, [isOpen, brokerType]);
-
   const fetchInstruments = async () => {
     setLoading(true);
     try {
@@ -70,11 +84,10 @@ export default function AssetDiscoveryDrawer({
       setLoading(false);
     }
   };
-
   const filteredInstruments = useMemo(() => {
     return instruments.filter(inst => {
-      const matchesSearch = inst.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           inst.displayName?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (inst.symbol?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           inst.displayName?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = activeCategory === 'ALL' || inst.type === activeCategory;
       return matchesSearch && matchesCategory;
     });
@@ -108,8 +121,8 @@ export default function AssetDiscoveryDrawer({
                   <Target className="w-5 h-5 text-[#FFD700]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-tight">Asset Discovery</h2>
-                  <p className="text-[10px] text-white/40 font-semibold uppercase tracking-widest mt-1">Select your Mirror Targets</p>
+                   <h2 className="text-xl font-bold text-white tracking-tight">Asset Discovery</h2>
+                   <p className="text-[10px] text-white/40 font-semibold uppercase tracking-widest mt-1">Select your Mirror Targets</p>
                 </div>
               </div>
               <button 
@@ -137,7 +150,7 @@ export default function AssetDiscoveryDrawer({
 
                {/* Categories Selector */}
                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-                      {CATEGORIES.map(cat => (
+                      {dynamicCategories.map(cat => (
                         <button 
                           key={cat.id}
                           onClick={() => setActiveCategory(cat.id)}

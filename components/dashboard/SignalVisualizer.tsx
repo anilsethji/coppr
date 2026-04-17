@@ -1,61 +1,40 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi, SeriesMarker, Time } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickData, LineData } from 'lightweight-charts';
 import { Loader2 } from 'lucide-react';
 
 interface SignalVisualizerProps {
     symbol: string;
     logs: any[];
     activeSymbols?: string[];
-    onSymbolChange?: (sym: string) => void;
+    onSymbolChange?: (symbol: string) => void;
 }
 
 export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs, activeSymbols = [], onSymbolChange }) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
-    const chartInstance = useRef<IChartApi | null>(null);
+    const chartRef = useRef<IChartApi | null>(null);
+    const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [timeframe, setTimeframe] = useState('15m');
+
     const labels = [
-        { label: '1m', value: '1m' },
-        { label: '5m', value: '5m' },
-        { label: '15m', value: '15m' },
-        { label: '1h', value: '1h' },
+        { label: '1M', value: '1m' },
+        { label: '5M', value: '5m' },
+        { label: '15M', value: '15m' },
+        { label: '1H', value: '1h' },
+        { label: '4H', value: '4h' },
+        { label: '1D', value: '1d' },
     ];
 
-    const [timeframe, setTimeframe] = useState('1m');
-    const [loading, setLoading] = useState(true);
-
-    const getBinanceSymbol = (sym: string) => {
-        const s = sym.toUpperCase().replace('/', '').replace(' ', '');
-        
-        // Priority Mappings
-        if (s.includes('BTC')) return 'BTCUSDT';
-        if (s.includes('ETH')) return 'ETHUSDT';
-        if (s.includes('SOL')) return 'SOLUSDT';
-        if (s.includes('XRP')) return 'XRPUSDT';
-        if (s.includes('XAU') || s.includes('GOLD')) return 'PAXGUSDT';
-        
-        // Forex & Indices Proxies
-        if (s.includes('EURUSD') || s.includes('GBPUSD')) return 'EURUSDT';
-        if (s.includes('US30') || s.includes('NAS100') || s.includes('NIFTY')) return 'BTCUSDT';
-        
-        if (s.endsWith('USD')) return s + 'T';
-        if (s.endsWith('USDT')) return s;
-        
-        return s;
-    };
-
+    // 1. INITIALIZE CHART
     useEffect(() => {
         if (!chartContainerRef.current) return;
 
-        let unmounted = false;
-        let pollingInterval: NodeJS.Timeout;
-
-        // Initialize Chart
         const chart = createChart(chartContainerRef.current, {
             layout: {
                 background: { type: ColorType.Solid, color: 'transparent' },
                 textColor: 'rgba(255, 255, 255, 0.4)',
-                fontSize: 10,
                 fontFamily: 'Inter, sans-serif',
             },
             grid: {
@@ -63,186 +42,203 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
                 horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
             },
             width: chartContainerRef.current.clientWidth,
-            height: window.innerWidth < 768 ? 400 : 500,
-            crosshair: {
-                mode: 0,
-                vertLine: { color: 'rgba(255, 215, 0, 0.2)', labelBackgroundColor: '#FFD700' },
-                horzLine: { color: 'rgba(255, 215, 0, 0.2)', labelBackgroundColor: '#FFD700' },
-            },
-            rightPriceScale: {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                scaleMargins: {
-                    top: 0.1,
-                    bottom: 0.1,
-                },
-            },
+            height: chartContainerRef.current.clientHeight,
             timeScale: {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(255, 255, 255, 0.05)',
                 timeVisible: true,
                 secondsVisible: false,
             },
+            rightPriceScale: {
+                borderColor: 'rgba(255, 255, 255, 0.05)',
+                scaleMargins: { top: 0.1, bottom: 0.2 },
+            },
+            crosshair: {
+                vertLine: { color: '#FFD700', width: 1, style: 2 },
+                horzLine: { color: '#FFD700', width: 1, style: 2 },
+            },
         });
 
-        // V4: Use addCandlestickSeries instead of addSeries
         const candlestickSeries = chart.addCandlestickSeries({
             upColor: '#00E676',
             downColor: '#FF5252',
             borderVisible: false,
             wickUpColor: '#00E676',
             wickDownColor: '#FF5252',
-            priceLineVisible: true,
-            lastValueVisible: true,
         });
 
-        chartInstance.current = chart;
+        chartRef.current = chart;
+        seriesRef.current = candlestickSeries;
 
         const handleResize = () => {
-            if (!unmounted && chartContainerRef.current) {
-                chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+            if (chartContainerRef.current) {
+                chart.applyOptions({ 
+                    width: chartContainerRef.current.clientWidth,
+                    height: chartContainerRef.current.clientHeight 
+                });
             }
         };
 
         window.addEventListener('resize', handleResize);
 
-        // Fetch Data
-        const fetchData = async (isPoll = false) => {
-            if (!isPoll) setLoading(true);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            chart.remove();
+            chartRef.current = null;
+            seriesRef.current = null;
+        };
+    }, []); // ONLY RUN ONCE
+
+    // 2. DATA POLLING & UPDATES
+    useEffect(() => {
+        if (!seriesRef.current) return;
+
+        let pollingInterval: NodeJS.Timeout;
+        let isFirstLoad = true;
+
+        const getAssetType = (sym: string): 'GLOBAL_EXCHANGE' | 'INSTITUTIONAL_INNER' => {
+            const globalAssets = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'SILVER', 'BTC', 'ETH'];
+            const upperSym = sym.toUpperCase();
+            if (globalAssets.some(a => upperSym.includes(a))) return 'GLOBAL_EXCHANGE';
+            return 'INSTITUTIONAL_INNER';
+        };
+
+        const getBinanceSymbol = (sym: string) => {
+            const map: Record<string, string> = {
+                'XAUUSD': 'PAXGUSDT',
+                'BTCUSD': 'BTCUSDT',
+                'ETHUSD': 'ETHUSDT',
+                'EURUSD': 'EURUSDT',
+                'GBPUSD': 'GBPUSDT',
+                'USDJPY': 'USDJPY',
+                'SILVER': 'SLVUSDT'
+            };
+            return map[sym.toUpperCase()] || sym.toUpperCase().replace('/', '');
+        };
+
+        const fetchData = async (isBackground = false) => {
             try {
-                const binanceSym = getBinanceSymbol(symbol);
-                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binanceSym}&interval=${timeframe}&limit=100`);
-                const data = await res.json();
+                if (!isBackground) {
+                    setLoading(true);
+                    // EXPLICIT RESET: Clear the current series data to provide the "Flash" effect
+                    if (seriesRef.current) seriesRef.current.setData([]);
+                    // Small delay to ensure the loader is visible for a "clean" reflection
+                    await new Promise(r => setTimeout(r, 200));
+                }
                 
-                if (unmounted) return;
+                const assetType = getAssetType(symbol);
+                let klines = [];
 
-                const formattedData = data.map((d: any) => ({
-                    time: (d[0] / 1000) as Time,
-                    open: parseFloat(d[1]),
-                    high: parseFloat(d[2]),
-                    low: parseFloat(d[3]),
-                    close: parseFloat(d[4]),
-                }));
+                if (assetType === 'GLOBAL_EXCHANGE') {
+                    const binanceSym = getBinanceSymbol(symbol);
+                    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binanceSym}&interval=${timeframe}&limit=200`);
+                    klines = await response.json();
+                } else {
+                    // Fallback to internal High-Fidelity Simulator for SBI, ICICI, NASDAQ etc.
+                    const response = await fetch(`/api/market/history?symbol=${symbol}&timeframe=${timeframe}`);
+                    klines = await response.json();
+                    // If simulator returns objects, we handle them differently
+                    if (klines.length > 0 && klines[0].open) {
+                        seriesRef.current?.setData(klines);
+                        if (isFirstLoad) { chartRef.current?.timeScale().fitContent(); isFirstLoad = false; }
+                        return;
+                    }
+                }
 
-                candlestickSeries.setData(formattedData);
-                if (!isPoll) setLoading(false);
-
-                // Signal Markers
-                const markers: SeriesMarker<Time>[] = [];
-                logs.forEach(log => {
-                    const timestamp = new Date(log.created_at).getTime() / 1000;
-                    const details = log.details || {};
-                    const action = log.action;
+                if (klines && klines.length > 0 && seriesRef.current) {
+                    const formattedData = klines.map((d: any) => ({
+                        time: (d[0] / 1000) as any,
+                        open: parseFloat(d[1]),
+                        high: parseFloat(d[2]),
+                        low: parseFloat(d[3]),
+                        close: parseFloat(d[4]),
+                    }));
                     
-                    if (action === 'SIGNAL_PROPAGATED' || action === 'SIGNAL_INGESTED') {
-                        const tradeAction = details.action || (log.details?.details?.action);
-                        
-                        if (tradeAction === 'BUY') {
-                            markers.push({
-                                time: timestamp as Time,
-                                position: 'belowBar',
-                                color: '#00E676',
-                                shape: 'arrowUp',
-                                text: 'BUY',
-                            });
-                        } else if (tradeAction === 'SELL') {
-                            markers.push({
-                                time: timestamp as Time,
-                                position: 'aboveBar',
-                                color: '#FF5252',
-                                shape: 'arrowDown',
-                                text: 'SELL',
-                            });
-                        }
+                    seriesRef.current.setData(formattedData);
+                    
+                    if (isFirstLoad) {
+                        chartRef.current?.timeScale().fitContent();
+                        isFirstLoad = false;
+                    }
+                }
+
+                // Add Signal Markers
+                const markers: any[] = [];
+                const subLogs = Array.isArray(logs) ? logs : [];
+                
+                subLogs.forEach((log: any) => {
+                    const logTime = Math.floor(new Date(log.created_at).getTime() / 1000);
+                    const intervalSeconds = timeframe.endsWith('m') ? parseInt(timeframe) * 60 : timeframe.endsWith('h') ? parseInt(timeframe) * 3600 : 86400;
+                    const roundedTime = Math.floor(logTime / intervalSeconds) * intervalSeconds;
+
+                    const action = log.action || log.details?.action;
+                    
+                    if (action === 'BUY') {
+                        markers.push({ time: roundedTime, position: 'belowBar', color: '#00E676', shape: 'arrowUp', text: 'BUY' });
+                    } else if (action === 'SELL') {
+                        markers.push({ time: roundedTime, position: 'aboveBar', color: '#FF5252', shape: 'arrowDown', text: 'SELL' });
                     }
                 });
 
-                if (markers.length > 0) {
-                    // V4: Use setMarkers directly on series
-                    markers.sort((a, b) => (a.time as number) - (b.time as number));
-                    candlestickSeries.setMarkers(markers);
+                if (markers.length > 0 && seriesRef.current) {
+                    markers.sort((a, b) => a.time - b.time);
+                    seriesRef.current.setMarkers(markers);
                 }
-
-                if (!isPoll) chart.timeScale().fitContent();
 
             } catch (err) {
-                if (!unmounted) {
-                    console.error('Signal Chart Error:', err);
-                    setLoading(false);
-                }
+                console.warn('Data Bridge Warning:', err);
+            } finally {
+                if (!isBackground) setLoading(false);
             }
         };
 
         fetchData();
+        pollingInterval = setInterval(() => fetchData(true), 3000);
 
-        // Heartbeat
-        pollingInterval = setInterval(() => {
-            fetchData(true);
-        }, 3000);
-
-        return () => {
-            unmounted = true;
-            clearInterval(pollingInterval);
-            window.removeEventListener('resize', handleResize);
-            chart.remove();
-        };
+        return () => clearInterval(pollingInterval);
     }, [symbol, logs, timeframe]);
 
     return (
-        <div className="relative w-full h-[400px] md:h-[500px] group bg-transparent overflow-hidden">
+        <div className="flex flex-col h-full w-full relative group/chart">
+            {/* 1M/5M/15M Selector Overlay */}
+            <div className="absolute top-4 left-4 z-20 flex gap-2">
+                {labels.map((item) => (
+                    <button
+                        key={item.value}
+                        onClick={() => setTimeframe(item.value)}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all ${timeframe === item.value ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20' : 'bg-black/60 text-white/20 hover:bg-black/80 hover:text-white/40 border border-white/5'}`}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </div>
+
             {loading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
+                <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-500">
                     <Loader2 className="w-8 h-8 text-[#FFD700] animate-spin" />
                 </div>
             )}
-            <div ref={chartContainerRef} className="w-full h-full" />
-            
-            <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-[60]">
-                <div className="flex items-center gap-2 md:gap-4 pointer-events-auto">
-                    <div className="px-2.5 py-1.5 md:px-4 md:py-2 bg-black/80 border border-white/10 rounded-full flex items-center gap-2 md:gap-3">
-                        <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-                        <span className="text-[9px] md:text-[10px] font-black text-white uppercase tracking-widest leading-none">{symbol}</span>
-                    </div>
-                </div>
 
-                <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/5 pointer-events-auto">
-                    {labels.map(tf => (
-                        <button 
-                            key={tf.value}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setTimeframe(tf.value);
-                            }}
-                            className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${timeframe === tf.value ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}
-                        >
-                            {tf.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <div ref={chartContainerRef} className="flex-1 w-full min-h-0" />
 
-            {/* Universal Asset Switcher */}
+            {/* UNIVERSAL ASSET SWITCHER (BOTTOM RAIL) */}
             {activeSymbols.length > 1 && (
-                <div className="absolute bottom-12 left-4 right-4 flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 pt-1 pointer-events-auto z-[60]">
+                <div className="absolute bottom-12 left-4 right-4 z-40 flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
                     {activeSymbols.map(sym => (
-                        <button 
+                        <button
                             key={sym}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onSymbolChange?.(sym);
-                            }}
-                            className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border-2 shadow-2xl ${symbol === sym ? 'bg-[#00E676] border-[#00E676] text-black shadow-[#00E676]/20' : 'bg-black/90 border-white/5 text-white/40 hover:border-white/20 hover:text-white/60'}`}
+                            onClick={() => onSymbolChange?.(sym)}
+                            className={`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border-2 ${symbol === sym ? 'bg-[#00E676] border-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'bg-black/90 border-white/10 text-white/40 hover:border-white/20'}`}
                         >
                             {sym}
                         </button>
                     ))}
                 </div>
             )}
-
-            <div className="absolute bottom-4 left-4 pointer-events-none opacity-40 z-[60]">
-                <div className="flex items-center gap-3">
-                    <span className="text-[8px] font-black text-white/80 uppercase tracking-[0.5em] font-sans italic opacity-50">
-                        {activeSymbols.length > 1 ? 'Universal Node Monitoring' : 'Institutional Feed Mirroring'}
-                    </span>
-                    <div className="flex gap-1">
+            
+            <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest italic">{activeSymbols.length > 1 ? 'Universal Node Monitor' : 'Institutional Feed Mirroring'}</span>
+                    <div className="flex gap-1 mt-1">
                         <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse" />
                         <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse delay-75" />
                         <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse delay-150" />
