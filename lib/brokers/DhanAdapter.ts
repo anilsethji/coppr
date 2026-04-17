@@ -72,4 +72,23 @@ export class DhanAdapter {
             };
         }
     }
+
+    async getInstruments(): Promise<any[]> {
+        try {
+            const response = await axios.get('https://api.dhan.co/instruments/master');
+            // Dhan master is usually a large JSON/CSV. If it's CSV, we'd need a parser.
+            // Assuming it's the JSON flavor for simplicity here, but robust logic would check.
+            const data = response.data;
+            if (!Array.isArray(data)) return [];
+
+            return data.map((s: any) => ({
+                symbol: s.SEM_TRADING_SYMBOL,
+                displayName: s.SEM_CUSTOM_SYMBOL || s.SEM_TRADING_SYMBOL,
+                type: s.SEM_INSTRUMENT_NAME === 'EQUITY' ? 'EQUITY' : 'OPTIONS'
+            }));
+        } catch (error: any) {
+            console.error('[DHAN] Failed to fetch instruments:', error.message);
+            return [];
+        }
+    }
 }

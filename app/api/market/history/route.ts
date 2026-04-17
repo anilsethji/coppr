@@ -5,67 +5,74 @@ export async function GET(request: Request) {
     const symbol = searchParams.get('symbol') || 'XAUUSD';
     const timeframe = searchParams.get('timeframe') || '15m';
 
-    // INSTITUTIONAL PERSISTENT SIMULATOR
-    // This uses a seeded random walk based on the current timestamp (5m blocks)
-    // to ensure the price is "persistent" across multiple heartbeats.
-    const generatePersistentData = (sym: string, tf: string) => {
-        const data = [];
-        const count = 300;
-        
-        // Institutional Base Prices
-        const BASE_PRICES: Record<string, number> = {
-            'XAUUSD': 2350.45,
-            'BTCUSD': 65420.10,
-            'ETHUSD': 3450.25,
-            'NIFTY': 22450.00,
-            'BANKNIFTY': 47820.00,
-            'EURUSD': 1.0845,
-            'GBPUSD': 1.2640,
-            'USDJPY': 151.20,
-            'CRUDEOIL': 83.45,
-            'SILVER': 27.85
+    const getYahooSymbol = (sym: string) => {
+        const map: Record<string, string> = {
+            'NIFTY': '^NSEI',
+            'BANKNIFTY': '^NSEBANK',
+            'SENSEX': '^BSESN',
+            'XAUUSD': 'GC=F',
+            'CRUDEOIL': 'CL=F',
+            'SILVER': 'SI=F',
+            'EURUSD': 'EURUSD=X',
+            'GBPUSD': 'GBPUSD=X',
+            'USDJPY': 'JPY=X',
         };
-
-        const basePrice = BASE_PRICES[sym.toUpperCase()] || 150.00;
-        const currentTime = Math.floor(Date.now() / 1000);
-        const interval = tf === '1d' ? 86400 : tf === '4h' ? 14400 : tf === '1h' ? 3600 : tf === '15m' ? 900 : 300;
-
-        // Seed generator with symbol + current hour block for persistence
-        const hourBlock = Math.floor(currentTime / 3600);
-        let seed = (sym.split('').reduce((a, b) => a + b.charCodeAt(0), 0) + hourBlock) % 10000;
+        if (map[sym.toUpperCase()]) return map[sym.toUpperCase()];
         
-        const seededRandom = () => {
-            seed = (seed * 9301 + 49297) % 233280;
-            return seed / 233280;
-        };
-
-        let currentClose = basePrice;
-        for (let i = 0; i < count; i++) {
-            const time = currentTime - (count - i) * interval;
-            const volatility = basePrice * 0.0005; // 0.05% volatility per bar
-            
-            const open = currentClose;
-            const move = (seededRandom() - 0.48) * volatility; // Slight upward bias
-            const close = open + move;
-            const high = Math.max(open, close) + seededRandom() * (volatility * 0.3);
-            const low = Math.min(open, close) - seededRandom() * (volatility * 0.3);
-            
-            data.push({
-                time,
-                open: parseFloat(open.toFixed(sym.includes('USD') && !sym.includes('JPY') ? 4 : 2)),
-                high: parseFloat(high.toFixed(sym.includes('USD') && !sym.includes('JPY') ? 4 : 2)),
-                low: parseFloat(low.toFixed(sym.includes('USD') && !sym.includes('JPY') ? 4 : 2)),
-                close: parseFloat(close.toFixed(sym.includes('USD') && !sym.includes('JPY') ? 4 : 2))
-            });
-            currentClose = close;
+        // Assume Indian stock if not mapped and not containing Forex/Crypto identifiers
+        if (!sym.includes('USD') && !sym.includes('JPY') && !sym.includes('=X')) {
+            return `${sym.toUpperCase()}.NS`;
         }
-        return data;
+        return sym;
     };
 
     try {
-        const data = generatePersistentData(symbol, timeframe);
-        return NextResponse.json(data);
-    } catch (error) {
-        return NextResponse.json({ error: 'Data Fetch Failure' }, { status: 500 });
+        const yahooSym = getYahooSymbol(symbol);
+        
+        let yfInterval = timeframe;
+        let range = '5d';
+        
+        if (timeframe === '1m') { range = '1d'; }
+        else if (timeframe === '5m' || timeframe === '15m') { range = '5d'; yfInterval = timeframe; }
+        else if (timeframe === '1h') { range = '1mo'; yfInterval = '60m'; }
+        else if (timeframe === '4h') { range = '1mo'; yfInterval = '60m'; } // Fallback to 1h
+        else if (timeframe === '1d') { range = '1y'; yfInterval = '1d'; }
+
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSym}?range=${range}&interval=${yfInterval}`;
+        
+        const response = await fetch(url, { cache: 'no-store' });
+        const textData = await response.text();
+        
+        if (!response.ok) {
+            throw new Error(`Market API error: ${response.status} - ${textData}`);
+        }
+
+        const data = JSON.parse(textData);
+        const result = data.chart?.result?.[0];
+        
+        if (!result || !result.timestamp) {
+             throw new Error('No market data found for this symbol');
+        }
+
+        const timestamps = result.timestamp;
+        const quotes = result.indicators.quote[0];
+        const formattedData = [];
+        
+        for (let i = 0; i < timestamps.length; i++) {
+            if (quotes.open[i] !== null && quotes.high[i] !== null && quotes.low[i] !== null && quotes.close[i] !== null) {
+                formattedData.push({
+                    time: timestamps[i],
+                    open: parseFloat(quotes.open[i].toFixed(2)),
+                    high: parseFloat(quotes.high[i].toFixed(2)),
+                    low: parseFloat(quotes.low[i].toFixed(2)),
+                    close: parseFloat(quotes.close[i].toFixed(2))
+                });
+            }
+        }
+
+        return NextResponse.json(formattedData);
+    } catch (error: any) {
+        console.error('Real Market Data Fetch Failure:', error.message);
+        return NextResponse.json({ error: 'Broker API Sync Failure', details: error.message }, { status: 500 });
     }
 }

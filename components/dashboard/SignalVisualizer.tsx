@@ -192,7 +192,8 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
         };
 
         fetchData();
-        pollingInterval = setInterval(() => fetchData(true), 3000);
+        const intervalMs = process.env.NODE_ENV === 'development' ? 10000 : 3000;
+        pollingInterval = setInterval(() => fetchData(true), intervalMs);
 
         return () => clearInterval(pollingInterval);
     }, [symbol, logs, timeframe]);

@@ -98,7 +98,27 @@ export class MexcAdapter {
             }
         });
 
-        // 1=Hedge, 2=One-Way in MEXC context usually
+    // 1=Hedge, 2=One-Way in MEXC context usually
         return response.data.data?.positionMode === 1;
+    }
+
+    async getInstruments(): Promise<any[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/api/v1/contract/detail`);
+            if (response.data.code !== 0) return [];
+
+            return response.data.data
+                .filter((s: any) => s.state === 0) // 0 = normal
+                .map((s: any) => ({
+                    symbol: s.symbol,
+                    baseAsset: s.baseCoin,
+                    quoteAsset: s.quoteCoin,
+                    displayName: `${s.baseCoin}/${s.quoteCoin}`,
+                    type: 'CRYPTO'
+                }));
+        } catch (error: any) {
+            console.error('[MEXC] Failed to fetch instruments:', error.message);
+            return [];
+        }
     }
 }

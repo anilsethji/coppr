@@ -197,7 +197,9 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
         brokerType={managingSub?.broker_accounts?.broker_type || 'MT5'} 
         selectedAssets={managingSub?.active_assets || []} 
         onAssetToggle={async (sym) => { 
-            const next = managingSub?.active_assets?.includes(sym) ? managingSub.active_assets.filter((as: any) => as !== sym) : [...(managingSub?.active_assets || []), sym]; 
+            const isAdding = !managingSub?.active_assets?.includes(sym);
+            const next = isAdding ? [...(managingSub?.active_assets || []), sym] : managingSub.active_assets.filter((as: any) => as !== sym);
+            if (isAdding) setPreviewSymbol(sym);
             setStrategies(prev => prev.map(s => s.id === managingSub.id ? { ...s, active_assets: next }: s)); 
             setManagingSub((p: any) => ({ ...p, active_assets: next })); 
             const supabase = createClient(); 

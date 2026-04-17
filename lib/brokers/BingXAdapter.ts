@@ -64,7 +64,23 @@ export class BingXAdapter {
         const signature = this.sign(queryString, credentials.api_secret);
 
         const response = await axios.get(`${this.baseURL}/openApi/swap/v1/positionMode?${queryString}&signature=${signature}`);
-        // dualSidePosition = true means Hedge Mode
+    // dualSidePosition = true means Hedge Mode
         return response.data.data?.dualSidePosition === true;
+    }
+
+    async getInstruments(): Promise<any[]> {
+        try {
+            const response = await axios.get(`${this.baseURL}/openApi/swap/v2/quote/contracts`);
+            if (response.data.code !== 0) return [];
+
+            return response.data.data.map((s: any) => ({
+                symbol: s.symbol,
+                displayName: s.symbol.replace('-', '/'),
+                type: 'CRYPTO'
+            }));
+        } catch (error: any) {
+            console.error('[BINGX] Failed to fetch instruments:', error.message);
+            return [];
+        }
     }
 }

@@ -35,6 +35,8 @@ const CATEGORIES = [
   { id: 'INDEX', label: 'Indices', icon: Activity },
   { id: 'FOREX', label: 'ForeX', icon: TrendingUp },
   { id: 'COMMODITY', label: 'Commodities', icon: Layers },
+  { id: 'EQUITY', label: 'Equity', icon: Target },
+  { id: 'OPTIONS', label: 'Options', icon: Layers },
 ];
 
 export default function AssetDiscoveryDrawer({
@@ -85,12 +87,16 @@ export default function AssetDiscoveryDrawer({
     }
   };
   const filteredInstruments = useMemo(() => {
+    // High-performance filtering for 10k+ items: Search threshold
+    if (searchQuery.length > 0 && searchQuery.length < 2) return [];
+
     return instruments.filter(inst => {
-      const matchesSearch = (inst.symbol?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           inst.displayName?.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = searchQuery.length === 0 || 
+                           (inst.symbol?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            inst.displayName?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = activeCategory === 'ALL' || inst.type === activeCategory;
       return matchesSearch && matchesCategory;
-    });
+    }).slice(0, 100); // Limit visible results for UI performance
   }, [instruments, searchQuery, activeCategory]);
 
   return (

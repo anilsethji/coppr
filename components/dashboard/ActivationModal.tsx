@@ -345,8 +345,21 @@ export default function ActivationModal({
                            </div>
                         </div>
                         
-                        <div className="h-[220px] rounded-[40px] border border-white/5 bg-black/60 overflow-hidden relative group shadow-2xl">
-                           <SignalVisualizer symbol={previewSymbol} logs={[]} />
+                        <div className="h-[220px] rounded-[40px] border border-white/5 bg-black/60 overflow-hidden relative group shadow-2xl flex flex-col">
+                           {activeAssets.length > 0 && (
+                                <div className="absolute top-4 right-4 z-40 max-w-[250px] flex flex-wrap justify-end gap-1.5 pointer-events-none">
+                                    {activeAssets.slice(0, 4).map(a => (
+                                        <span key={a} className="px-2 py-1 bg-[#00E676]/10 border border-[#00E676]/30 text-[#00E676] rounded-md text-[8px] font-black uppercase tracking-widest shadow-lg shadow-[#00E676]/10">{a}</span>
+                                    ))}
+                                    {activeAssets.length > 4 && <span className="px-2 py-1 bg-white/10 text-white/50 rounded-md text-[8px] font-black border border-white/5">+{activeAssets.length - 4}</span>}
+                                </div>
+                           )}
+                           <SignalVisualizer 
+                               symbol={previewSymbol} 
+                               logs={[]} 
+                               activeSymbols={activeAssets.length > 0 ? activeAssets : [previewSymbol]}
+                               onSymbolChange={setPreviewSymbol}
+                           />
                         </div>
 
                         <AssetDiscoveryDrawer 
@@ -355,7 +368,11 @@ export default function ActivationModal({
                            brokerType={selectedBroker?.id}
                            selectedAssets={activeAssets}
                            onAssetToggle={(sym) => {
-                               setActiveAssets(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym]);
+                               setActiveAssets(prev => {
+                                   if (prev.includes(sym)) return prev.filter(s => s !== sym);
+                                   setPreviewSymbol(sym); // Instantly flash chart to newly selected asset
+                                   return [...prev, sym];
+                               });
                            }}
                            onPreviewSymbol={setPreviewSymbol}
                         />

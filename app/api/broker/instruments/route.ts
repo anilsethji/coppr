@@ -1,86 +1,107 @@
 import { NextResponse } from 'next/server';
 import { BinanceFuturesAdapter } from '@/lib/brokers/BinanceFuturesAdapter';
 import { BybitAdapter } from '@/lib/brokers/BybitAdapter';
+import { MexcAdapter } from '@/lib/brokers/MexcAdapter';
+import { BingXAdapter } from '@/lib/brokers/BingXAdapter';
+import { DhanAdapter } from '@/lib/brokers/DhanAdapter';
+import axios from 'axios';
 
-/**
- * GET /api/broker/instruments?brokerType=BINANCE_FUTURES
- * Fetches available symbols for a specific broker bridge.
- */
+// 24-hour In-Memory Cache
+const instrumentCache: Record<string, { data: any[], timestamp: number }> = {};
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+
+async function fetchZerodhaInstruments() {
+    try {
+        const response = await axios.get('https://api.kite.trade/instruments');
+        // Parse CSV-ish data from Zerodha
+        const lines = response.data.split('\n');
+        return lines.slice(1, 1000).map((line: string) => {
+            const cols = line.split(',');
+            return {
+                symbol: cols[2], // trading_symbol
+                displayName: cols[3], // name
+                type: cols[11] === 'EQ' ? 'EQUITY' : 'OPTIONS'
+            };
+        }).filter((i: any) => i.symbol);
+    } catch (err) {
+        console.error('[ZERODHA_FETCH] Failed:', err);
+        return [];
+    }
+}
+
+async function fetchAngelOneInstruments() {
+    try {
+        const response = await axios.get('https://margincalculator.angelbroking.com/OpenAPI_Standard/metadata/nse_all.json');
+        return response.data.slice(0, 1000).map((i: any) => ({
+            symbol: i.symbol,
+            displayName: i.name,
+            type: i.instrumenttype === 'OPTIDX' || i.instrumenttype === 'OPTSTK' ? 'OPTIONS' : 'EQUITY'
+        }));
+    } catch (err) {
+        console.error('[ANGELONE_FETCH] Failed:', err);
+        return [];
+    }
+}
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const brokerType = searchParams.get('brokerType');
+
+    if (!brokerType) return NextResponse.json({ error: 'Missing brokerType' }, { status: 400 });
+
+    // Check Cache
+    const cached = instrumentCache[brokerType];
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return NextResponse.json(cached.data);
+    }
 
     try {
         let instruments: any[] = [];
 
         switch (brokerType) {
             case 'BINANCE_FUTURES':
-                const binance = new BinanceFuturesAdapter();
-                instruments = await binance.getInstruments();
+                instruments = await new BinanceFuturesAdapter().getInstruments();
                 break;
-            
             case 'BYBIT':
-                const bybit = new BybitAdapter();
-                instruments = await bybit.getInstruments();
+                instruments = await new BybitAdapter().getInstruments();
                 break;
-
             case 'MEXC':
-            case 'BINGX':
-                // For other crypto brokers, we use a robust liquidated curated list
-                instruments = [
-                    { symbol: 'BTCUSDT', displayName: 'Bitcoin / USDT', type: 'CRYPTO' },
-                    { symbol: 'ETHUSDT', displayName: 'Ethereum / USDT', type: 'CRYPTO' },
-                    { symbol: 'SOLUSDT', displayName: 'Solana / USDT', type: 'CRYPTO' },
-                    { symbol: 'XRPUSDT', displayName: 'Ripple / USDT', type: 'CRYPTO' },
-                    { symbol: 'XAUUSD', displayName: 'Gold / USD', type: 'COMMODITY' }
-                ];
+                instruments = await new MexcAdapter().getInstruments();
                 break;
-
+            case 'BINGX':
+                instruments = await new BingXAdapter().getInstruments();
+                break;
+            case 'DHAN':
+                instruments = await new DhanAdapter().getInstruments();
+                break;
+            case 'ZERODHA':
+                instruments = await fetchZerodhaInstruments();
+                break;
+            case 'ANGELONE':
+                instruments = await fetchAngelOneInstruments();
+                break;
+            case 'GROWW':
+                // Reuse Dhan/Zerodha logic or provide curated list
+                instruments = await fetchZerodhaInstruments();
+                break;
             case 'MT5':
             case 'TRADINGVIEW_DEMO':
                 instruments = [
                     { symbol: 'XAUUSD', displayName: 'Gold (Spot)', type: 'COMMODITY' },
                     { symbol: 'BTCUSD', displayName: 'Bitcoin', type: 'CRYPTO' },
-                    { symbol: 'ETHUSD', displayName: 'Ethereum', type: 'CRYPTO' },
                     { symbol: 'EURUSD', displayName: 'EUR/USD', type: 'FOREX' },
                     { symbol: 'GBPUSD', displayName: 'GBP/USD', type: 'FOREX' },
-                    { symbol: 'USDJPY', displayName: 'USD/JPY', type: 'FOREX' },
-                    { symbol: 'AUDUSD', displayName: 'AUD/USD', type: 'FOREX' },
-                    { symbol: 'US30', displayName: 'Dow Jones 30', type: 'INDEX' },
                     { symbol: 'NAS100', displayName: 'Nasdaq 100', type: 'INDEX' },
-                    { symbol: 'GER40', displayName: 'DAX 40', type: 'INDEX' },
-                    { symbol: 'UK100', displayName: 'FTSE 100', type: 'INDEX' },
+                    { symbol: 'US30', displayName: 'Dow Jones 30', type: 'INDEX' }
                 ];
                 break;
-
-            case 'ZERODHA':
-            case 'ANGELONE':
-            case 'DHAN':
-            case 'GROWW':
-                instruments = [
-                    { symbol: 'NIFTY 50', displayName: 'Nifty 50 Index', type: 'INDEX' },
-                    { symbol: 'BANKNIFTY', displayName: 'Nifty Bank', type: 'INDEX' },
-                    { symbol: 'FINNIFTY', displayName: 'Nifty Financial Services', type: 'INDEX' },
-                    { symbol: 'RELIANCE', displayName: 'Reliance Industries', type: 'EQUITY' },
-                    { symbol: 'HDFCBANK', displayName: 'HDFC Bank', type: 'EQUITY' },
-                    { symbol: 'INFY', displayName: 'Infosys', type: 'EQUITY' },
-                    { symbol: 'TCS', displayName: 'Tata Consultancy', type: 'EQUITY' },
-                    { symbol: 'ICICIBANK', displayName: 'ICICI Bank', type: 'EQUITY' },
-                    { symbol: 'SBIN', displayName: 'State Bank of India', type: 'EQUITY' },
-                    { symbol: 'GOLD APR FUT', displayName: 'MCX Gold Futures', type: 'COMMODITY' },
-                    { symbol: 'CRUDEOIL APR FUT', displayName: 'MCX Crude Oil', type: 'COMMODITY' },
-                ];
-                break;
-
             default:
-                // Default fallback for any newly added brokers
-                instruments = [
-                    { symbol: 'BTCUSD', displayName: 'Bitcoin', type: 'CRYPTO' },
-                    { symbol: 'XAUUSD', displayName: 'Gold', type: 'COMMODITY' }
-                ];
-                break;
+                instruments = [{ symbol: 'BTCUSD', displayName: 'Bitcoin', type: 'CRYPTO' }];
         }
 
+        // Store in Cache
+        instrumentCache[brokerType] = { data: instruments, timestamp: Date.now() };
+        
         return NextResponse.json(instruments);
     } catch (err: any) {
         console.error('[INSTRUMENTS_API] Error:', err.message);
