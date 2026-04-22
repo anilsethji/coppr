@@ -85,7 +85,7 @@ export default function LandingPage() {
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00E676]">Marketplace V2.0 is Live</span>
             </motion.div>
 
-            <div className="relative min-h-[280px] w-full flex flex-col items-center justify-center">
+            <div className="relative min-h-[max(280px,40vh)] w-full flex flex-col items-center justify-center">
                 <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/20 to-transparent pointer-events-none opacity-0" />
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -96,11 +96,11 @@ export default function LandingPage() {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="flex flex-col items-center space-y-8 absolute w-full"
                     >
-                        <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] max-w-5xl">
+                        <h1 className="text-[clamp(2rem,10vw,4.5rem)] font-black tracking-tight leading-[0.9] max-w-5xl uppercase px-4">
                             {headlines[headlineIndex].main}
                         </h1>
 
-                        <p className="text-lg md:text-xl text-white/40 max-w-2xl font-medium leading-relaxed">
+                        <p className="text-sm md:text-xl text-white/40 max-w-2xl font-medium leading-relaxed px-6">
                             {headlines[headlineIndex].sub}
                         </p>
                     </motion.div>
@@ -111,13 +111,13 @@ export default function LandingPage() {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.8 }}
-               className="flex flex-col sm:flex-row gap-4 pt-4"
+               className="flex flex-col sm:flex-row gap-4 pt-8 w-full sm:w-auto items-center justify-center"
             >
-                <Link href="/login" className="px-10 py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] text-black font-black uppercase tracking-widest text-sm shadow-[0_20px_50px_rgba(255,215,0,0.2)] hover:scale-105 transition-all flex items-center gap-3">
+                <Link href="/login" className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FF8C00] text-black font-black uppercase tracking-widest text-sm shadow-[0_20px_50px_rgba(255,215,0,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-3">
                     Launch Dashboard
                     <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link href="#marketplace" className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all">
+                <Link href="#marketplace" className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all text-center">
                     Browse Marketplace
                 </Link>
             </motion.div>
@@ -125,24 +125,24 @@ export default function LandingPage() {
         </div>
 
         {/* Live Ticker Integration */}
-        <div className="mt-20 border-y border-white/5 bg-white/[0.01] backdrop-blur-md">
+        <div className="mt-24 border-y border-white/5 bg-white/[0.01] backdrop-blur-md">
             <PriceTicker />
         </div>
       </section>
 
       {/* 2. PLATFORM STATS */}
-      <section className="py-12 border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="py-16 md:py-24 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
                 { label: 'Trade Volume', value: '$850k+', icon: Zap, color: '#FFD700' },
                 { label: 'Active Signals', value: '124', icon: Activity, color: '#00E676' },
                 { label: 'Verified Creators', value: '42', icon: ShieldCheck, color: '#00B0FF' },
                 { label: 'Total Users', value: '4.2k', icon: Users, color: '#9C6EFA' }
             ].map((stat, i) => (
-                <div key={i} className="flex flex-col items-center text-center space-y-2 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+                <div key={i} className="flex flex-col items-center text-center space-y-2 p-8 rounded-[32px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
                     <stat.icon className="w-5 h-5 opacity-20 mb-2" />
-                    <span className="text-3xl md:text-5xl font-black text-white">{stat.value}</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20">{stat.label}</span>
+                    <span className="text-4xl md:text-5xl font-black text-white">{stat.value}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-1">{stat.label}</span>
                 </div>
             ))}
         </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
                 <div className="space-y-4">
-                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">ELITE <span className="text-white/20">STRATEGIES.</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase">ELITE <span className="text-white/20">STRATEGIES.</span></h2>
                     <p className="text-[14px] text-white/40 font-bold uppercase tracking-widest">Hand-picked algorithms with consistent performance history.</p>
                 </div>
                 <Link href="/dashboard/marketplace" className="group flex items-center gap-3 text-[12px] font-black uppercase tracking-widest text-[#FFD700] hover:underline underline-offset-8">
@@ -162,7 +162,7 @@ export default function LandingPage() {
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {[
                     { name: 'XAU Scalper V4', type: 'MT5 EA', wr: '74%', roi: '+12.5%', creator: 'ApexAlgo' },
                     { name: 'Nifty Trend Rider', type: 'Pine Script', wr: '68%', roi: '+8.2%', creator: 'QuantMaster' },
@@ -171,29 +171,29 @@ export default function LandingPage() {
                     <motion.div 
                        key={i}
                        whileHover={{ y: -10 }}
-                       className="p-8 rounded-[40px] bg-white/[0.03] border border-white/10 relative overflow-hidden group"
+                       className="p-8 rounded-[40px] bg-white/[0.03] border border-white/10 relative overflow-hidden group shadow-2xl"
                     >
                         <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Bot className="w-20 h-20" />
+                            <Bot className="w-16 h-16 md:w-20 md:h-20" />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#FFD700] mb-4 block">{s.type}</span>
-                        <h4 className="text-2xl font-black text-white mb-6">{s.name}</h4>
+                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#FFD700] mb-4 block">{s.type}</span>
+                        <h4 className="text-xl md:text-2xl font-black text-white mb-6 uppercase tracking-tight leading-none">{s.name}</h4>
                         
                         <div className="grid grid-cols-2 gap-4 mb-10">
-                            <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                                <span className="block text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">WIN RATE</span>
-                                <span className="text-[#00E676] font-black">{s.wr}</span>
+                            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
+                                <span className="block text-[8px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Precision</span>
+                                <span className="text-[#00E676] font-black text-sm md:text-base">{s.wr}</span>
                             </div>
-                            <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                                <span className="block text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">AVG ROI</span>
-                                <span className="text-white font-black">{s.roi}</span>
+                            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
+                                <span className="block text-[8px] md:text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Alpha</span>
+                                <span className="text-white font-black text-sm md:text-base">{s.roi}</span>
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-white/10 border border-white/10" />
-                                <span className="text-[11px] font-bold text-white/40 group-hover:text-white transition-colors">{s.creator}</span>
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-full bg-white/10 border border-white/10" />
+                                <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest text-white/30 group-hover:text-white transition-colors">{s.creator}</span>
                             </div>
                             <Link href="/dashboard/marketplace" className="p-3 rounded-xl bg-[#FFD700] text-black group-hover:scale-110 transition-transform">
                                 <ArrowUpRight className="w-5 h-5" />
@@ -210,55 +210,55 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[#00E676]/[0.02] pointer-events-none" />
         <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-[#00E676]/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
-            <div className="space-y-8">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center relative z-10">
+            <div className="space-y-6 md:space-y-8">
                 <div className="inline-flex flex-col space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#00E676] bg-[#00E676]/10 px-3 py-1.5 rounded-full w-fit">
+                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[#00E676] bg-[#00E676]/10 px-4 py-2 rounded-full w-fit italic">
                         April 1, 2026 Framework Active
                     </span>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight italic">
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] uppercase">
                     100% SEBI <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] to-[#00B0FF]">COMPLIANT.</span>
                 </h2>
-                <p className="text-lg text-white/40 leading-relaxed font-medium">
+                <p className="text-base md:text-lg text-white/30 leading-relaxed font-medium">
                     The wild west of algo trading is over. Coppr operates as an empanelled technology agent under the new institutional framework. We handle the 2FA, Static IPs, & Strategy IDs so you can focus on alpha.
                 </p>
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     {[
-                        { t: 'Exchange-Assigned Strategy IDs', d: 'Full auditability tracking back to the source.' },
-                        { t: 'API Speed Threshold Optimization', d: 'Intelligent routing prevents breaking 10 orders/sec limit.' },
-                        { t: 'Encrypted Static IP Bridging', d: 'Completely securing your backend payload generation.' }
+                        { t: 'Exchange-Assigned IDs', d: 'Full auditability tracking back to the source.' },
+                        { t: 'API Threshold Sync', d: 'Intelligent routing prevents breaking 10 orders/sec limit.' },
+                        { t: 'Encrypted IP Bridging', d: 'Completely securing your backend payload generation.' }
                     ].map((feat, i) => (
                         <div key={i} className="flex gap-4 items-start">
                             <div className="mt-1 w-6 h-6 rounded-full bg-[#00E676]/10 flex items-center justify-center shrink-0 border border-[#00E676]/20">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-black text-white italic uppercase tracking-widest">{feat.t}</h4>
-                                <p className="text-xs text-white/40 mt-1">{feat.d}</p>
+                                <h4 className="text-[11px] md:text-[13px] font-black text-white uppercase tracking-[0.1em]">{feat.t}</h4>
+                                <p className="text-[10px] md:text-xs text-white/20 mt-0.5">{feat.d}</p>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
             
-            <div className="relative">
-                <div className="p-10 rounded-[40px] bg-white/[0.02] border border-[#00E676]/20 backdrop-blur-xl relative overflow-hidden">
+            <div className="relative w-full">
+                <div className="p-8 md:p-10 rounded-[40px] bg-white/[0.02] border border-[#00E676]/20 backdrop-blur-xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-6 opacity-10">
-                        <ShieldCheck className="w-24 h-24 text-[#00E676]" />
+                        <ShieldCheck className="w-20 md:w-24 h-20 md:h-24 text-[#00E676]" />
                     </div>
-                    <div className="space-y-8 relative z-10">
+                    <div className="space-y-6 md:space-y-8 relative z-10">
                         <div className="flex items-center gap-4">
                             <Lock className="w-6 h-6 text-[#00E676]" />
-                            <h3 className="text-xl font-black text-white uppercase italic">Liability Transfer Protocol</h3>
+                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Liability Transfer Protocol</h3>
                         </div>
-                        <p className="text-sm font-medium text-white/60 leading-relaxed italic">
-                            Coppr is an execution bridge, not an advisory service. Our infrastructure completely decouples technology provision from financial advice, establishing a legally pristine moat against unregulated competitors.
+                        <p className="text-xs md:text-sm font-medium text-white/50 leading-relaxed">
+                            Coppr is an execution bridge, not an advisory service. Our infrastructure completely decouples technology provision from financial advice, establishing a legally pristine moat.
                         </p>
-                        <div className="p-4 bg-black/40 rounded-2xl border border-white/5 font-mono text-[9px] text-[#00E676]/80 uppercase leading-loose">
-                            &gt; Empanelled Agent Verified<br/>
-                            &gt; Not a SEBI Registered RIA<br/>
-                            &gt; Principal-Broker Mapping Integrity: 100%
+                        <div className="p-5 bg-black/40 rounded-2xl border border-white/5 font-mono text-[9px] text-[#00E676]/80 uppercase leading-loose tracking-widest">
+                            &gt; Agent Verified // 2026<br/>
+                            &gt; Not a Registered RIA<br/>
+                            &gt; Broker Mapping: 100%
                         </div>
                     </div>
                 </div>
@@ -362,7 +362,7 @@ export default function LandingPage() {
                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
                  <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em]">Multi-Platform AI Extraction</span>
               </div>
-              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-[1.1]">
+              <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight uppercase leading-[1.1]">
                 Paste a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FFD700] to-[#E1306C]">Video Link</span>.
                 <br />Get a live bot.
               </h2>
@@ -413,59 +413,59 @@ export default function LandingPage() {
       <section id="pricing" className="py-24">
         <div className="max-w-7xl mx-auto px-6">
             <div className="text-center space-y-4 mb-20">
-                <h2 className="text-4xl md:text-6xl font-black tracking-tighter italic">CHOOSE YOUR <span className="text-white/20">SPEED.</span></h2>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tight">CHOOSE YOUR <span className="text-white/20">SPEED.</span></h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
                 {/* Plan 1 */}
-                <div className="p-10 rounded-[48px] bg-white/[0.03] border border-white/10 flex flex-col group hover:bg-white/[0.05] transition-all">
-                    <div className="mb-8 p-3 rounded-2xl bg-white/5 w-fit">
+                <div className="p-8 md:p-10 rounded-[40px] md:rounded-[48px] bg-white/[0.03] border border-white/10 flex flex-col group hover:bg-white/[0.05] transition-all">
+                    <div className="mb-6 md:mb-8 p-3 rounded-2xl bg-white/5 w-fit">
                         <Users className="w-6 h-6 text-white/40" />
                     </div>
-                    <h3 className="text-2xl font-black text-white mb-2">Platform All-Access</h3>
-                    <p className="text-[12px] text-white/40 uppercase font-bold tracking-widest mb-8">One subscription, all indicators.</p>
-                    <div className="flex items-baseline gap-2 mb-10">
-                        <span className="text-5xl font-black text-white tracking-tighter">₹1999</span>
-                        <span className="text-sm font-bold text-white/20">/month</span>
+                    <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight text-white/90">All-Access Hub</h3>
+                    <p className="text-[10px] md:text-[12px] text-white/30 uppercase font-bold tracking-widest mb-8">Full indicator & tutorial stack.</p>
+                    <div className="flex items-baseline gap-2 mb-8 md:mb-10">
+                        <span className="text-4xl md:text-5xl font-black text-white tracking-tight">₹1999</span>
+                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/month</span>
                     </div>
-                    <ul className="space-y-4 mb-12">
+                    <ul className="space-y-4 mb-10 md:mb-12">
                         {['All Indicators included', 'MT5 Strategy Backtests', 'Platform Tutorials', 'Telegram Community'].map((f, i) => (
-                            <li key={i} className="flex items-center gap-3 text-sm font-bold text-white/60">
+                            <li key={i} className="flex items-center gap-3 text-[11px] md:text-sm font-bold text-white/50 uppercase tracking-wider">
                                 <CheckCircle2 className="w-4 h-4 text-[#00E676]" />
                                 {f}
                             </li>
                         ))}
                     </ul>
-                    <Link href="/checkout" className="mt-auto py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-xs hover:bg-white/10 text-center transition-all">
-                        Get Started
+                    <Link href="/checkout" className="mt-auto py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/10 text-center transition-all">
+                        Initialize Session
                     </Link>
                 </div>
 
                 {/* Plan 2 */}
-                <div className="p-10 rounded-[48px] bg-gradient-to-br from-[#FFD700]/10 to-transparent border border-[#FFD700]/30 flex flex-col relative overflow-hidden shadow-2xl shadow-[#FFD700]/5">
+                <div className="p-8 md:p-10 rounded-[40px] md:rounded-[48px] bg-gradient-to-br from-[#FFD700]/10 to-transparent border border-[#FFD700]/30 flex flex-col relative overflow-hidden shadow-2xl shadow-[#FFD700]/5">
                     <div className="absolute top-0 right-0 p-8">
-                        <Zap className="w-12 h-12 text-[#FFD700] opacity-20" />
+                        <Zap className="w-10 md:w-12 h-10 md:h-12 text-[#FFD700] opacity-10" />
                     </div>
-                    <div className="mb-8 p-3 rounded-2xl bg-[#FFD700]/20 w-fit">
+                    <div className="mb-6 md:mb-8 p-3 rounded-2xl bg-[#FFD700]/10 w-fit border border-[#FFD700]/20">
                         <Lock className="w-6 h-6 text-[#FFD700]" />
                     </div>
-                    <h3 className="text-2xl font-black text-white mb-2">Strategy License</h3>
-                    <p className="text-[12px] text-[#FFD700] uppercase font-bold tracking-widest mb-8">Individual bot performance.</p>
-                    <div className="flex items-baseline gap-2 mb-10">
-                        <span className="text-sm font-bold text-white/20 uppercase">STARTING FROM</span>
-                        <span className="text-5xl font-black text-white tracking-tighter">₹999</span>
-                        <span className="text-sm font-bold text-white/20">/bot</span>
+                    <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight">Strategy Node</h3>
+                    <p className="text-[10px] md:text-[12px] text-[#FFD700]/60 uppercase font-bold tracking-widest mb-8">Automated execution license.</p>
+                    <div className="flex items-baseline gap-2 mb-8 md:mb-10">
+                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">STARTING</span>
+                        <span className="text-4xl md:text-5xl font-black text-white tracking-tight">₹999</span>
+                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/bot</span>
                     </div>
-                    <ul className="space-y-4 mb-12">
+                    <ul className="space-y-4 mb-10 md:mb-12">
                         {['Full Automated Execution', 'Webhook MT5 Setup', '7-Day Refund Policy', 'Creator Support Feed'].map((f, i) => (
-                            <li key={i} className="flex items-center gap-3 text-sm font-bold text-white/60">
+                            <li key={i} className="flex items-center gap-3 text-[11px] md:text-sm font-bold text-white/60 uppercase tracking-wider">
                                 <CheckCircle2 className="w-4 h-4 text-[#FFD700]" />
                                 {f}
                             </li>
                         ))}
                     </ul>
-                    <Link href="/dashboard/marketplace" className="mt-auto py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-black font-black uppercase tracking-widest text-xs shadow-xl shadow-[#FFD700]/20 text-center hover:scale-[1.02] transition-all">
-                        Browse Strategies
+                    <Link href="/dashboard/marketplace" className="mt-auto py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-black font-black uppercase tracking-widest text-[10px] shadow-xl shadow-[#FFD700]/20 text-center hover:scale-[1.02] transition-all">
+                        Browse Marketplace
                     </Link>
                 </div>
             </div>
@@ -513,7 +513,7 @@ export default function LandingPage() {
       <section className="py-40 relative">
         <div className="absolute inset-0 bg-[#FFD700]/5 blur-[250px] rounded-full" />
         <div className="max-w-7xl mx-auto px-6 text-center space-y-10 relative z-10">
-            <h2 className="text-5xl md:text-8xl font-black tracking-tighter italic leading-none">STOP WATCHING.<br/><span className="text-[#00E676]">START EXECUTING.</span></h2>
+            <h2 className="text-5xl md:text-8xl font-black tracking-tight leading-none uppercase">STOP WATCHING.<br/><span className="text-[#00E676]">START EXECUTING.</span></h2>
             <p className="text-[14px] text-white/30 font-bold uppercase tracking-widest max-w-lg mx-auto leading-relaxed">
                 Join the thousands of traders automating their path to consistency.
             </p>

@@ -43,6 +43,8 @@ export default function UnifiedAdminConsole() {
   const [winRate, setWinRate] = useState('73%');
   const [trades, setTrades] = useState('41');
   const [avgGain, setAvgGain] = useState('+2.1%');
+  const [confirmDeleteAssetId, setConfirmDeleteAssetId] = useState<string | null>(null);
+  const [purgingAssetId, setPurgingAssetId] = useState<string | null>(null);
   
   const supabase = createClient();
   const router = useRouter();
@@ -123,31 +125,31 @@ export default function UnifiedAdminConsole() {
       </div>
 
       {/* 2. COMMAND HUB TABS */}
-      <div className="flex flex-wrap justify-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5 w-fit mx-auto shadow-2xl backdrop-blur-md">
+      <div className="flex flex-wrap justify-center gap-3 bg-white/[0.03] p-1.5 rounded-[22px] border border-white/10 w-fit mx-auto shadow-2xl backdrop-blur-xl">
         <button 
           onClick={() => setActiveTab('official')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'official' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+          className={`flex items-center gap-3 px-8 py-3.5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'official' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
         >
-          <Rocket className="w-4 h-4" /> Official Deployment
+          <Rocket className="w-4 h-4" /> Official Release
         </button>
         <button 
           onClick={() => setActiveTab('spotlight')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'spotlight' ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+          className={`flex items-center gap-3 px-8 py-3.5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'spotlight' ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
         >
-          <Star className="w-4 h-4" /> Spotlight Manager
+          <Star className="w-4 h-4" /> Spotlight
         </button>
         <button 
           onClick={() => setActiveTab('clearance')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'clearance' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+          className={`flex items-center gap-3 px-8 py-3.5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 relative ${activeTab === 'clearance' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
         >
-          <Zap className="w-4 h-4" /> Clearance Hub
-          {pendingCount > 0 && <span className="absolute -top-1 -right-1 bg-white text-black text-[8px] font-black px-1.5 rounded-full">{pendingCount}</span>}
+          <Zap className="w-4 h-4" /> Clearance
+          {pendingCount > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-black text-[8px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg">{pendingCount}</span>}
         </button>
         <button 
           onClick={() => setActiveTab('legacy')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'legacy' ? 'bg-white/10 text-white' : 'text-white/20 hover:text-white/40'}`}
+          className={`flex items-center gap-3 px-8 py-3.5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'legacy' ? 'bg-white/10 text-white shadow-inner' : 'text-white/10 hover:text-white/30 hover:bg-white/5'}`}
         >
-          <LayoutGrid className="w-4 h-4" /> Legacy Assets
+          <LayoutGrid className="w-4 h-4" /> Legacy
         </button>
       </div>
 
@@ -232,12 +234,52 @@ export default function UnifiedAdminConsole() {
                   <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest pl-4 border-l-2 border-[#00B0FF]">Proprietary Terminal Assets</h3>
                   <div className="grid grid-cols-1 gap-4">
                      {items.map((item) => (
-                        <div key={item.id} className="p-6 rounded-[34px] bg-[#131929] border border-white/5 flex items-center justify-between group hover:border-[#00B0FF]/25 transition-all">
+                        <div key={item.id} className="p-4 md:p-6 rounded-[34px] bg-white/[0.02] border border-white/5 flex items-center justify-between group hover:border-[#00B0FF]/25 hover:bg-white/[0.04] transition-all">
                            <div className="flex items-center gap-6">
-                              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-xl shrink-0 border border-white/5 truncate">{item.type[0].toUpperCase()}</div>
-                              <div><h4 className="font-black text-white italic text-lg">{item.title}</h4><p className="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1 italic">{item.type}</p></div>
+                              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-xl shrink-0 border border-white/5 text-white/40 font-black">{item.type[0].toUpperCase()}</div>
+                              <div>
+                                 <h4 className="font-black text-white italic text-lg uppercase tracking-tight">{item.title}</h4>
+                                 <div className="flex items-center gap-3 mt-1">
+                                   <span className="text-[7px] font-black text-[#00B0FF] uppercase tracking-[0.3em] font-mono border border-[#00B0FF]/20 px-2 py-0.5 rounded-md">{item.type}</span>
+                                   <span className="text-[7px] text-white/20 font-bold uppercase">{new Date(item.created_at).toLocaleDateString()}</span>
+                                 </div>
+                              </div>
                            </div>
-                           <button onClick={() => handleDelete(item.id)} className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">Purge</button>
+                           
+                           <button 
+                               disabled={purgingAssetId === item.id}
+                               onClick={async () => {
+                                  if (confirmDeleteAssetId !== item.id) {
+                                     setConfirmDeleteAssetId(item.id);
+                                     setTimeout(() => setConfirmDeleteAssetId(null), 3000);
+                                     return;
+                                  }
+                                  
+                                  try {
+                                     setPurgingAssetId(item.id);
+                                     setConfirmDeleteAssetId(null);
+                                     await handleDelete(item.id);
+                                  } finally {
+                                     setPurgingAssetId(null);
+                                  }
+                               }}
+                               className={`px-4 py-2 flex items-center gap-2 transition-all rounded-xl border ${
+                                  purgingAssetId === item.id 
+                                  ? 'bg-red-500/20 border-red-500/40 text-red-500 animate-pulse' 
+                                  : confirmDeleteAssetId === item.id
+                                  ? 'bg-red-500 text-white border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                  : 'text-white/10 hover:text-red-500 hover:bg-red-500/10 border-transparent hover:border-red-500/20'
+                               }`}
+                           >
+                              {purgingAssetId === item.id ? (
+                                 <div className="w-4 h-4 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+                              ) : (
+                                 <Trash2 className={`w-4 h-4 ${confirmDeleteAssetId === item.id ? 'animate-bounce' : ''}`} />
+                              )}
+                              {confirmDeleteAssetId === item.id && (
+                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Confirm?</span>
+                              )}
+                           </button>
                         </div>
                      ))}
                   </div>

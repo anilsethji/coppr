@@ -59,7 +59,7 @@ export function HandshakeSuccess({ strategyName, signalKey, onClose }: Handshake
         <div className="p-8 md:p-10 rounded-[32px] bg-white/[0.03] border border-white/10 space-y-6 text-left">
            <div className="space-y-1">
               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Strategy Node</p>
-              <p className="text-xl font-black text-white uppercase italic">{strategyName}</p>
+              <p className="text-xl font-black text-white uppercase">{strategyName}</p>
            </div>
            
            <div className="space-y-3">

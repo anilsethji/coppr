@@ -55,10 +55,10 @@ export default function CreatorHandshakeTerminal({ strategyId, webhookUrl }: { s
            <div>
               <div className="flex items-center gap-3 mb-2">
                  <span className={`w-2 h-2 rounded-full ${status === 'LISTENING' ? 'bg-[#00E676] animate-pulse shadow-[0_0_10px_#00E676]' : 'bg-white/10'}`} />
-                 <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Connector <span className="text-white/20">Terminal</span></h3>
+                 <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Master <span className="text-[#00E676]">Propagation</span> Terminal</h3>
               </div>
               <p className="text-[11px] text-white/30 font-black uppercase tracking-widest font-sans italic leading-relaxed">
-                 Instant verification of your TradingView bridge logic. No code debugging required.
+                 Institutional Broadcast Logic Active. Only you need TradingView Premium—your subscribers follow for free.
               </p>
            </div>
 
@@ -87,11 +87,11 @@ export default function CreatorHandshakeTerminal({ strategyId, webhookUrl }: { s
 
               <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl space-y-4 shadow-inner">
                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase text-[#00E676] tracking-[0.2em] italic">02. TRIGGER ALERT</label>
+                    <label className="text-[10px] font-black uppercase text-[#00E676] tracking-[0.2em] italic">02. MASTER BROADCAST HANDSHAKE</label>
                     <Zap className="w-3.5 h-3.5 text-white/10" />
                  </div>
                  <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest leading-relaxed italic">
-                    Configure your TV alert with the bridge URL and trigger a manual signal to verify the handshake.
+                    Configure your TV alert with the bridge URL. Your one signal will automatically propagate to all authorized subscriber accounts.
                  </p>
               </div>
            </div>

@@ -8,13 +8,16 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["'Montserrat'", 'system-ui', '-apple-system', 'sans-serif'],
-        brand: ["'Inter'", 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ["var(--font-body)", 'system-ui', 'sans-serif'],
+        display: ["var(--font-heading)", 'system-ui', 'sans-serif'],
+        mono: ["var(--font-mono)", 'monospace'],
       },
       colors: {
+        background: '#020617',
+        card: '#050810',
         navy: {
-          deep: '#0A1A3A',
-          card: '#161C2D'
+          deep: '#0F172A',
+          card: '#1E293B'
         },
         gold: {
           pure: '#FFD700',
@@ -37,9 +40,9 @@ const config: Config = {
         'coppr-radial': 'radial-gradient(circle at center, #112854 0%, #0A1A3A 100%)',
       },
       borderRadius: {
-        'card': '16px',
-        'btn': '24px',
-        'badge': '6px',
+        'card': '12px',
+        'btn': '8px',
+        'badge': '4px',
       }
     },
   },

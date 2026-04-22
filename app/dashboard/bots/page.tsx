@@ -31,11 +31,11 @@ export default function BotsPage() {
                <div className="p-1.5 rounded-lg bg-[#FFD700]/10 border border-[#FFD700]/20">
                  <Bot className="w-5 h-5 text-[#FFD700]" strokeWidth={2.5} />
                </div>
-               <h1 className="text-lg md:text-2xl font-black text-white uppercase tracking-tight leading-none italic">
+               <h1 className="text-lg md:text-2xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">
                   Automated <span className="text-[#FFD700]">Trading Bots</span>
                </h1>
             </div>
-            <p className="text-[10px] md:text-xs text-white/40 max-w-[500px] font-sans font-bold italic uppercase leading-normal">
+            <p className="text-[10px] md:text-xs text-white/40 max-w-[500px] font-sans font-bold uppercase leading-normal">
                Browse top-performing strategies and copy their trades instantly to your own brokerage account.
             </p>
           </div>
@@ -45,7 +45,7 @@ export default function BotsPage() {
                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-0.5">Active Traders</p>
                 <div className="flex items-center gap-1.5 justify-end">
                    <Globe className="w-3 h-3 text-[#FFD700]" />
-                   <p className="text-[12px] font-black text-[#FFD700] uppercase italic leading-none">Global Access</p>
+                   <p className="text-[12px] font-black text-[#FFD700] uppercase leading-none">Global Access</p>
                 </div>
              </div>
           </div>

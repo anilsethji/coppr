@@ -60,8 +60,8 @@ export async function POST(
         return await relaySignal(sub.user_id, sub.strategy_id, action, price, symbol, supabase);
     }
 
-    // 🚩 OFFICIAL / MASTER FAN-OUT: Distribute to ALL active subscribers
-    if (strategy.origin === 'OFFICIAL') {
+    // 🚩 MASTER FAN-OUT: Distribute to ALL active subscribers
+    if (strategy) {
         // Log Master Signal once
         await supabase.from('signal_logs').insert({
             strategy_id: strategy.id,
@@ -74,7 +74,10 @@ export async function POST(
         // Trigger Async SEBI Throttled Fan-Out
         PropagationService.fanOut(strategy.id, rawPayload, signalKey, supabase).catch(console.error);
 
-        return NextResponse.json({ status: 'MASTER_FAN_OUT_INITIATED' });
+        return NextResponse.json({ 
+            status: 'MASTER_FAN_OUT_INITIATED',
+            strategy_origin: strategy.origin 
+        });
     }
 
     return NextResponse.json({ status: 'NO_ACTION_REQUIRED' });

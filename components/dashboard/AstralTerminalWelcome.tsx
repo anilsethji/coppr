@@ -71,7 +71,7 @@ export const AstralTerminalWelcome = ({ isOpen, onClose, strategyName }: { isOpe
                         {/* Terminal Content */}
                         <div className="p-8 md:p-10 min-h-[400px] font-mono space-y-4">
                             <div className="mb-8">
-                                <h2 className="text-2xl md:text-3xl font-black text-white mb-2 uppercase tracking-tight italic">
+                                <h2 className="text-2xl md:text-3xl font-black text-white mb-2 uppercase tracking-[0.05em]">
                                     Handshaking <span className="text-[#FFD700]">{strategyName}</span>
                                 </h2>
                                 <div className="flex items-center gap-2 text-[10px] text-white/20 font-bold uppercase tracking-widest">
@@ -111,21 +111,21 @@ export const AstralTerminalWelcome = ({ isOpen, onClose, strategyName }: { isOpe
                                 <Shield className="w-4 h-4 text-[#00E676]/40" />
                                 <div className="flex flex-col">
                                     <span className="text-[8px] font-black text-white/20 uppercase">Security</span>
-                                    <span className="text-[10px] font-bold text-white uppercase italic tracking-tighter">AES_256</span>
+                                    <span className="text-[10px] font-bold text-white uppercase tracking-tighter">AES_256</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 border-x border-white/5 px-6">
                                 <Cpu className="w-4 h-4 text-[#FFD700]/40" />
                                 <div className="flex flex-col">
                                     <span className="text-[8px] font-black text-white/20 uppercase">Core</span>
-                                    <span className="text-[10px] font-bold text-white uppercase italic tracking-tighter">FIBER_V1</span>
+                                    <span className="text-[10px] font-bold text-white uppercase tracking-tighter">FIBER_V1</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Zap className="w-4 h-4 text-[#00B0FF]/40" />
                                 <div className="flex flex-col">
                                     <span className="text-[8px] font-black text-white/20 uppercase">Parity</span>
-                                    <span className="text-[10px] font-bold text-white uppercase italic tracking-tighter">0.02ms</span>
+                                    <span className="text-[10px] font-bold text-white uppercase tracking-tighter">0.02ms</span>
                                 </div>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ export const AstralTerminalWelcome = ({ isOpen, onClose, strategyName }: { isOpe
                             <button 
                                 onClick={onClose}
                                 disabled={!isComplete}
-                                className={`px-10 py-5 rounded-2xl font-black uppercase text-[12px] tracking-[0.2em] italic transition-all duration-500 flex items-center gap-4 ${
+                                className={`px-10 py-5 rounded-2xl font-black uppercase text-[12px] tracking-[0.2em] transition-all duration-500 flex items-center gap-4 ${
                                     isComplete 
                                     ? 'bg-[#FFD700] text-black shadow-2xl shadow-[#FFD700]/20 hover:scale-[1.05]' 
                                     : 'bg-white/5 text-white/10 cursor-not-allowed scale-[0.98]'

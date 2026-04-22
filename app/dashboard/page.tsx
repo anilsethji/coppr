@@ -23,8 +23,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import TerminalLog from '@/components/dashboard/TerminalLog';
+import dynamic from 'next/dynamic';
 import { SpotlightCarousel } from '@/components/dashboard/SpotlightCarousel';
+
+const SignalVisualizer = dynamic(() => import('@/components/dashboard/SignalVisualizer').then(m => m.SignalVisualizer), { 
+    ssr: false,
+    loading: () => <div className="h-[400px] flex items-center justify-center bg-black/20 rounded-2xl border border-white/5 animate-pulse text-white/20 font-mono text-[10px] uppercase tracking-widest">Initializing Rendering Engine...</div>
+});
 
 const container = {
   hidden: { opacity: 0 },
@@ -73,7 +78,7 @@ export default function DashboardHome() {
         supabase.from('strategies').select('*').eq('is_official', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('strategies').select('name').eq('type', 'MT5_EA').order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('strategies').select('name').eq('type', 'PINE_SCRIPT_WEBHOOK').order('created_at', { ascending: false }).limit(1).maybeSingle(),
-        supabase.from('content').select('*').eq('type', 'bot').order('created_at', { ascending: false }).limit(1).maybeSingle()
+        supabase.from('content').select('*').eq('type', 'bot').order('created_at', {ascending: false }).limit(1).maybeSingle()
       ]);
 
       setProfile(pRes.data);
@@ -105,7 +110,7 @@ export default function DashboardHome() {
   if (loading) return (
     <div className="min-h-[600px] flex flex-col items-center justify-center gap-4">
       <div className="w-12 h-12 border-2 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Initializing Command Hub...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 font-mono">Opening Data Conduits...</p>
     </div>
   );
 
@@ -114,139 +119,148 @@ export default function DashboardHome() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-6 md:space-y-10 pb-20 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8"
+      className="space-y-10 pb-20 max-w-[1600px] mx-auto"
     >
-      {/* 1. COMPACT HERO: ELEGANT CONTROL CENTER (TOP) */}
-      <motion.div variants={item} className="relative p-6 md:p-8 bg-white/[0.03] border border-white/5 rounded-[32px] md:rounded-[40px] backdrop-blur-3xl overflow-hidden group shadow-2xl">
-        <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#FFD700]/5 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
-              <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] font-sans">All Systems Online</p>
-            </div>
-               <h1 className="text-lg md:text-3xl font-extrabold text-white tracking-tight uppercase italic leading-none opacity-90">
-                Welcome Back, <span className="text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">{profile?.full_name?.split(' ')[0] || 'Member'}</span>
-              </h1>
+      {/* 1. INSTITUTIONAL STATUS RIBBON (TOP) */}
+      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 relative p-8 bg-[#050810] border border-white/[0.03] rounded-2xl overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Activity className="w-24 h-24 text-[#00E676]" />
           </div>
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
+                <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">System Operational</span>
+              </div>
+              <h1 className="text-3xl font-black text-white tracking-tight [word-spacing:0.8rem] uppercase leading-none">
+                Command <span className="text-[#FFD700]">Terminal</span>
+              </h1>
+              <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.2em] font-mono">Current Session Node: SYNC_2026_PRIMARY</p>
+            </div>
+            
+            <div className="flex items-center gap-8 bg-white/[0.02] p-5 rounded-xl border border-white/[0.03] backdrop-blur-md">
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none">Total Mirroring</p>
+                <p className="text-xl font-black text-white font-mono leading-none">$1,242.00</p>
+              </div>
+              <div className="w-[1px] h-8 bg-white/10" />
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none">Signal Health</p>
+                <p className="text-xl font-black text-[#00E676] font-mono leading-none">99.8%</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-4 md:gap-6 bg-black/40 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-white/5 shadow-2xl backdrop-blur-xl">
-             <div className="text-right">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-1">Account Plan</p>
-                <div className="flex items-center gap-2 justify-end">
-                   <ShieldCheck className="w-3 h-3 text-[#FFD700]" />
-                   <p className="text-[12px] md:text-[14px] font-black text-[#FFD700] uppercase italic leading-none">Pro User</p>
-                </div>
-             </div>
-             <div className="w-[1px] h-8 md:h-10 bg-white/10" />
-             <div className="text-center min-w-[50px] md:min-w-[60px]">
-                <p className="text-[16px] md:text-[20px] font-black text-white leading-none font-sans italic mb-1">27</p>
-                <p className="text-[7px] md:text-[8px] font-bold text-white/20 uppercase tracking-widest font-sans">Days Left</p>
-             </div>
+        <div className="relative p-8 bg-gradient-to-br from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-2xl flex flex-col justify-between group overflow-hidden">
+          <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
+            <ShieldCheck className="w-32 h-32 text-[#FFD700]" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-2">Account Tier</p>
+            <h4 className="text-2xl font-black text-white uppercase leading-none">Institutional <span className="text-[#FFD700]">Pro</span></h4>
+          </div>
+          <div className="mt-8 flex items-end justify-between">
+            <div className="space-y-1">
+              <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none underline decoration-[#FFD700]/30 underline-offset-4">Handshake Expiry</p>
+              <p className="text-lg font-black text-white font-mono leading-none">27 DAYS</p>
+            </div>
+            <Link href="/dashboard/account" className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+              <ArrowUpRight className="w-4 h-4 text-white/40" />
+            </Link>
           </div>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-        {navCards.map((card, i) => (
-          <Link key={i} href={card.href} className="group relative">
-            <motion.div 
-              variants={item}
-              whileHover="hover"
-              whileTap={{ scale: 0.98 }}
-              className={`relative p-4 md:p-10 rounded-[24px] md:rounded-[44px] transition-all duration-700 aspect-auto md:aspect-square flex flex-col justify-between overflow-hidden border border-white/[0.08] shadow-2xl ${
-                card.isHighlight 
-                  ? 'bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]' 
-                  : 'bg-gradient-to-b from-[#161C2D] to-[#0A1A3A]'
-              }`}
-            >
-              {/* METALLIC FINISH OVERLAY */}
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] opacity-[0.03] pointer-events-none mix-blend-overlay" />
-              
-              {/* GLITTERING EDGES (TOP & BOTTOM LIGHT CATCHERS) */}
-              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/[0.15] to-transparent z-20" />
-              <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent z-20" />
+      {/* 2. COMMAND FEED & LIVE PROPAGATION (CENTRAL) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex justify-between items-end px-2">
+            <div className="space-y-1">
+               <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">Live Data Matrix</span>
+               <h3 className="text-2xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">Market <span className="text-white/30">Propagations</span></h3>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/[0.02] border border-white/[0.03]">
+               <Activity className="w-3.5 h-3.5 text-[#00E676] animate-pulse" />
+               <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-mono">Heartbeat Sync // OK</span>
+            </div>
+          </div>
+          <motion.div variants={item} className="relative rounded-2xl overflow-hidden border border-white/[0.03] shadow-2xl bg-[#050810]/50 aspect-video lg:aspect-auto lg:h-[400px]">
+             <Link href="/dashboard/bots" className="block w-full h-full relative group/chart">
+                <div className="absolute inset-x-0 bottom-0 p-6 z-20 bg-gradient-to-t from-black/80 to-transparent translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+                   <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">Active Signal Hub</p>
+                         <p className="text-xs text-white/60 font-medium">Click to access the EA Bots terminal for full diagnostic data.</p>
+                      </div>
+                      <div className="p-3 bg-[#FFD700] text-black rounded-lg">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                   </div>
+                </div>
+                <SignalVisualizer symbol={official?.symbol || 'XAUUSD'} activeSymbols={[official?.symbol || 'XAUUSD']} logs={[]} />
+             </Link>
+          </motion.div>
+        </div>
 
-              {/* VIBRANT CONSTANT & EXPANDING BACKGROUND GLOW */}
-              <motion.div 
-                variants={{
-                  hover: { 
-                    opacity: 1, 
-                    scale: 2.2,
-                    background: `radial-gradient(circle at 30% 30%, ${card.color}50 0%, ${card.color}20 40%, transparent 80%)`
-                  }
-                }}
-                initial={{ opacity: 0.8, scale: 1.1 }}
-                className="absolute inset-0 z-0 transition-all duration-1000 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 30% 30%, ${card.color}30 0%, transparent 75%)` }}
-              />
+        <div className="space-y-6">
+          <div className="px-2">
+             <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Quick Launch</span>
+             <h3 className="text-2xl font-black text-white uppercase tracking-tight leading-none">Operational <span className="text-white/30">Grid</span></h3>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {navCards.map((card, i) => (
+              <Link key={i} href={card.href} className="group">
+                <motion.div 
+                  whileHover={{ x: 5 }}
+                  className="p-5 flex items-center justify-between bg-white/[0.01] border border-white/[0.03] rounded-xl hover:bg-white/[0.03] transition-all"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <card.icon className="w-6 h-6" style={{ color: card.color }} />
+                    </div>
+                    <div>
+                      <h5 className="text-[14px] font-black text-white uppercase text-sm">{card.t}</h5>
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">{card.sub}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/40 transition-colors" />
+                </motion.div>
+              </Link>
+            ))}
+          </div>
 
-              {/* EDGE-LIT GLOW (INSET ON HOVER) */}
-              <motion.div
-                variants={{
-                  hover: { opacity: 1, borderColor: `${card.color}60` }
-                }}
-                initial={{ opacity: 0, borderColor: `${card.color}10` }}
-                className="absolute inset-0 z-10 pointer-events-none rounded-[44px] border-[2px] transition-all duration-500"
-                style={{ boxShadow: `inset 0 0 35px ${card.color}25` }}
-              />
-
-              {/* DIAGONAL REFLECTIVE SHINE (THE GLIMMER) */}
-              <motion.div 
-                variants={{
-                  hover: { x: ['-130%', '130%'], opacity: [0, 0.8, 0] }
-                }}
-                initial={{ opacity: 0 }}
-                transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
-                className="absolute inset-0 z-30 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)',
-                  transform: 'skewX(-25deg)'
-                }}
-              />
-              
-              <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[28px] ${card.isHighlight ? 'bg-[#FFD700]' : 'bg-white/5'} flex items-center justify-center border border-white/10 shadow-inner relative z-40 backdrop-blur-md transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
-                <card.icon 
-                  className={`w-6 h-6 md:w-8 md:h-8 transition-all duration-500 ${card.isHighlight ? 'text-black' : ''}`} 
-                  style={{ color: card.isHighlight ? undefined : card.color, filter: card.isHighlight ? undefined : `drop-shadow(0 0 15px ${card.color})` }}
-                />
-              </div>
-
-              <div className="relative z-40 mt-6 md:mt-0">
-                 <h4 className="text-lg md:text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1">
-                    {card.t === 'Knowledge' ? 'Knowledge' : card.t.split(' ')[0]}
-                    <span className="hidden md:inline">{card.t === 'Knowledge' && <br />}</span>
-                    <span className={`text-white transition-opacity ${card.isHighlight ? 'opacity-80' : 'opacity-40 group-hover:opacity-100'}`}>
-                       {card.t === 'Knowledge' ? ' Hub' : ` ${card.t.split(' ')[1] || ''}`}
-                    </span>
-                 </h4>
-                 <div className="flex justify-between items-end">
-                    <p className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans group-hover:text-white/60 transition-colors leading-none">{card.sub}</p>
-                    <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-white/22 group-hover:text-white transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                 </div>
-              </div>
-            </motion.div>
-          </Link>
-        ))}
+          <div className="p-6 bg-gradient-to-br from-[#00E676]/5 to-transparent border border-[#00E676]/10 rounded-2xl space-y-4">
+             <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#00E676]" />
+                <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em] font-mono">AI Builder</span>
+             </div>
+             <p className="text-xs text-white/40 font-medium uppercase leading-relaxed">
+                Instantly extract Pine Script logic from any YouTube URL.
+             </p>
+             <Link href="/dashboard/creator/ai-builder" className="block w-full py-3 bg-[#00E676] text-black text-center text-[11px] font-black uppercase tracking-[0.2em] rounded-lg hover:scale-[1.02] transition-transform">
+                Initialize Build
+             </Link>
+          </div>
+        </div>
       </div>
 
-      {/* 3. COMMAND HUB SPOTLIGHTS (CINEMATIC CAROUSEL) */}
-      <div className="space-y-8 md:space-y-12">
+      {/* 3. ALPHA SPOTLIGHTS (CINEMATIC FOCUS) */}
+      <div className="space-y-8 pt-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
-               <div className="space-y-2">
+               <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                     <span className="text-[8px] md:text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] leading-none">Marketplace Highlights</span>
-                     <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse shadow-[0_0_8px_#FFD700]" />
+                     <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Marketplace Highlights</span>
                   </div>
-                  <h3 className="text-xl md:text-3xl font-extrabold text-white uppercase italic tracking-tight leading-none">Top <span className="text-[#00E676]">Alpha</span> Spotlights</h3>
+                  <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight [word-spacing:0.6rem] leading-none">Top <span className="text-[#00E676]">Alpha</span> Spotlights</h3>
                </div>
-           <p className="text-[9px] md:text-[12px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right leading-relaxed">
-              Consolidated command feed of the most successful algorithmic nodes on the network.
+           <p className="text-[11px] font-black text-white/10 uppercase tracking-[0.2em] max-w-sm text-left md:text-right leading-relaxed">
+              Nodes with the highest stability and profitability indices across the global Coppr net.
            </p>
         </div>
 
-        <motion.div variants={item}>
+        <motion.div variants={item} className="rounded-2xl overflow-hidden border border-white/[0.03]">
             <SpotlightCarousel items={[
                 ...(official ? [official] : []),
                 ...featured.filter(f => f.id !== official?.id)
@@ -254,70 +268,38 @@ export default function DashboardHome() {
         </motion.div>
       </div>
 
-      {/* AI STRATEGY BUILDER CTA */}
-      <div className="py-4">
-        <Link href="/dashboard/creator/ai-builder" className="group block relative w-full rounded-[48px] overflow-hidden border border-white/5 bg-gradient-to-r from-[#00E676]/[0.02] to-transparent hover:border-[#00E676]/30 hover:bg-[#00E676]/[0.05] transition-all duration-700 shadow-2xl">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')] opacity-[0.05] pointer-events-none mix-blend-overlay" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00E676]/10 to-transparent transform -skew-x-12 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
-          
-          <div className="p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-12 relative z-10">
-            <div className="w-20 h-20 md:w-28 md:h-28 shrink-0 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(0,230,118,0.1)] group-hover:scale-110 group-hover:bg-white/10 group-hover:border-[#00E676]/40 transition-all duration-700 backdrop-blur-md">
-               <Youtube className="w-10 h-10 md:w-14 md:h-14 text-white/50 group-hover:text-[#00E676] transition-colors" />
-            </div>
-            <div className="flex-1 text-center md:text-left space-y-3">
-               <div className="flex items-center justify-center md:justify-start gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
-                  <span className="text-[10px] md:text-xs font-black text-[#00E676] uppercase tracking-[0.3em] font-sans">AI Strategy Builder Active</span>
-               </div>
-               <h3 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter uppercase leading-tight">
-                 Turn any <span className="text-white opacity-60">YouTube Video</span><br/>into an Executable Bot
-               </h3>
-               <p className="text-xs md:text-sm font-bold text-white/30 uppercase tracking-widest max-w-2xl font-sans mt-2">
-                 Paste a YouTube trading strategy link, and our AI will instantaneously extract the entry criteria, stop-loss, and take-profit targets to compile it into Pine Script.
-               </p>
-            </div>
-            <div className="shrink-0 flex items-center justify-center min-w-[120px]">
-               <div className="px-6 py-4 bg-[#00E676] text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl group-hover:scale-105 transition-all shadow-xl shadow-[#00E676]/20 flex items-center gap-3 italic">
-                  Generate
-                  <ArrowUpRight className="w-4 h-4" />
-               </div>
-            </div>
-          </div>
-        </Link>
-      </div>
-
-      {/* 4. THE SMALL-SMALL BOXES: COMMUNITY ALPHAS (ENLARGED FOR BETTER FILL) */}
-      <div className="space-y-10">
+      {/* 4. ACTIVE LIBRARY SCAN (COMPACT) */}
+      <div className="space-y-8 pt-6">
         <div className="flex justify-between items-end px-2">
            <div className="space-y-1">
-              <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Community <span className="text-white/40 italic">Strategies</span></h3>
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest font-sans">Browse bots built by verified community creators</p>
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] font-mono">Alpha Database</span>
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight leading-none">Active <span className="text-white/30">Strategies</span></h3>
            </div>
-           <Link href="/dashboard/marketplace?filter=Coppr+Official" className="text-[11px] font-black text-[#FFD700] uppercase hover:underline tracking-widest italic decoration-2 underline-offset-4">Browse Hub →</Link>
+           <Link href="/dashboard/marketplace" className="text-[11px] font-black text-[#FFD700] uppercase tracking-widest flex items-center gap-2 hover:opacity-80 transition-opacity">
+              Access Full Hub <ChevronRight className="w-4 h-4" />
+           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {(botLibrary.length > 0 ? botLibrary : [
             { id: 'm1', name: 'Momentum Algo NSE', roi: '94%', symbol: 'NIFTY' },
             { id: 'm2', name: 'News Filter EA', roi: '82%', symbol: 'XAUUSD' },
             { id: 'm3', name: 'Regression Bot', roi: '88%', symbol: 'BTC' },
             { id: 'm4', name: 'Coppr Mirror', roi: '91%', symbol: 'ETH' }
-          ]).map((item: any) => (
-            <Link key={item.id} href={`/dashboard/marketplace?id=${item.id}`} className="group relative">
+          ]).slice(0, 4).map((item: any) => (
+            <Link key={item.id} href={`/dashboard/marketplace?id=${item.id}`} className="group">
                <motion.div 
-                 whileHover={{ y: -5, scale: 1.02 }}
-                 className="p-5 md:p-6 bg-[#161C2D] border border-white/5 rounded-[24px] md:rounded-[32px] hover:border-[#FFD700]/30 transition-all flex flex-col gap-4 md:gap-6 aspect-auto overflow-hidden relative shadow-lg"
+                 className="p-6 bg-white/[0.01] border border-white/[0.03] rounded-xl group-hover:border-[#FFD700]/30 transition-all flex flex-col gap-5"
                >
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-all duration-500 overflow-hidden relative">
-                     <div className="absolute inset-0 bg-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                     <Bot className="w-6 h-6 md:w-8 md:h-8 text-[#FFD700]/60 group-hover:text-[#FFD700]" />
+                  <div className="w-10 h-10 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
+                     <Bot className="w-5 h-5 text-[#FFD700]/60" />
                   </div>
                   <div>
-                     <h4 className="text-[13px] md:text-[16px] font-black text-white uppercase italic leading-tight mb-2 group-hover:text-[#FFD700] transition-colors line-clamp-1">{item.name}</h4>
-                     <div className="flex items-center gap-2 opacity-40">
-                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-white font-sans italic">{item.roi || '99%'} ROI</span>
-                        <div className="w-[1px] h-3 bg-white/20" />
-                        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter text-[#00E676] font-sans italic">{item.symbol || 'SYNC'}</span>
+                     <h4 className="text-[14px] font-black text-white uppercase leading-none mb-3 group-hover:text-[#FFD700] transition-colors">{item.name}</h4>
+                     <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black text-[#00E676] font-mono">{item.roi || '99%'} ROI</span>
+                        <div className="w-[1px] h-3 bg-white/10" />
+                        <span className="text-[10px] font-black text-white/20 font-mono tracking-tight">{item.symbol || 'SYNC'}</span>
                      </div>
                   </div>
                </motion.div>
@@ -326,47 +308,21 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* 5. MISSION CONTROL: LIVE PROPAGATION TERMINAL (BOTTOM) */}
-      <div className="space-y-8 pt-8">
-        <div className="flex justify-between items-end px-2">
-           <div className="space-y-1">
-              <span className="text-[9px] font-black text-[#00E676]/60 uppercase tracking-[0.4em] font-sans mb-2 block">Real-time Connection Status</span>
-              <h3 className="text-3xl font-black text-white uppercase tracking-widest italic leading-none">Live Trade <span className="text-[#00E676]">History</span></h3>
-           </div>
-           <div className="flex items-center gap-4 bg-[#00E676]/10 px-6 py-3 rounded-2xl border border-[#00E676]/20 backdrop-blur-xl">
-              <Activity className="w-5 h-5 text-[#00E676] animate-pulse" />
-              <span className="text-[11px] font-black text-white uppercase tracking-widest italic">Connection is Active</span>
-           </div>
-        </div>
-
-        <motion.div 
-          variants={item}
-          className="relative rounded-[48px] overflow-hidden border border-white/5 shadow-2xl"
-        >
-          <div className="absolute inset-0 bg-[#00E676]/[0.01] pointer-events-none" />
-          <TerminalLog logs={logs} />
-        </motion.div>
-      </div>
-
-      {/* FOOTER CTA */}
-      <div className="pt-12 md:pt-20">
-        <Link href="/dashboard/creator" className="group flex flex-col md:flex-row items-center justify-between p-8 md:p-12 bg-gradient-to-br from-white/[0.04] to-transparent border border-white/10 rounded-[32px] md:rounded-[64px] hover:border-[#FFD700]/40 transition-all shadow-2xl relative overflow-hidden">
-           <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-[80px] pointer-events-none" />
-           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10 text-center md:text-left">
-              <div className="p-6 md:p-8 bg-[#FFD700]/10 rounded-2xl md:rounded-3xl group-hover:scale-110 transition-all duration-700 shadow-2xl">
-                 <Plus className="w-8 h-8 md:w-10 md:h-10 text-[#FFD700]" />
+      {/* FOOTER ACTION */}
+      <div className="pt-10">
+        <Link href="/dashboard/creator" className="group block relative p-10 bg-gradient-to-r from-white/[0.01] to-transparent border border-white/[0.03] rounded-2xl hover:border-[#FFD700]/20 transition-all overflow-hidden text-center md:text-left">
+           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="space-y-3">
+                 <h4 className="text-3xl md:text-5xl font-black text-white uppercase leading-none tracking-tight [word-spacing:0.6rem] opacity-80 group-hover:opacity-100 transition-opacity">Contribute <span className="text-[#FFD700]">Alpha</span></h4>
+                 <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] leading-relaxed">Share your quantitative strategies with the global network.</p>
               </div>
-              <div className="space-y-2">
-                 <h4 className="text-2xl md:text-5xl font-black text-white uppercase italic leading-none tracking-tighter">Share Your Strategy</h4>
-                 <p className="text-[10px] md:text-sm font-black text-white/30 uppercase tracking-[0.3em] font-sans italic max-w-xs md:max-w-none">Create and share your own trading bots with the community.</p>
+              <div className="px-10 py-4 bg-white/[0.03] border border-white/10 rounded-xl group-hover:bg-[#FFD700] group-hover:text-black transition-all font-black uppercase text-xs tracking-widest flex items-center gap-4">
+                 Join Creator Hub
+                 <ChevronRight className="w-4 h-4" />
               </div>
-           </div>
-           <div className="mt-8 md:mt-0 p-4 md:p-6 rounded-full border border-white/10 group-hover:text-[#FFD700] group-hover:border-[#FFD700]/40 transition-all relative z-10 backdrop-blur-xl hidden md:block">
-              <ChevronRight className="w-8 h-8 md:w-10 md:h-10" />
            </div>
         </Link>
       </div>
-
     </motion.div>
   );
 }

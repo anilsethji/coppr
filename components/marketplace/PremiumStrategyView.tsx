@@ -56,36 +56,36 @@ export default function PremiumStrategyView({
     <div className="min-h-screen bg-[#06080E] text-white font-sans selection:bg-[#FFD700] selection:text-black pb-40">
       
       {/* 1. INSTITUTIONAL HERO HEADER */}
-      <section className="relative pt-24 pb-32 md:pb-48 px-6 overflow-hidden">
+      <section className="relative pt-20 md:pt-24 pb-24 md:pb-48 px-4 sm:px-6 overflow-hidden">
         {/* Abstract Background */}
         <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#FFD700]/5 blur-[150px] rounded-full translate-x-1/2 -translate-y-1/2" />
-           <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 blur-[150px] rounded-full -translate-x-1/2 translate-y-1/2" />
+           <div className="absolute top-0 right-0 w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-[#FFD700]/5 blur-[100px] md:blur-[150px] rounded-full translate-x-1/3 -translate-y-1/3" />
+           <div className="absolute bottom-0 left-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-500/5 blur-[100px] md:blur-[150px] rounded-full -translate-x-1/3 translate-y-1/3" />
         </div>
 
-        <div className="w-full px-6 lg:px-20 grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10 items-center">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 relative z-10 items-center">
             
-            <div className="lg:col-span-9 space-y-10">
+            <div className="lg:col-span-9 space-y-8 md:space-y-10">
                <motion.div 
                  initial={{ opacity: 0, y: 20 }}
                  animate={{ opacity: 1, y: 0 }}
-                 className="flex flex-wrap items-center gap-4"
+                 className="flex flex-wrap items-center gap-3 md:gap-4"
                >
-                  <div className="px-6 py-2 bg-[#FFD700] text-black text-[11px] font-black uppercase tracking-[0.4em] rounded-full shadow-2xl skew-x-[-12deg] flex items-center gap-2">
-                     <Lock className="w-3.5 h-3.5" /> OFFICIAL RELEASE
+                  <div className="px-5 md:px-6 py-2 bg-[#FFD700] text-black text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] rounded-full shadow-2xl skew-x-[-12deg] flex items-center gap-2">
+                     <Lock className="w-3 h-3 md:w-3.5 md:h-3.5" /> OFFICIAL
                   </div>
-                  <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl">
-                     <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_12px_#00E676]" />
-                     <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.2em] italic">NODE VERIFIED</span>
+                  <div className="flex items-center gap-2 md:gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl">
+                     <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_12px_#00E676]" />
+                     <span className="text-[9px] md:text-[10px] font-black text-[#00E676] uppercase tracking-[0.2em] italic">VERIFIED</span>
                   </div>
                </motion.div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                    <motion.h1 
                      initial={{ opacity: 0, y: 10 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 0.1 }}
-                     className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tight leading-tight"
+                     className="text-[32px] md:text-6xl font-black text-white uppercase italic tracking-tighter leading-[1.1] md:leading-tight"
                    >
                       {strategy.name}
                    </motion.h1>
@@ -93,9 +93,9 @@ export default function PremiumStrategyView({
                      initial={{ opacity: 0, y: 10 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 0.2 }}
-                     className="text-[12px] md:text-[16px] text-[#FFD700] font-black italic uppercase tracking-[0.2em] font-sans"
+                     className="text-[10px] md:text-[16px] text-[#FFD700] font-black italic uppercase tracking-[0.2em] font-sans"
                    >
-                      {strategy.symbol || 'UNIVERSAL'} // {strategy.timeframe || 'H1'} // INSTITUTIONAL GRADE
+                      {strategy.symbol || 'UNIVERSAL'} // {strategy.timeframe || 'H1'} // INSTITUTIONAL
                    </motion.p>
                 </div>
 
@@ -103,7 +103,7 @@ export default function PremiumStrategyView({
                  initial={{ opacity: 0, y: 20 }}
                  animate={{ opacity: 1, y: 0 }}
                  transition={{ delay: 0.3 }}
-                 className="grid grid-cols-2 sm:grid-cols-4 gap-8 max-w-3xl"
+                 className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-3xl"
                >
                    {[
                       { l: 'WIN RATE', v: stats.winRate, u: '%', c: '#00E676' },
@@ -111,9 +111,9 @@ export default function PremiumStrategyView({
                       { l: 'AVG GAIN', v: stats.avgGain, u: '%', c: '#00B0FF' },
                       { l: 'HEARTBEAT', v: '99.9', u: '%', c: '#FFD700' }
                    ].map((s, i) => (
-                      <div key={i} className="space-y-2 group">
-                         <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] group-hover:text-white/40 transition-colors">{s.l}</p>
-                         <p className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter" style={{ color: s.c }}>{s.v}{s.u}</p>
+                      <div key={i} className="space-y-1.5 md:space-y-2 group">
+                         <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em] group-hover:text-white/40 transition-colors uppercase italic">{s.l}</p>
+                         <p className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter" style={{ color: s.c }}>{s.v}{s.u}</p>
                       </div>
                    ))}
                </motion.div>
@@ -122,31 +122,28 @@ export default function PremiumStrategyView({
                  initial={{ opacity: 0, y: 20 }}
                  animate={{ opacity: 1, y: 0 }}
                  transition={{ delay: 0.4 }}
-                 className="flex flex-col sm:flex-row items-center gap-8 pt-6"
+                 className="flex flex-col md:flex-row items-center gap-6 md:gap-8 pt-4 md:pt-6 w-full md:w-auto"
                >
                   <button 
                     onClick={handleSubscribe}
                     disabled={isSubscribing || !legalAccepted}
-                    className="w-full sm:w-auto px-12 py-5 bg-[#FFD700] text-black font-black uppercase text-[12px] tracking-[0.4em] rounded-[24px] shadow-2xl shadow-[#FFD700]/30 hover:scale-[1.05] transition-all italic flex items-center justify-center gap-4 disabled:opacity-20 disabled:grayscale"
+                    className="w-full md:w-auto px-10 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] md:text-[12px] tracking-[0.3em] md:tracking-[0.4em] rounded-[22px] shadow-2xl shadow-[#FFD700]/30 hover:scale-[1.03] transition-all italic flex items-center justify-center gap-3 md:gap-4 disabled:opacity-20"
                   >
-                     {isSubscribing ? 'PROCESSING...' : 'ACCESS THIS STRATEGY'} <ChevronRight className="w-5 h-5" />
+                     {isSubscribing ? 'PROCESSING...' : 'INITIALIZE CMD'} <ChevronRight className="w-5 h-5" />
                   </button>
                   
-                  <div className="flex items-center gap-6">
-                     <div className="space-y-1">
-                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Secure Payment Handshake</p>
-                        <div className="flex items-center gap-4">
-                           <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
-                              <span className="text-[9px] font-black text-white/40 italic uppercase">UPI</span>
-                           </div>
-                           <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
-                              <CreditCard className="w-3 h-3 text-white/40" />
-                              <span className="text-[9px] font-black text-white/40 italic uppercase">CARDS</span>
-                           </div>
-                           <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00E676]/5 border border-[#00E676]/20 rounded-lg">
-                              <ShieldCheck className="w-3 h-3 text-[#00E676]" />
-                              <span className="text-[9px] font-black text-[#00E676] italic uppercase">Cashfree</span>
-                           </div>
+                  <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto opacity-50 md:opacity-100">
+                     <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] hidden sm:block">SECURE HANDSHAKE</p>
+                     <div className="flex items-center gap-3">
+                        <div className="px-2 py-1 bg-white/5 border border-white/10 rounded-md">
+                           <span className="text-[8px] font-black text-white/40 italic uppercase">UPI</span>
+                        </div>
+                        <div className="px-2 py-1 bg-white/5 border border-white/10 rounded-md">
+                           <CreditCard className="w-3 h-3 text-white/40" />
+                        </div>
+                        <div className="px-2 py-1 bg-[#00E676]/5 border border-[#00E676]/20 rounded-md flex items-center gap-1.5">
+                           <ShieldCheck className="w-3 h-3 text-[#00E676]" />
+                           <span className="text-[8px] font-black text-[#00E676] italic uppercase">Cashfree</span>
                         </div>
                      </div>
                   </div>
@@ -159,11 +156,11 @@ export default function PremiumStrategyView({
                 transition={{ delay: 0.4 }}
                 className="lg:col-span-3 hidden lg:flex justify-center"
             >
-                <div className="relative w-full aspect-square max-w-[400px]">
-                   <div className="absolute inset-0 bg-[#FFD700]/10 blur-[150px] rounded-full animate-pulse" />
-                   <div className="relative w-full h-full bg-[#131929]/80 border border-white/10 rounded-[100px] flex items-center justify-center backdrop-blur-3xl shadow-2xl relative group overflow-hidden">
+                <div className="relative w-full aspect-square max-w-[340px]">
+                   <div className="absolute inset-0 bg-[#FFD700]/10 blur-[100px] rounded-full animate-pulse" />
+                   <div className="relative w-full h-full bg-[#131929]/80 border border-white/10 rounded-[80px] flex items-center justify-center backdrop-blur-3xl shadow-2xl overflow-hidden group">
                       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                      <Bot className="w-52 h-52 text-[#FFD700] drop-shadow-[0_0_50px_rgba(255,215,0,0.4)] group-hover:scale-105 transition-transform duration-1000" />
+                      <Bot className="w-44 h-44 text-[#FFD700] drop-shadow-[0_0_50px_rgba(255,215,0,0.4)] group-hover:scale-105 transition-transform duration-1000" />
                    </div>
                 </div>
             </motion.div>
@@ -228,7 +225,18 @@ export default function PremiumStrategyView({
                       ) : strategy.screenshot_urls?.[selectedImg] ? (
                          <img src={strategy.screenshot_urls[selectedImg]} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-1000" />
                       ) : (
-                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#131929] to-[#0A1A3A]"><Sparkles className="w-12 h-12 text-white/5" /></div>
+                         <div className="w-full h-full flex flex-col items-center justify-center bg-[#06080C] relative overflow-hidden">
+                            {/* Astral background effect */}
+                            <div className="absolute inset-0 opacity-10" style={{ 
+                               backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                               backgroundSize: '40px 40px'
+                            }} />
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#00F3FF]/5 blur-[80px] rounded-full" />
+                            <div className="relative z-10 flex flex-col items-center gap-4">
+                               <Activity className="w-16 h-16 text-white/5" />
+                               <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em] italic">Institutional Proof Stream</span>
+                            </div>
+                         </div>
                       )}
                       
                       <div className="absolute inset-0 bg-gradient-to-t from-[#06080E] via-transparent to-transparent flex items-end p-10 md:p-16">

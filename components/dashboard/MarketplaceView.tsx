@@ -79,62 +79,64 @@ export function MarketplaceView() {
       <JourneyBar currentStep={0} />
 
       {/* Header & Filter Row */}
-      <div className="flex flex-col gap-6 sticky top-[72px] z-30 pt-4 bg-[#080C14]/80 backdrop-blur-xl border-b border-white/5 pb-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
+      <div className="flex flex-col gap-6 sticky top-[64px] md:top-[72px] z-30 pt-4 bg-[#080C14]/90 backdrop-blur-3xl border-b border-white/5 pb-6 -mx-4 px-4 sm:mx-0 sm:px-1">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5">
                 <LayoutGrid className="w-5 h-5 text-[#FFD700]" />
-                <h1 className="text-[26px] font-extrabold tracking-tight text-white leading-none">Strategy Marketplace</h1>
+                <h1 className="text-[22px] md:text-[28px] font-extrabold tracking-tight [word-spacing:0.6rem] text-white leading-none uppercase">Marketplace</h1>
             </div>
-            <p className="text-[13px] text-white/40 font-medium">Discover trusted trading bots and indicators from verified creators.</p>
+            <p className="text-[11px] md:text-[13px] text-white/30 font-medium max-w-sm uppercase tracking-wider">Trusted algorithmic nodes from verified community creators.</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative group/search">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative group/search w-full md:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20 group-focus-within/search:text-[#FFD700] transition-colors" />
                 <input 
                     type="text" 
-                    placeholder="Search strategy..." 
+                    placeholder="Search logic..." 
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="bg-white/[0.03] border border-white/10 rounded-xl py-2 pl-9 pr-4 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-[#FFD700]/30 focus:bg-white/[0.05] transition-all w-full md:w-[220px]" 
+                    className="bg-white/[0.03] border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-[12px] text-white placeholder:text-white/20 outline-none focus:border-[#FFD700]/30 focus:bg-white/[0.05] transition-all w-full md:w-[240px] uppercase font-bold tracking-widest" 
                 />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 px-1">
-          {/* Main Filter Pills */}
-          <div className="flex items-center gap-1.5 p-1 bg-white/[0.03] rounded-2xl border border-white/5 w-fit">
-            {['All', 'MT5 EA', 'Pine Script', 'Indicators', 'Coppr Originals'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`text-[10px] font-black tracking-widest uppercase px-5 py-2 rounded-xl transition-all ${
-                  filter === f 
-                    ? 'bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 shadow-[0_5px_15px_rgba(255,215,0,0.05)]' 
-                    : 'text-white/30 hover:text-white/60 hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 px-1 overflow-visible">
+          {/* Main Filter Pills: Horizontal Scroll on Mobile */}
+          <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] rounded-2xl border border-white/5 w-fit min-w-full sm:min-w-0">
+              {['All', 'MT5 EA', 'Pine Script', 'Indicators', 'Coppr Originals'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase px-5 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+                    filter === f 
+                      ? 'bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 shadow-[0_5px_15px_rgba(255,215,0,0.05)]' 
+                      : 'text-white/20 hover:text-white/50 hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Sorting */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-[9px] text-white/15 uppercase tracking-[0.2em] font-black mr-2">
+          {/* Sorting: Responsive Wrap */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-2 text-[8px] text-white/10 uppercase tracking-[0.3em] font-black mr-1">
                 <ArrowUpDown className="w-3 h-3" />
-                Sort By
+                Sort
             </div>
             {(['winRate', 'roi', 'newest', 'subscribers']).map(s => (
                 <button
                     key={s}
                     onClick={() => setSort(s)}
-                    className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                    className={`text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg border transition-all ${
                         sort === s 
                         ? 'bg-white/10 border-white/20 text-[#FFD700]' 
-                        : 'border-transparent text-white/25 hover:text-white/50 hover:bg-white/5'
+                        : 'border-transparent text-white/20 hover:text-white/40 hover:bg-white/5'
                     }`}
                 >
                     {s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1')}

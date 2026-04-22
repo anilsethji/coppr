@@ -11,7 +11,7 @@ interface SignalVisualizerProps {
     onSymbolChange?: (symbol: string) => void;
 }
 
-export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs, activeSymbols = [], onSymbolChange }) => {
+export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol = 'XAUUSD', logs = [], activeSymbols = [], onSymbolChange }) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -161,23 +161,24 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
                     }
                 }
 
-                // Add Signal Markers
                 const markers: any[] = [];
                 const subLogs = Array.isArray(logs) ? logs : [];
                 
-                subLogs.forEach((log: any) => {
-                    const logTime = Math.floor(new Date(log.created_at).getTime() / 1000);
-                    const intervalSeconds = timeframe.endsWith('m') ? parseInt(timeframe) * 60 : timeframe.endsWith('h') ? parseInt(timeframe) * 3600 : 86400;
-                    const roundedTime = Math.floor(logTime / intervalSeconds) * intervalSeconds;
+                if (subLogs.length > 0) {
+                    subLogs.forEach((log: any) => {
+                        const logTime = Math.floor(new Date(log.created_at).getTime() / 1000);
+                        const intervalSeconds = timeframe.endsWith('m') ? parseInt(timeframe) * 60 : timeframe.endsWith('h') ? parseInt(timeframe) * 3600 : 86400;
+                        const roundedTime = Math.floor(logTime / intervalSeconds) * intervalSeconds;
 
-                    const action = log.action || log.details?.action;
-                    
-                    if (action === 'BUY') {
-                        markers.push({ time: roundedTime, position: 'belowBar', color: '#00E676', shape: 'arrowUp', text: 'BUY' });
-                    } else if (action === 'SELL') {
-                        markers.push({ time: roundedTime, position: 'aboveBar', color: '#FF5252', shape: 'arrowDown', text: 'SELL' });
-                    }
-                });
+                        const action = log.action || log.details?.action;
+                        
+                        if (action === 'BUY') {
+                            markers.push({ time: roundedTime, position: 'belowBar', color: '#00E676', shape: 'arrowUp', text: 'BUY' });
+                        } else if (action === 'SELL') {
+                            markers.push({ time: roundedTime, position: 'aboveBar', color: '#FF5252', shape: 'arrowDown', text: 'SELL' });
+                        }
+                    });
+                }
 
                 if (markers.length > 0 && seriesRef.current) {
                     markers.sort((a, b) => a.time - b.time);
@@ -238,7 +239,7 @@ export const SignalVisualizer: React.FC<SignalVisualizerProps> = ({ symbol, logs
             
             <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest italic">{activeSymbols.length > 1 ? 'Universal Node Monitor' : 'Institutional Feed Mirroring'}</span>
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{activeSymbols.length > 1 ? 'Universal Node Monitor' : 'Institutional Feed Mirroring'}</span>
                     <div className="flex gap-1 mt-1">
                         <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse" />
                         <span className="w-1 h-1 rounded-full bg-[#00E676] animate-pulse delay-75" />

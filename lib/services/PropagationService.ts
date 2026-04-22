@@ -17,7 +17,9 @@ export class PropagationService {
     static async fanOut(strategyId: string, signalPayload: any, providedKey?: string, customClient?: any, ingestedAt?: number) {
         const supabase = customClient || createClient();
         const startExecution = new Date().getTime();
-        console.log(`[PROPAGATION] Starting Institutional Fan-out for Strategy ${strategyId} (2026.04.01 Protocol)`);
+        const ingestedAtNormalized = ingestedAt || startExecution;
+        
+        console.log(`[PROPAGATION] Institutional Fan-out Initiated | Strategy: ${strategyId} | Protocol: SEBI_2026_Ingress`);
 
         // 0. VERIFY MASTER SECURITY KEY
         const { data: strategy, error: sError } = await supabase

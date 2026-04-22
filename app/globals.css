@@ -4,20 +4,31 @@
 
 :root {
   --foreground-rgb: 255, 255, 255;
-  --navy-deep: #0A1A3A;
-  --navy-card: #161C2D;
-  --navy-accent: #1E293B;
+  --bg-deep: #020617;
+  --bg-card: #0F172A;
+  --bg-accent: #1E293B;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: var(--navy-deep);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-deep);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
 h1, h2, h3, h4, .font-brand {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
 }
 
 .mobile-container {
@@ -26,22 +37,26 @@ h1, h2, h3, h4, .font-brand {
 
 @layer components {
   .btn-primary {
-    @apply hover:opacity-90 text-[#0A0F1E] font-bold py-3 px-8 rounded-btn transition-all duration-300 text-center flex items-center justify-center shadow-[0_4px_20px_rgba(212,175,55,0.3)] hover:shadow-[0_4px_30px_rgba(212,175,55,0.5)] transform hover:-translate-y-1;
-    background-image: linear-gradient(45deg, #FFD700 0%, #D4AF37 50%, #B87333 100%);
+    @apply hover:opacity-90 text-[#020617] font-black py-3 px-8 rounded-lg transition-all duration-300 text-center flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transform active:scale-95;
+    background-image: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 11px;
   }
   .text-gradient {
-    background: linear-gradient(45deg, #FFD700 0%, #D4AF37 50%, #B87333 100%);
+    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
   }
   .text-elegant {
-    @apply font-brand tracking-tight leading-tight;
-    font-weight: 600;
+    @apply font-brand tracking-tighter leading-none;
+    font-weight: 800;
+    text-transform: uppercase;
   }
   .bg-navy-radial {
-    background: radial-gradient(circle at top right, #162447, #0A1A3A 70%);
+    background: radial-gradient(circle at top right, #0F172A, #020617 80%);
   }
 }
 

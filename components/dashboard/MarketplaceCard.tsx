@@ -99,7 +99,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
                   />
                 ))}
              </div>
-             <div className="text-[9px] text-white/30 absolute bottom-3 right-4 font-medium italic">21-day signal efficiency</div>
+             <div className="text-[9px] text-white/30 absolute bottom-3 right-4 font-medium">21-day signal efficiency</div>
              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
                <div className="w-1 h-1 rounded-full bg-[#00B0FF] animate-pulse" />
                <span className="text-[8px] font-black tracking-widest text-[#00B0FF] uppercase">Script</span>
@@ -156,7 +156,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
                   />
                 ))}
              </svg>
-             <div className="text-[8px] text-white/30 absolute bottom-3 left-4 italic">Balanced execution protocol</div>
+             <div className="text-[8px] text-white/30 absolute bottom-3 left-4">Balanced execution protocol</div>
              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
                <div className="w-1 h-1 rounded-full bg-brand-green animate-pulse" />
                <span className="text-[8px] font-black tracking-widest text-[#00E676] uppercase">Safe</span>
@@ -223,7 +223,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
       {/* Card Content */}
       <div className="p-5">
         <div className="mb-4">
-          <h4 className="text-[16px] font-bold text-white mb-1 group-hover:text-[#FFD700] transition-colors">{name}</h4>
+          <h4 className="text-[16px] font-bold text-white mb-1 tracking-[0.05em] group-hover:text-[#FFD700] transition-colors">{name}</h4>
           <p className="text-[11px] text-white/30 font-medium line-clamp-1">{symbol}</p>
         </div>
 

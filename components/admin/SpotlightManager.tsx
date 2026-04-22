@@ -21,6 +21,9 @@ export default function SpotlightManager() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [purgeStatus, setPurgeStatus] = useState<string>('');
 
   const supabase = createClient();
 
@@ -168,17 +171,65 @@ export default function SpotlightManager() {
                         </button>
                      </td>
                      <td className="p-4 text-right">
-                        <button 
-                          onClick={async () => {
-                            if(confirm("Purge strategy from grid?")) {
-                               await deleteStrategy(s.id);
-                               fetchStrategies();
-                            }
-                          }}
-                          className="p-2 text-white/10 hover:text-red-500 transition-colors"
-                        >
-                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex flex-col items-end gap-2">
+                          <button 
+                            disabled={!!deletingId}
+                            onClick={async () => {
+                              if (confirmDeleteId !== s.id) {
+                                setConfirmDeleteId(s.id);
+                                setTimeout(() => setConfirmDeleteId(null), 3000);
+                                return;
+                              }
+
+                              try {
+                                setDeletingId(s.id);
+                                setConfirmDeleteId(null);
+                                setPurgeStatus('Analyzing dependency tree...');
+                                
+                                const timeoutId = setTimeout(() => {
+                                   setPurgeStatus('Handshake taking longer than expected...');
+                                }, 8000);
+
+                                setPurgeStatus('Stage 1: Severing mirror links...');
+                                const res = await deleteStrategy(s.id);
+                                
+                                clearTimeout(timeoutId);
+
+                                if (res.success) {
+                                   setPurgeStatus('Purge complete.');
+                                   await fetchStrategies();
+                                } else {
+                                   setPurgeStatus(`Error: ${res.error}`);
+                                   setTimeout(() => setPurgeStatus(''), 5000);
+                                }
+                              } catch (err: any) {
+                                console.error('ATOMIC_PURGE_FATAL:', err);
+                              } finally {
+                                setDeletingId(null);
+                                if (!purgeStatus.startsWith('Error')) setPurgeStatus('');
+                              }
+                            }}
+                            className={`px-4 py-2 flex items-center gap-2 transition-all rounded-xl border relative z-50 ${
+                              deletingId === s.id 
+                                ? 'bg-red-500/20 border-red-500/40 text-red-500 animate-pulse' 
+                                : confirmDeleteId === s.id
+                                ? 'bg-red-500 text-white border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                : 'text-white/10 hover:text-red-500 hover:bg-red-500/10 border-transparent hover:border-red-500/20'
+                            }`}
+                          >
+                             {deletingId === s.id ? (
+                               <Loader2 className="w-4 h-4 animate-spin" />
+                             ) : (
+                               <Trash2 className={`w-4 h-4 ${confirmDeleteId === s.id ? 'animate-bounce' : ''}`} />
+                             )}
+                             {confirmDeleteId === s.id && (
+                               <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Confirm Purge?</span>
+                             )}
+                          </button>
+                          {deletingId === s.id && (
+                             <span className="text-[7px] font-black text-red-500 uppercase tracking-tighter animate-pulse">{purgeStatus}</span>
+                          )}
+                        </div>
                      </td>
                    </tr>
                  ))}

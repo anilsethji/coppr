@@ -44,9 +44,50 @@ export async function updateStrategy(id: string, payload: any) {
 }
 
 export async function deleteStrategy(id: string) {
-  const { error } = await supabaseAdmin.from('strategies').delete().eq('id', id);
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  try {
+    console.log(`[ATOMIC_CORE_PURGE] Initializing decommissioning for node: ${id}`);
+    
+    // 0. Dissolve High-Level Discovery Metrics (Featured Assets)
+    console.log(`[ATOMIC_CORE_PURGE] Stage 0: Purging marketplace content links`);
+    await supabaseAdmin.from('content').delete().eq('linked_strategy_id', id);
+
+    // 1. Purge Signal Handshakes & Logs
+    console.log(`[ATOMIC_CORE_PURGE] Stage 1: Severing signal chains`);
+    await supabaseAdmin.from('signal_logs').delete().eq('strategy_id', id);
+    await supabaseAdmin.from('strategy_reviews').delete().eq('strategy_id', id);
+    
+    // 2. Identify and purge cross-linked subscription logs
+    console.log(`[ATOMIC_CORE_PURGE] Stage 2: Purging subscription metadata`);
+    const { data: subs } = await supabaseAdmin
+      .from('user_strategies')
+      .select('id')
+      .eq('strategy_id', id);
+    
+    if (subs && subs.length > 0) {
+      const subIds = subs.map(s => s.id);
+      await supabaseAdmin.from('subscription_logs').delete().in('subscription_id', subIds);
+      await supabaseAdmin.from('user_strategies').delete().eq('strategy_id', id);
+    }
+
+    // 3. Purge financial artifacts (Revenue & Ledgers)
+    console.log(`[ATOMIC_CORE_PURGE] Stage 3: Wiping financial ledgers`);
+    await supabaseAdmin.from('creator_revenue').delete().eq('strategy_id', id);
+    await supabaseAdmin.from('transactions').delete().eq('strategy_id', id);
+    
+    // 4. Final atomic purge of the core strategy record
+    console.log(`[ATOMIC_CORE_PURGE] Stage 4: Decommissioning core node`);
+    const { error } = await supabaseAdmin.from('strategies').delete().eq('id', id);
+    
+    if (error) {
+      console.error('[ATOMIC_CORE_PURGE] FINAL_FAILURE:', error.message);
+      return { success: false, error: `Critical Block: ${error.message}` };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[ATOMIC_CORE_PURGE] HANDSHAKE_TIMEOUT:', err.message);
+    return { success: false, error: err.message || 'Handshake disruption at core level.' };
+  }
 }
 
 export async function deployStrategy(payload: any) {

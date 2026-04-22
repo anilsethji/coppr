@@ -68,11 +68,11 @@ export default function IndicatorsPage() {
                <div className="p-1.5 rounded-lg bg-[#00E676]/10 border border-[#00E676]/20">
                  <Zap className="w-5 h-5 text-[#00E676]" strokeWidth={2.5} />
                </div>
-               <h1 className="text-lg md:text-2xl font-black text-white italic uppercase tracking-tight leading-none">
+               <h1 className="text-lg md:text-2xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">
                   TradingView <span className="text-[#00E676]">Auto-Trades</span>
                </h1>
             </div>
-            <p className="text-[10px] md:text-xs text-white/40 max-w-[500px] font-sans font-bold italic uppercase leading-normal">
+            <p className="text-[10px] md:text-xs text-white/40 max-w-[500px] font-sans font-bold uppercase leading-normal">
                Link your favorite TradingView indicators directly to your broker. When your indicator fires an alert, we execute the trade for you instantly.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function IndicatorsPage() {
                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-0.5">Signals Processed</p>
                 <div className="flex items-center gap-1.5 justify-end">
                    <Globe className="w-3 h-3 text-[#00E676]" />
-                   <p className="text-[12px] font-black text-[#00E676] uppercase italic leading-none">Real-time</p>
+                   <p className="text-[12px] font-black text-[#00E676] uppercase leading-none">Real-time</p>
                 </div>
              </div>
           </div>
@@ -99,12 +99,12 @@ export default function IndicatorsPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
              <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                   <span className="text-[10px] font-black text-[#00B0FF] uppercase tracking-[0.4em] leading-none">Downloadable Files</span>
+                   <span className="text-[10px] font-black text-[#00B0FF] uppercase [word-spacing:0.4em] leading-none">Downloadable Files</span>
                    <span className="w-1.5 h-1.5 rounded-full bg-[#00B0FF] animate-pulse" />
                 </div>
-                <h3 className="text-2xl font-extrabold text-white uppercase italic tracking-tight leading-none">Bonus: <span className="text-white/20">MT5 Indicators</span></h3>
+                <h3 className="text-2xl font-extrabold text-white uppercase [word-spacing:0.6rem] leading-none">Bonus: <span className="text-white/20">MT5 Indicators</span></h3>
              </div>
-             <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic max-w-sm text-left md:text-right">
+             <p className="text-[10px] font-black text-white/20 uppercase [word-spacing:0.2em] font-sans max-w-sm text-left md:text-right">
                 Manual indicators you can download and install on your own MT5 terminal.
              </p>
         </div>
@@ -137,20 +137,20 @@ export default function IndicatorsPage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         href={!isLocked ? item.external_link : '#'} 
-                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl italic ${!isLocked ? 'bg-[#00B0FF]/10 hover:bg-[#00B0FF]/25 text-[#00B0FF] border border-[#00B0FF]/30' : 'bg-white/5 text-white/20 border border-white/5'}`}
+                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl ${!isLocked ? 'bg-[#00B0FF]/10 hover:bg-[#00B0FF]/25 text-[#00B0FF] border border-[#00B0FF]/30' : 'bg-white/5 text-white/20 border border-white/5'}`}
                        >
                          <ArrowDownToLine className="w-3.5 h-3.5 mr-2 inline-block" />
                          Install .ex5
                        </motion.a>
                     </div>
 
-                    <h3 className="text-xl font-black text-white italic uppercase tracking-tight mb-3 group-hover:text-[#00B0FF] transition-colors">{item.title}</h3>
-                    <p className="text-[12px] text-white/30 font-bold uppercase italic font-sans leading-relaxed mb-8 line-clamp-2">
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3 group-hover:text-[#00B0FF] transition-colors">{item.title}</h3>
+                    <p className="text-[12px] text-white/30 font-bold uppercase font-sans leading-relaxed mb-8 line-clamp-2">
                       {item.description || 'Professional indicator for advanced market structure analysis.'}
                     </p>
                     
                     <div className="pt-8 border-t border-white/5 flex justify-between items-center group-hover:border-[#00B0FF]/20 transition-colors">
-                       <div className="flex items-center gap-2 text-[9px] font-black text-white/20 uppercase tracking-[0.2em] font-sans italic p-2 bg-white/5 rounded-lg">
+                       <div className="flex items-center gap-2 text-[9px] font-black text-white/20 uppercase [word-spacing:0.2em] font-sans p-2 bg-white/5 rounded-lg">
                          <Compass className="w-3.5 h-3.5" />
                          Protocol 2.1
                        </div>
@@ -167,11 +167,11 @@ export default function IndicatorsPage() {
                       <div className="w-16 h-16 rounded-[24px] bg-[#00B0FF]/10 border border-[#00B0FF]/30 flex items-center justify-center mb-6 shadow-2xl">
                         <ShieldCheck className="w-8 h-8 text-[#00B0FF]" />
                       </div>
-                      <h4 className="text-white font-black uppercase italic text-lg mb-2">Premium Protocol</h4>
+                      <h4 className="text-white font-black uppercase text-lg mb-2">Premium Protocol</h4>
                       <p className="text-[11px] text-white/30 font-bold uppercase tracking-widest mb-8 max-w-[200px] leading-relaxed">Upgrade to Pro to unlock institutional visual components.</p>
                       <Link 
                         href="/dashboard/marketplace"
-                        className="px-8 py-4 bg-[#00B0FF] text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[#00B0FF]/20 italic"
+                        className="px-8 py-4 bg-[#00B0FF] text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[#00B0FF]/20"
                       >
                         GET PRO ACCESS
                       </Link>

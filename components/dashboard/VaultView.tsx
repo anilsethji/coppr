@@ -29,6 +29,7 @@ const SUPPORTED_BROKERS = [
 export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK', timelineMode?: 'bots' | 'indicators' }) {
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<any[]>([]);
+  const [allMergedStats, setAllMergedStats] = useState<any[]>([]);
   const [activating, setActivating] = useState(false);
   const [logs, setLogs] = useState<Record<string, any[]>>({});
   const [activeTab, setActiveTab] = useState<'MT5_EA' | 'PINE_SCRIPT_WEBHOOK'>(typeFilter || 'MT5_EA');
@@ -69,6 +70,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                 }
             });
         }
+        setAllMergedStats(merged);
         setStrategies(merged.filter(item => item.strategy.type === activeTab));
         setLoading(false);
     } catch (err) { console.error(err); setLoading(false); }
@@ -123,65 +125,110 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
   };
 
   const removeSubscription = async (id: string) => {
-    if (confirm("Decommission Node?")) { await fetch(`/api/subscription/remove?id=${id}`, { method: 'DELETE' }); fetchVault(); }
+    try {
+        console.log(`[DECOMMISSION_DEBUG] Initiating removal for node: ${id}`);
+        // Redundant confirm removed - handled by UI button
+        
+        const res = await fetch(`/api/subscription/remove?id=${encodeURIComponent(id)}`, { 
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            console.log(`[DECOMMISSION_DEBUG] Successfully removed node: ${id}`);
+            await fetchVault();
+            alert("Institutional Handshake Complete. Node successfully decommissioned.");
+        } else {
+            console.error('[DECOMMISSION_DEBUG] Server-side removal failure:', data.error);
+            alert(`Decomission Failed: ${data.error || 'Unknown system error.'}`);
+        }
+    } catch (err: any) {
+        console.error('[DECOMMISSION_DEBUG] Network or handshake failure:', err.message);
+        alert('Institutional Link disruption. Please check your network connection.');
+    }
   };
 
-  if (loading) return <div className="p-40 text-center text-white/20 font-black uppercase italic animate-pulse">Synchronizing Secure Vault...</div>;
+  if (loading) return <div className="p-40 text-center text-white/20 font-black uppercase animate-pulse">Synchronizing Secure Vault...</div>;
 
   return (
-    <div className="space-y-16 pb-20">
-      <div className="flex justify-between items-end px-1">
+    <div className="space-y-12 pb-20 max-w-[1600px] mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
         <div className="space-y-4">
-            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Institutional Mirroring <span className="text-[#FFD700]">Terminals</span></h2>
+            <div className="flex items-center gap-3">
+               <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse" />
+               <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Alpha Terminal Hub</span>
+            </div>
+            <h2 className="text-3xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">Institutional Mirroring <span className="text-[#FFD700]">Terminals</span></h2>
             {!typeFilter && (
-                <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/5 rounded-2xl">
-                    <button onClick={() => setActiveTab('MT5_EA')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20' : 'text-white/20 hover:text-white/40'}`}>MT5 Nodes</button>
-                    <button onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/20' : 'text-white/20 hover:text-white/40'}`}>Indicator Bridges</button>
+                <div className="flex gap-1 p-1 bg-white/[0.02] border border-white/[0.03] rounded-xl">
+                    <button onClick={() => setActiveTab('MT5_EA')} className={`px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest font-mono transition-all ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}>MT5 Nodes</button>
+                    <button onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')} className={`px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest font-mono transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/10' : 'text-white/20 hover:text-white/40'}`}>JS Bridges</button>
                 </div>
             )}
         </div>
-        <div className="px-6 py-2 bg-[#FFD700]/5 border border-[#FFD700]/10 rounded-full flex items-center gap-3 italic animate-pulse">
-            <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
-            <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">Managed Encryption Sync Active</span>
+        <div className="px-6 py-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center gap-4">
+            <ShieldCheck className="w-4 h-4 text-[#00E676]" />
+            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] font-mono">Managed Encryption // OK</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-12">
-        {strategies.map((sub) => (
-            <StrategyCard 
-                key={sub.id} 
-                sub={sub} 
-                isOfficial={sub.strategy?.origin === 'OFFICIAL'} 
-                setActivationTarget={setActivationTarget}
-                toggleSync={toggleSync}
-                removeSubscription={removeSubscription}
-                previewSymbol={managingSub?.id === sub.id ? previewSymbol : null}
-                onManageAssets={(s: any) => { setManagingSub(s); setPreviewSymbol(s.active_assets?.[0] || 'XAUUSD'); setIsAssetDrawerOpen(true); }}
-                logs={logs[sub.id.startsWith('own-') ? sub.strategy_id : sub.id] || []}
-                fetchLogs={fetchLogs}
-            />
-        ))}
+      <div className="grid grid-cols-1 gap-10">
+        {strategies.map((sub) => {
+            const isLocked = allMergedStats.some(s => s.sync_active && s.id !== sub.id);
+            return (
+                <StrategyCard 
+                    key={sub.id} 
+                    sub={sub} 
+                    isOfficial={sub.strategy?.origin === 'OFFICIAL'} 
+                    isLocked={isLocked}
+                    setActivationTarget={setActivationTarget}
+                    toggleSync={toggleSync}
+                    removeSubscription={removeSubscription}
+                    previewSymbol={managingSub?.id === sub.id ? previewSymbol : null}
+                    onManageAssets={(s: any) => { setManagingSub(s); setPreviewSymbol(s.active_assets?.[0] || 'XAUUSD'); setIsAssetDrawerOpen(true); }}
+                    logs={logs[sub.id.startsWith('own-') ? sub.strategy_id : sub.id] || []}
+                    fetchLogs={fetchLogs}
+                />
+            );
+        })}
+        {strategies.length === 0 && (
+          <div className="py-32 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-6 bg-white/[0.01]">
+             <div className="w-16 h-16 rounded-xl bg-white/[0.02] flex items-center justify-center">
+                <Globe className="w-8 h-8 text-white/10" />
+              </div>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] font-mono">No Active Terminals Detected</p>
+           </div>
+        )}
       </div>
 
       {activeTab === 'PINE_SCRIPT_WEBHOOK' && (
-        <div className="p-10 rounded-[48px] bg-[#00B0FF]/5 border border-[#00B0FF]/10 flex items-center gap-8 relative overflow-hidden group">
-            <Globe className="w-16 h-16 text-[#00B0FF] opacity-20" />
-            <div className="flex-1">
-                <h4 className="text-sm font-black text-white uppercase italic tracking-widest">Signal Expansion Hub</h4>
-                <p className="text-[11px] text-white/30 font-bold uppercase leading-loose font-sans italic">Connect your TradingView scripts directly to our zero-latency execution cluster.</p>
+        <div className="p-10 rounded-2xl bg-[#00B0FF]/5 border border-[#00B0FF]/10 flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
+            <div className="w-16 h-16 rounded-xl bg-[#00B0FF]/10 flex items-center justify-center shrink-0">
+               <Globe className="w-8 h-8 text-[#00B0FF]" />
             </div>
-            <button onClick={() => window.open('https://tradingview.com', '_blank')} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:text-[#00E676] transition-all"><ChevronRight className="w-6 h-6" /></button>
+            <div className="flex-1 text-center md:text-left space-y-2">
+                <h4 className="text-xl font-black text-white uppercase tracking-tight [word-spacing:0.6rem] leading-none">Signal Expansion <span className="text-[#00B0FF]">Hub</span></h4>
+                <p className="text-xs text-white/40 font-medium uppercase leading-relaxed max-w-2xl font-mono">Connect your external quant scripts directly to our zero-latency institutional execution cluster via the RSA Bridge.</p>
+            </div>
+            <button onClick={() => window.open('https://tradingview.com', '_blank')} className="px-8 py-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-[#00B0FF] hover:text-black transition-all font-black text-[10px] uppercase tracking-widest flex items-center gap-4">
+               Initialize Bridge
+               <ChevronRight className="w-4 h-4" />
+            </button>
         </div>
       )}
 
-      <div className="relative mt-8 md:mt-16 pt-2 pb-10">
-         <div className="space-y-2 mb-6 ml-2">
-            <h3 className="text-xl font-black text-white uppercase italic tracking-widest leading-none">Live <span className="text-[#FFD700]">Terminal Monitoring</span></h3>
+      <div className="relative mt-8 md:mt-16 space-y-6">
+         <div className="px-2 flex items-center gap-4">
+            <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">Sub-Space Monitoring</span>
+            <div className="h-[1px] flex-1 bg-white/[0.03]" />
          </div>
-         <div className="h-[400px]">
+         <div className="rounded-2xl overflow-hidden border border-white/[0.03]">
             <TerminalLog logs={Object.values(logs).flat()} />
          </div>
       </div>
+
 
       <ActivationModal 
         isOpen={!!activationTarget} 

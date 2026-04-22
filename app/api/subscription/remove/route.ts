@@ -20,43 +20,70 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Missing subscription ID' }, { status: 400 });
     }
 
-    // 1. Check for virtual 'own-' IDs (cannot be deleted from user_strategies)
+    // 1. Handle Proprietary Virtual Nodes (Deleting the actual strategy)
     if (subscriptionId.startsWith('own-')) {
-        return NextResponse.json({ 
-            error: 'This is a Proprietary Virtual Node. It cannot be individually deleted. Use the Creator Hub to manage your strategies.' 
-        }, { status: 400 });
+        const strategyId = subscriptionId.replace('own-', '');
+        try {
+            const { data: strategy, error: fetchError } = await supabase
+                .from('strategies')
+                .select('creator_id')
+                .eq('id', strategyId)
+                .single();
+
+            if (fetchError || !strategy) {
+                return NextResponse.json({ error: 'Proprietary node not found.' }, { status: 404 });
+            }
+
+            if (strategy.creator_id !== user.id) {
+                return NextResponse.json({ error: 'Unauthorized: You do not own this node.' }, { status: 403 });
+            }
+
+            const { error: deleteError } = await supabase
+                .from('strategies')
+                .delete()
+                .eq('id', strategyId);
+
+            if (deleteError) throw deleteError;
+
+            return NextResponse.json({ 
+                status: 'DELETED', 
+                message: 'Proprietary strategy permanently removed from system.' 
+            });
+        } catch (err: any) {
+            return NextResponse.json({ error: `Deletion Failed: ${err.message}` }, { status: 500 });
+        }
     }
 
     try {
-        // 2. Clean up child logs FIRST (to avoid foreign key violation)
-        const { error: logError } = await supabase
+        // 2. Resolve Strategy Metadata for Ownership Check
+        const { data: sub, error: subError } = await supabase
+            .from('user_strategies')
+            .select('strategy_id, strategies(creator_id, origin)')
+            .eq('id', subscriptionId)
+            .single();
+
+        // 3. Clean up child logs FIRST (to avoid foreign key violation)
+        await supabase
             .from('subscription_logs')
             .delete()
             .eq('subscription_id', subscriptionId);
 
-        if (logError) {
-            console.error('Log Cleanup Alert:', logError.message);
-            // We continue even if logs fail, as they might have been cleaned already
-        }
-
-        // 3. Verify Ownership & Delete Parent
-        const { data: deleted, error: deleteError } = await supabase
+        // 4. Verify Ownership & Delete Parent Link
+        const { error: deleteError } = await supabase
             .from('user_strategies')
             .delete()
             .eq('id', subscriptionId)
-            .eq('user_id', user.id)
-            .select();
+            .eq('user_id', user.id);
 
-        if (deleteError) {
-            console.error('Core Deletion Error:', deleteError.message);
-            return NextResponse.json({ 
-                error: `Database Rejection: ${deleteError.message}`,
-                details: deleteError 
-            }, { status: 500 });
-        }
-        
-        if (!deleted || deleted.length === 0) {
-            return NextResponse.json({ error: 'Node already removed or unauthorized.' }, { status: 404 });
+        if (deleteError) throw deleteError;
+
+        // 5. RECURSIVE PURGE: If this was a personal bot owned by the user, purge the source as well
+        if (sub && (sub as any).strategies) {
+            const strat = (sub as any).strategies;
+            if (strat.creator_id === user.id && strat.origin === 'PERSONAL') {
+                console.log(`[RECURSIVE_PURGE] Removing source strategy: ${sub.strategy_id}`);
+                await supabase.from('strategies').delete().eq('id', sub.strategy_id);
+            }
         }
 
         return NextResponse.json({ 
@@ -66,6 +93,6 @@ export async function DELETE(request: Request) {
 
     } catch (err: any) {
         console.error('Subscription Removal Error:', err.message);
-        return NextResponse.json({ error: 'Node removal failed' }, { status: 500 });
+        return NextResponse.json({ error: `Node removal failed: ${err.message}` }, { status: 500 });
     }
 }
