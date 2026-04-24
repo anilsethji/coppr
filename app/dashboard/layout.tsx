@@ -31,6 +31,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isAdmin, setIsAdmin] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+
+  const isTerminalRoute = pathname === '/dashboard/bots' || pathname === '/dashboard/indicators';
+  const showSidebarContent = isSidebarHovered;
+  const sidebarWidth = showSidebarContent ? 'w-[240px]' : 'w-[64px]';
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -89,42 +94,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] flex flex-col md:flex-row pt-[72px] md:pt-0 overflow-x-hidden selection:bg-[#FFD700] selection:text-black">
+    <div className="min-h-screen bg-[#020617] flex flex-col md:flex-row pt-[72px] md:pt-0 overflow-x-hidden selection:bg-[#C8FF00] selection:text-black">
       
       {/* INSTITUTIONAL SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-[240px] h-screen sticky top-0 border-r border-white/[0.03] z-50 overflow-y-auto no-scrollbar bg-[#050810]/80 backdrop-blur-3xl">
+      <aside 
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
+        className={`hidden md:flex flex-col h-screen sticky top-0 border-r border-[#1A1A1A] z-50 overflow-y-auto no-scrollbar bg-[#050505] transition-all duration-300 ease-in-out shrink-0 ${sidebarWidth}`}
+      >
         
         {/* Logo Area */}
-        <div className="px-6 py-8 border-b border-white/[0.03]">
+        <div className={`px-5 py-8 border-b border-[#1A1A1A] flex items-center ${showSidebarContent ? 'justify-start' : 'justify-center'} min-h-[100px]`}>
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <Logo variant="dark" className="w-8 h-8 rounded-lg shadow-2xl transition-transform group-hover:scale-105" />
-            <div className="flex flex-col">
+            <Logo variant="dark" className="w-8 h-8 rounded-lg shadow-2xl transition-transform group-hover:scale-105 shrink-0" />
+            <div className={`flex flex-col transition-all duration-300 overflow-hidden ${showSidebarContent ? 'opacity-100 w-auto ml-2' : 'opacity-0 w-0 ml-0'}`}>
               <span className="text-xl font-black tracking-tighter text-white uppercase leading-none">Coppr</span>
-              <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FFD700] mt-1 opacity-60">Terminal // v2.0 // 2026</span>
+              <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FFD700] mt-1 opacity-60 whitespace-nowrap">Terminal // v3.0 // 2026</span>
             </div>
           </Link>
         </div>
 
         {/* Navigation Wrapper */}
-        <nav className="flex-1 py-8 space-y-10">
+        <nav className="flex-1 py-8 space-y-10 overflow-x-hidden">
           
           {/* MAIN SECTION */}
-          <div className="px-4">
-            <h3 className="text-[9px] uppercase font-black tracking-[0.4em] mb-5 pl-3 text-white/20">Operational</h3>
-            <div className="space-y-1.5">
+          <div className="px-3">
+            <h3 className={`text-[9px] uppercase font-black tracking-[0.4em] mb-5 text-white/20 transition-all duration-300 whitespace-nowrap overflow-hidden ${showSidebarContent ? 'pl-3 opacity-100 max-h-10' : 'pl-0 opacity-0 max-h-0 mb-0'}`}>Operational</h3>
+            <div className={`space-y-1.5 ${!showSidebarContent && 'flex flex-col items-center'}`}>
               {mainLinks.map((item) => {
                 const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
                 const Icon = item.icon;
                 return (
-                  <motion.div key={item.name} whileTap={{ scale: 0.98 }}>
-                    <Link href={item.href} className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-white bg-white/[0.03] shadow-[0_0_20px_rgba(255,255,255,0.02)]' : 'text-white/30 hover:text-white hover:bg-white/[0.02]'}`} 
-                      style={isActive ? { borderLeft: '2px solid #FFD700' } : {}}
+                  <motion.div key={item.name} whileTap={{ scale: 0.98 }} className={`${!showSidebarContent && 'w-10 flex justify-center'}`}>
+                    <Link href={item.href} className={`flex items-center ${showSidebarContent ? 'justify-between px-3' : 'justify-center p-2.5'} min-h-[40px] rounded-none text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-black bg-[#FFD700]' : 'text-white/30 hover:text-white hover:bg-[#1A1A1A]'}`} 
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-[16px] h-[16px] transition-colors ${isActive ? 'text-[#FFD700]' : 'text-white/10 group-hover:text-white/40'}`} />
-                        <span>{item.name}</span>
+                        <Icon className={`w-[16px] h-[16px] shrink-0 transition-colors ${isActive ? 'text-black' : 'text-white/30 group-hover:text-white'}`} />
+                        <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${showSidebarContent ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>{item.name}</span>
                       </div>
-                      {item.badge && <div className="w-1.5 h-1.5 rounded-full bg-[#00E676] shadow-[0_0_8px_#00E676]" />}
+                      {item.badge && showSidebarContent && <div className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />}
                     </Link>
                   </motion.div>
                 );
@@ -133,20 +141,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* CREATORS SECTION */}
-          <div className="px-4">
-            <h3 className="text-[9px] uppercase font-black tracking-[0.4em] mb-5 pl-3 text-white/20">Alpha Source</h3>
-            <div className="space-y-1.5">
+          <div className="px-3">
+            <h3 className={`text-[9px] uppercase font-black tracking-[0.4em] mb-5 text-white/20 transition-all duration-300 whitespace-nowrap overflow-hidden ${showSidebarContent ? 'pl-3 opacity-100 max-h-10' : 'pl-0 opacity-0 max-h-0 mb-0'}`}>Alpha Source</h3>
+            <div className={`space-y-1.5 ${!showSidebarContent && 'flex flex-col items-center'}`}>
               {creatorLinks.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
                 return (
-                  <motion.div key={item.name} whileTap={{ scale: 0.98 }}>
-                    <Link href={item.href} className={`flex items-center px-3 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-[#FFD700] bg-[#FFD700]/5' : 'text-[#FFD700]/40 hover:text-[#FFD700] hover:bg-[#FFD700]/5'}`} 
-                      style={isActive ? { borderLeft: '2px solid #FFD700' } : {}}
+                  <motion.div key={item.name} whileTap={{ scale: 0.98 }} className={`${!showSidebarContent && 'w-10 flex justify-center'}`}>
+                    <Link href={item.href} className={`flex items-center ${showSidebarContent ? 'px-3' : 'justify-center p-2.5'} min-h-[40px] rounded-none text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-black bg-[#FFD700]' : 'text-[#FFD700]/40 hover:text-[#FFD700] hover:bg-[#1A1A1A]'}`} 
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-[16px] h-[16px] transition-colors ${isActive ? 'text-[#FFD700]' : 'text-[#FFD700]/10 group-hover:text-[#FFD700]/40'}`} />
-                        <span>{item.name}</span>
+                        <Icon className={`w-[16px] h-[16px] shrink-0 transition-colors ${isActive ? 'text-black' : 'text-[#FFD700]/40 group-hover:text-[#FFD700]'}`} />
+                        <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${showSidebarContent ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>{item.name}</span>
                       </div>
                     </Link>
                   </motion.div>
@@ -156,21 +163,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* SUPPORT SECTION */}
-          <div className="px-4">
-            <h3 className="text-[9px] uppercase font-black tracking-[0.4em] mb-5 pl-3 text-white/20">Configuration</h3>
-            <div className="space-y-1.5">
+          <div className="px-3">
+            <h3 className={`text-[9px] uppercase font-black tracking-[0.4em] mb-5 text-white/20 transition-all duration-300 whitespace-nowrap overflow-hidden ${showSidebarContent ? 'pl-3 opacity-100 max-h-10' : 'pl-0 opacity-0 max-h-0 mb-0'}`}>Configuration</h3>
+            <div className={`space-y-1.5 ${!showSidebarContent && 'flex flex-col items-center'}`}>
               {finalSupportLinks.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;
                 const isSpecial = item.name === 'Admin Console';
                 return (
-                  <motion.div key={item.name} whileTap={{ scale: 0.98 }}>
-                    <Link href={item.href} className={`flex items-center px-3 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-white bg-white/[0.03]' : isSpecial ? 'text-[#00E676]/60 font-black' : 'text-white/30 hover:text-white hover:bg-white/[0.02]'}`}
-                      style={isActive ? { borderLeft: '2px solid #FFD700' } : {}}
+                  <motion.div key={item.name} whileTap={{ scale: 0.98 }} className={`${!showSidebarContent && 'w-10 flex justify-center'}`}>
+                    <Link href={item.href} className={`flex items-center ${showSidebarContent ? 'px-3' : 'justify-center p-2.5'} min-h-[40px] rounded-none text-[12px] font-black uppercase tracking-wider transition-all duration-300 group ${isActive ? 'text-black bg-[#FFD700]' : isSpecial ? 'text-[#FFD700]/60 hover:bg-[#1A1A1A]' : 'text-white/30 hover:text-white hover:bg-[#1A1A1A]'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-[16px] h-[16px] transition-colors ${isActive ? 'text-[#FFD700]' : isSpecial ? 'text-[#00E676]/30' : 'text-white/10 group-hover:text-white/40'}`} />
-                        <span>{item.name}</span>
+                        <Icon className={`w-[16px] h-[16px] shrink-0 transition-colors ${isActive ? 'text-black' : isSpecial ? 'text-[#FFD700]/60' : 'text-white/30 group-hover:text-white'}`} />
+                        <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${showSidebarContent ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>{item.name}</span>
                       </div>
                     </Link>
                   </motion.div>
@@ -182,13 +188,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* LEGAL COMPLIANCE */}
-        <div className="px-5 mb-8">
-            <div className="p-4 bg-white/[0.01] border border-white/[0.03] rounded-xl space-y-2">
+        <div className={`px-2 mb-8 flex justify-center transition-all ${showSidebarContent ? 'opacity-100 max-h-[200px]' : 'opacity-0 max-h-0 overflow-hidden mb-0'}`}>
+            <div className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] space-y-2 w-full mx-3">
                 <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-3 h-3 text-[#00E676]" />
-                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-[#00E676]">Certified Bridge</span>
+                    <ShieldCheck className="w-3 h-3 text-[#FFD700]" />
+                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-[#FFD700]">Certified Bridge</span>
                 </div>
-                <p className="text-[7px] font-bold tracking-widest uppercase text-white/20 leading-relaxed">
+                <p className="text-[7px] font-bold tracking-widest uppercase text-white/40 leading-relaxed font-mono">
                     Institutional Data Agent<br />
                     Handshake: Verified 2026
                 </p>
@@ -196,15 +202,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* LOGOUT BUTTON */}
-        <div className="px-4 py-8 border-t border-white/[0.03]">
+        <div className="px-2 py-4 border-t border-[#1A1A1A]">
           <motion.button 
-            whileHover={{ backgroundColor: 'rgba(239,68,68,0.05)', color: '#FF5252' }}
+            whileHover={{ backgroundColor: '#1A1A1A', color: '#FF4444' }}
             whileTap={{ scale: 0.98 }}
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] text-white/20 transition-all duration-300 group"
+            className={`w-full flex items-center ${showSidebarContent ? 'px-4 justify-start' : 'justify-center'} gap-3 py-3 rounded-none text-[11px] font-black uppercase tracking-[0.2em] text-white/30 transition-all duration-300 group`}
           >
-            <LogOut className="w-[16px] h-[16px] text-white/10 group-hover:text-[#FF5252]/60" />
-            <span>Terminate</span>
+            <LogOut className={`w-[16px] h-[16px] shrink-0 transition-colors ${showSidebarContent ? '' : 'mx-auto'} text-white/30 group-hover:text-[#FF4444]`} />
+            <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${showSidebarContent ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>Terminate</span>
           </motion.button>
         </div>
       </aside>
@@ -305,11 +311,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  <span className="text-[10px] font-black text-[#00E676]">+1.24%</span>
                </div>
             </motion.div>
-            
-            {/* Mobile Nav Toggle */}
             <div className="md:hidden flex items-center gap-4">
-              <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 text-white/40"><Menu className="w-6 h-6" /></button>
-              <span className="text-lg font-black tracking-tighter text-white uppercase">Coppr</span>
+               <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 text-white/40"><Menu className="w-6 h-6" /></button>
+               <span className="text-lg font-black tracking-tighter text-white uppercase">Coppr</span>
             </div>
           </div>
 
@@ -354,7 +358,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* CONTENT VIEWPORT */}
-        <div className="p-6 md:p-12 flex-1 w-full max-w-[1920px] mx-auto z-10">
+        <div className={`flex-1 w-full mx-auto z-10 ${isTerminalRoute ? 'p-0 max-w-none' : 'p-6 md:p-12 max-w-[1920px]'}`}>
           {children}
         </div>
       </main>

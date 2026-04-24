@@ -63,12 +63,17 @@ export default function DashboardHome() {
   const [official, setOfficial] = useState<any | null>(null);
   const [latestEA, setLatestEA] = useState<string | null>(null);
   const [latestInd, setLatestInd] = useState<string | null>(null);
+  const [daysLeft, setDaysLeft] = useState<string>('30');
+  const [isPro, setIsPro] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const [pRes, uRes, cRes, featRes, offRes, eaRes, indRes, backupOffRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
@@ -81,7 +86,21 @@ export default function DashboardHome() {
         supabase.from('content').select('*').eq('type', 'bot').order('created_at', {ascending: false }).limit(1).maybeSingle()
       ]);
 
-      setProfile(pRes.data);
+      if (pRes.data) {
+        setProfile(pRes.data);
+        // Fallback checks for various pro markers
+        setIsPro(pRes.data.is_pro === true || pRes.data.tier === 'PRO' || pRes.data.account_tier === 'PRO');
+        
+        if (pRes.data.created_at) {
+          const createDate = new Date(pRes.data.created_at);
+          const now = new Date();
+          const diffInTime = now.getTime() - createDate.getTime();
+          const diffInDays = Math.floor(diffInTime / (1000 * 3600 * 24));
+          const recDaysLeft = 30 - (diffInDays % 30);
+          setDaysLeft(recDaysLeft.toString());
+        }
+      }
+      
       setBotLibrary(cRes.data || []);
       setFeatured(featRes.data || []);
       
@@ -123,54 +142,94 @@ export default function DashboardHome() {
     >
       {/* 1. INSTITUTIONAL STATUS RIBBON (TOP) */}
       <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 relative p-8 bg-[#050810] border border-white/[0.03] rounded-2xl overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Activity className="w-24 h-24 text-[#00E676]" />
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse shadow-[0_0_8px_#00E676]" />
-                <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">System Operational</span>
+        {official ? (
+          <div className="md:col-span-2 relative p-8 bg-[#050505] border border-[#FFD700]/20 rounded-2xl overflow-hidden group shadow-[0_0_40px_rgba(255,215,0,0.05)]">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/5 to-transparent pointer-events-none" />
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#FFD700]/10 blur-[80px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="px-2 py-1 bg-[#FFD700] text-black text-[9px] font-black uppercase tracking-widest rounded-sm border border-[#FFD700]">Coppr Official</span>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
+                    <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">System Verified</span>
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight uppercase leading-none">
+                    {official.name}
+                  </h1>
+                  <p className="text-[11px] font-black text-[#888888] uppercase tracking-[0.2em] font-mono mt-2 line-clamp-2 max-w-lg">
+                    {official.description || 'Institutional Grade Execution Node. Fully verified for live market propagation.'}
+                  </p>
+                </div>
               </div>
-              <h1 className="text-3xl font-black text-white tracking-tight [word-spacing:0.8rem] uppercase leading-none">
-                Command <span className="text-[#FFD700]">Terminal</span>
-              </h1>
-              <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.2em] font-mono">Current Session Node: SYNC_2026_PRIMARY</p>
-            </div>
-            
-            <div className="flex items-center gap-8 bg-white/[0.02] p-5 rounded-xl border border-white/[0.03] backdrop-blur-md">
-              <div className="space-y-1">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none">Total Mirroring</p>
-                <p className="text-xl font-black text-white font-mono leading-none">$1,242.00</p>
+              
+              <div className="flex items-center gap-6 lg:gap-8 bg-[#111111]/80 p-5 rounded-xl border border-[#FFD700]/20 backdrop-blur-md">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Win Rate</p>
+                  <p className="text-xl font-black text-[#FFD700] font-mono leading-none">{official.win_rate || '92'}%</p>
+                </div>
+                <div className="w-[1px] h-8 bg-[#FFD700]/20" />
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Base Asset</p>
+                  <p className="text-xl font-black text-white font-mono leading-none">{official.symbol || 'SYNC'}</p>
+                </div>
+                <div className="w-[1px] h-8 bg-[#FFD700]/20 hidden sm:block" />
+                <Link href={`/dashboard/marketplace?id=${official.id}`} className="hidden sm:flex items-center justify-center p-3 bg-[#FFD700] text-black rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,215,0,0.4)]">
+                  <ChevronRight className="w-5 h-5 font-black" />
+                </Link>
               </div>
-              <div className="w-[1px] h-8 bg-white/10" />
-              <div className="space-y-1">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none">Signal Health</p>
-                <p className="text-xl font-black text-[#00E676] font-mono leading-none">99.8%</p>
-              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="relative p-8 bg-gradient-to-br from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-2xl flex flex-col justify-between group overflow-hidden">
-          <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
-            <ShieldCheck className="w-32 h-32 text-[#FFD700]" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-2">Account Tier</p>
-            <h4 className="text-2xl font-black text-white uppercase leading-none">Institutional <span className="text-[#FFD700]">Pro</span></h4>
-          </div>
-          <div className="mt-8 flex items-end justify-between">
-            <div className="space-y-1">
-              <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none underline decoration-[#FFD700]/30 underline-offset-4">Handshake Expiry</p>
-              <p className="text-lg font-black text-white font-mono leading-none">27 DAYS</p>
-            </div>
-            <Link href="/dashboard/account" className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-              <ArrowUpRight className="w-4 h-4 text-white/40" />
+            {/* Mobile Action */}
+            <Link href={`/dashboard/marketplace?id=${official.id}`} className="sm:hidden mt-6 flex items-center justify-center w-full py-3 bg-[#FFD700] text-black text-[11px] font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.4)]">
+               Initialize Official Node
             </Link>
           </div>
-        </div>
+        ) : (
+          <div className="md:col-span-2 relative p-8 bg-[#050505] border border-[#1A1A1A] rounded-2xl overflow-hidden flex items-center justify-center min-h-[160px]">
+             <div className="flex flex-col items-center gap-3">
+               <ShieldCheck className="w-8 h-8 text-white/10" />
+               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">Awaiting Official Deployment...</p>
+             </div>
+          </div>
+        )}
+
+        {isPro ? (
+          <div className="relative p-8 bg-gradient-to-br from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-2xl flex flex-col justify-between group overflow-hidden">
+            <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
+              <ShieldCheck className="w-32 h-32 text-[#FFD700]" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-2">Account Tier</p>
+              <h4 className="text-2xl font-black text-white uppercase leading-none">Institutional <span className="text-[#FFD700]">Pro</span></h4>
+            </div>
+            <div className="mt-8 flex items-end justify-between">
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none underline decoration-[#FFD700]/30 underline-offset-4">Handshake Expiry</p>
+                <p className="text-lg font-black text-white font-mono leading-none">{daysLeft} DAYS</p>
+              </div>
+              <Link href="/dashboard/account" className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                <ArrowUpRight className="w-4 h-4 text-white/40" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="relative p-8 bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.05] rounded-2xl flex flex-col justify-between group overflow-hidden">
+            <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
+              <ShieldCheck className="w-32 h-32 text-white/10" />
+            </div>
+            <div className="space-y-1 z-10">
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-2">Account Tier</p>
+              <h4 className="text-xl font-black text-white uppercase leading-none text-white/60">Standard <span className="text-white/20">Access</span></h4>
+            </div>
+            <div className="mt-8 flex items-end justify-between z-10">
+              <Link href="/pricing" className="py-2.5 px-4 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+                Upgrade to Pro <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* 2. COMMAND FEED & LIVE PROPAGATION (CENTRAL) */}

@@ -32,7 +32,7 @@ export function SpotlightCarousel({ items }: { items: Strategy[] }) {
   const current = items[index];
 
   return (
-    <div className="relative w-full h-[400px] md:h-[420px] lg:h-[400px] overflow-hidden rounded-[32px] md:rounded-[56px] bg-[#0A111F] border border-white/10 group shadow-2xl">
+    <div className="relative w-full h-[500px] md:h-[600px] lg:h-[500px] overflow-hidden rounded-[32px] md:rounded-[56px] bg-[#000000] border border-[#1A1A1A] group shadow-2xl">
       {/* Background Animated Glows */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/5 to-transparent pointer-events-none" />
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#FFD700]/10 blur-[120px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
@@ -81,7 +81,7 @@ export function SpotlightCarousel({ items }: { items: Strategy[] }) {
             </div>
 
             <div className="space-y-2 md:space-y-4">
-              <h2 className="text-2xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none">
+              <h2 className="text-3xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">
                 {current.name}
               </h2>
               <p className="text-[9px] md:text-[13px] text-white/30 font-black italic uppercase tracking-[0.3em] leading-none">
@@ -110,10 +110,10 @@ export function SpotlightCarousel({ items }: { items: Strategy[] }) {
           </div>
 
           <div className="hidden lg:flex flex-1 items-center justify-center">
-            <div className="relative w-48 h-48 md:w-64 md:h-64">
+            <div className="relative w-56 h-56 md:w-80 md:h-80">
               <div className="absolute inset-0 bg-[#FFD700]/10 blur-[100px] rounded-full animate-pulse" />
-              <div className="relative w-full h-full bg-white/5 border border-white/10 rounded-[60px] md:rounded-[80px] flex items-center justify-center backdrop-blur-3xl group-hover:border-[#FFD700]/30 transition-all duration-1000">
-                <Bot className="w-20 h-20 md:w-28 md:h-28 text-white/10 group-hover:text-[#FFD700] transition-all duration-1000 shadow-[0_0_50px_rgba(255,215,0,0.1)]" />
+              <div className="relative w-full h-full bg-[#050505] border border-[#1A1A1A] rounded-[60px] md:rounded-[80px] flex items-center justify-center group-hover:border-[#FFD700]/30 transition-all duration-1000">
+                <Bot className="w-24 h-24 md:w-32 md:h-32 text-[#FFD700]/20 group-hover:text-[#FFD700] transition-all duration-1000 shadow-[0_0_50px_rgba(255,215,0,0.1)]" />
               </div>
             </div>
           </div>

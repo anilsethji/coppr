@@ -1,100 +1,89 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import VaultView from '@/components/dashboard/VaultView';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { 
-  BarChart3, 
-  Layers, 
-  Target, 
-  Compass, 
   Zap, 
-  ShieldCheck, 
-  ArrowDownToLine,
-  Activity,
-  ChevronRight,
-  Globe,
-  Terminal
+  Globe, 
+  Target, 
+  ArrowDownToLine, 
+  Compass, 
+  Activity, 
+  ShieldCheck,
+  ArrowUpRight
 } from 'lucide-react';
-import Link from "next/link";
-import VaultView from "@/components/dashboard/VaultView";
-import QuickStartJourney from "@/components/dashboard/QuickStartJourney";
 
 export default function IndicatorsPage() {
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
   const [indicators, setIndicators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(true); // Default to true for official build
+  const [activeIndId, setActiveIndId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchIndicators = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const [pRes, iRes] = await Promise.all([
-        supabase.from('profiles').select('subscription_status, is_admin').eq('id', user.id).single(),
-        supabase.from('content').select('*').eq('type', 'indicator').order('created_at', { ascending: false })
-      ]);
-
-      setProfile(pRes.data);
-      setIndicators(iRes.data || []);
+      const { data } = await supabase
+        .from('strategies')
+        .select('*')
+        .eq('type', 'PINE_SCRIPT_WEBHOOK')
+        .order('created_at', { ascending: false });
+      
+      setIndicators(data || []);
+      if (data && data.length > 0) setActiveIndId(data[0].id);
       setLoading(false);
     };
-    fetchData();
+    fetchIndicators();
   }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="w-8 h-8 border-4 border-[#00B0FF]/20 border-t-[#00B0FF] rounded-full animate-spin"></div>
+    <div className="flex items-center justify-center min-h-screen bg-[#000000]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-2 border-[#00E676]/20 border-t-[#00E676] rounded-none animate-spin" />
+        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] font-mono">ACCESSING SIGNAL STREAM //</span>
+      </div>
     </div>
   );
 
-  const hasAccess = profile?.subscription_status === 'active' || !!profile?.is_admin;
-
   return (
-    <div className="w-full max-w-[1920px] mx-auto pb-20 px-4 md:px-8 xl:px-12 mt-8">
+    <div className="w-full h-[calc(100vh-72px)] md:h-screen flex flex-col bg-[#000000] overflow-hidden">
       
-      {/* 1. HERO HEADER (COMPACT) */}
+      {/* 1. COMPRESSED TOP HERO NAV */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative p-4 md:p-6 bg-gradient-to-br from-[#00E676]/[0.02] to-transparent border border-white/5 rounded-[24px] overflow-hidden"
+        className="relative px-6 py-3 w-full bg-[#000000] border-b border-[#1A1A1A] rounded-none z-10 shrink-0"
       >
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#00E676]/5 rounded-full blur-[80px] pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-               <div className="p-1.5 rounded-lg bg-[#00E676]/10 border border-[#00E676]/20">
-                 <Zap className="w-5 h-5 text-[#00E676]" strokeWidth={2.5} />
-               </div>
-               <h1 className="text-lg md:text-2xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">
-                  TradingView <span className="text-[#00E676]">Auto-Trades</span>
+        <div className="flex flex-row justify-between items-center gap-4 relative z-10">
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-3">
+               <Zap className="w-4 h-4 text-[#FFD700]" strokeWidth={2.5} />
+               <h1 className="text-[12px] font-black text-white uppercase tracking-wider [word-spacing:0.2em] leading-none mt-0.5">
+                  TRADINGVIEW <span className="text-[#FFD700]">AUTO-TRADES</span>
                </h1>
             </div>
-            <p className="text-[10px] md:text-xs text-white/40 max-w-[500px] font-sans font-bold uppercase leading-normal">
-               Link your favorite TradingView indicators directly to your broker. When your indicator fires an alert, we execute the trade for you instantly.
+            <div className="hidden md:block w-px h-4 bg-[#1A1A1A]" />
+            <p className="hidden md:block text-[8px] text-white/30 font-mono uppercase tracking-[0.2em] mt-1">
+               LINK STRATEGIES DIRECTLY TO BROKERS FOR INSTANT EXECUTION.
             </p>
           </div>
           
-          <div className="hidden md:flex items-center gap-4 bg-black/40 p-4 rounded-2xl border border-white/5">
-             <div className="text-right">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest font-sans mb-0.5">Signals Processed</p>
-                <div className="flex items-center gap-1.5 justify-end">
-                   <Globe className="w-3 h-3 text-[#00E676]" />
-                   <p className="text-[12px] font-black text-[#00E676] uppercase leading-none">Real-time</p>
-                </div>
-             </div>
+          <div className="hidden md:flex items-center gap-3">
+             <Globe className="w-3 h-3 text-[#FFD700]" />
+             <p className="text-[9px] font-black text-[#FFD700] uppercase tracking-widest leading-none font-mono mt-0.5">Real-time_Sync_Active</p>
           </div>
         </div>
       </motion.div>
 
-      {/* TIMELINE WIZARD CONTAINER */}
-      <div className="relative border-l-[3px] border-dashed border-[#00E676]/20 ml-6 md:ml-4 pl-8 md:pl-10 mt-12 mb-24 min-h-[400px]">
-          <VaultView typeFilter="PINE_SCRIPT_WEBHOOK" timelineMode="indicators" />
-      </div>
+      {/* 2. FULL-BLEED INDICATOR VAULT */}
+      <div className="flex-1 w-full relative overflow-y-auto custom-scrollbar">
+         <div className="max-w-[1920px] mx-auto w-full">
+            <VaultView typeFilter="PINE_SCRIPT_WEBHOOK" timelineMode="indicators" />
+         </div>
 
-      {/* 4. MT5 LEGACY / UTILITY TOOLS */}
+      {/* 4. MT5 LEGACY / UTILITY TOOLS (RESTORED) */}
       <div className="pt-20 border-t border-white/5 space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
              <div className="space-y-2">
@@ -123,28 +112,27 @@ export default function IndicatorsPage() {
                   whileHover={!isLocked ? { y: -5, scale: 1.02 } : {}}
                   className={`group relative overflow-hidden rounded-[32px] border transition-all duration-700 bg-white/[0.02] p-8 ${!isLocked ? 'hover:bg-white/[0.04] hover:border-[#00B0FF]/40 border-white/5 shadow-2xl' : 'border-white/5'}`}
                 >
-                  {/* Glow */}
                   {!isLocked && (
                     <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-[#00B0FF] blur-[50px] opacity-0 group-hover:opacity-20 transition-opacity"></div>
                   )}
 
                   <div className={`transition-all duration-700 ${isLocked ? 'blur-[8px] select-none pointer-events-none opacity-20' : ''}`}>
                     <div className="flex justify-between items-start mb-8">
-                       <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center transition-transform duration-700 group-hover:scale-110">
-                         <Target className="w-6 h-6 text-[#00B0FF]" />
+                       <div className="w-12 h-12 bg-[#050505] border border-[#1A1A1A] flex items-center justify-center transition-transform duration-700 group-hover:bg-[#0A0A0A]">
+                         <Target className="w-5 h-5 text-[#00B0FF]" />
                        </div>
                        <motion.a 
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         href={!isLocked ? item.external_link : '#'} 
-                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl ${!isLocked ? 'bg-[#00B0FF]/10 hover:bg-[#00B0FF]/25 text-[#00B0FF] border border-[#00B0FF]/30' : 'bg-white/5 text-white/20 border border-white/5'}`}
+                        className={`px-4 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${!isLocked ? 'bg-[#00B0FF] text-black hover:bg-white' : 'bg-[#050505] text-white/20 border border-[#1A1A1A]'}`}
                        >
                          <ArrowDownToLine className="w-3.5 h-3.5 mr-2 inline-block" />
-                         Install .ex5
+                         INSTALL .EX5
                        </motion.a>
                     </div>
 
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3 group-hover:text-[#00B0FF] transition-colors">{item.title}</h3>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-3 group-hover:text-[#00B0FF] transition-colors">{item.name || item.title}</h3>
                     <p className="text-[12px] text-white/30 font-bold uppercase font-sans leading-relaxed mb-8 line-clamp-2">
                       {item.description || 'Professional indicator for advanced market structure analysis.'}
                     </p>
@@ -183,6 +171,8 @@ export default function IndicatorsPage() {
           </AnimatePresence>
         </div>
       </div>
+
+     </div>
     </div>
   );
 }

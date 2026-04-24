@@ -153,26 +153,8 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
   if (loading) return <div className="p-40 text-center text-white/20 font-black uppercase animate-pulse">Synchronizing Secure Vault...</div>;
 
   return (
-    <div className="space-y-12 pb-20 max-w-[1600px] mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
-        <div className="space-y-4">
-            <div className="flex items-center gap-3">
-               <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse" />
-               <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Alpha Terminal Hub</span>
-            </div>
-            <h2 className="text-3xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">Institutional Mirroring <span className="text-[#FFD700]">Terminals</span></h2>
-            {!typeFilter && (
-                <div className="flex gap-1 p-1 bg-white/[0.02] border border-white/[0.03] rounded-xl">
-                    <button onClick={() => setActiveTab('MT5_EA')} className={`px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest font-mono transition-all ${activeTab === 'MT5_EA' ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/10' : 'text-white/20 hover:text-white/40'}`}>MT5 Nodes</button>
-                    <button onClick={() => setActiveTab('PINE_SCRIPT_WEBHOOK')} className={`px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest font-mono transition-all ${activeTab === 'PINE_SCRIPT_WEBHOOK' ? 'bg-[#00E676] text-black shadow-lg shadow-[#00E676]/10' : 'text-white/20 hover:text-white/40'}`}>JS Bridges</button>
-                </div>
-            )}
-        </div>
-        <div className="px-6 py-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center gap-4">
-            <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] font-mono">Managed Encryption // OK</span>
-        </div>
-      </div>
+    <div className="space-y-12 pb-20 w-full max-w-none mx-auto">
+      {/* VAULT HEADERS PURGED FOR V3 TERMINAL BLEED */}
 
       <div className="grid grid-cols-1 gap-10">
         {strategies.map((sub) => {
