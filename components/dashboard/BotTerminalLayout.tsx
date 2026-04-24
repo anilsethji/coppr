@@ -346,6 +346,7 @@ export default function BotTerminalLayout({ type, bots, initialBotId, onBotChang
         onClose={() => setIsIntegrationModalOpen(false)} 
         sub={activeSubscription} 
         copyToClipboard={(t, l) => { navigator.clipboard.writeText(t); alert(`${l} copied to secure buffer.`); }} 
+        copiedText={null}
       />
       <AssetDiscoveryDrawer 
         isOpen={isAssetDrawerOpen} 
