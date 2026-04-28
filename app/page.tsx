@@ -20,12 +20,14 @@ import {
   ChevronRight,
   Activity,
   CheckCircle2,
-  Youtube
+  Youtube,
+  Star
 } from 'lucide-react';
 import { PriceTicker } from '@/components/PriceTicker';
 import { Logo } from '@/components/ui/Logo';
 import Navbar from '@/components/layout/Navbar';
 import { TrustMarquee } from '@/components/ui/TrustMarquee';
+import HighFidelityHowItWorks from '@/components/ui/HighFidelityHowItWorks';
 
 export default function LandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -50,7 +52,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#080C14] text-white selection:bg-[#FFD700] selection:text-black font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFD700] selection:text-black font-sans overflow-x-hidden">
       <Navbar />
 
       {/* 1. HERO SECTION */}
@@ -130,7 +132,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. PLATFORM STATS */}
+      {/* 2. HOW IT WORKS (ANIMATION) */}
+      <section className="py-16 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight mb-2">
+                Automate your <span className="text-[#FFD700]">strategy</span>
+            </h2>
+            <p className="text-[12px] md:text-[14px] font-black text-white/40 uppercase tracking-[0.4em]">
+                Within a few clicks.
+            </p>
+        </div>
+        <div className="max-w-5xl mx-auto px-6">
+            <div className="rounded-[40px] overflow-hidden border border-white/10 shadow-2xl bg-[#050505] h-[500px] md:h-[600px] relative">
+                <HighFidelityHowItWorks />
+            </div>
+        </div>
+      </section>
+
+      {/* 2.5 PLATFORM STATS */}
       <section className="py-16 md:py-24 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
@@ -410,62 +429,46 @@ export default function LandingPage() {
       <TrustMarquee />
 
       {/* 5. PRICING SECTION */}
-      <section id="pricing" className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="pricing" className="py-24 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#FFD700]/5 blur-[160px] rounded-full pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="text-center space-y-4 mb-20">
-                <h2 className="text-4xl md:text-6xl font-black tracking-tight">CHOOSE YOUR <span className="text-white/20">SPEED.</span></h2>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase">Unlimited <span className="text-white/20">Alpha Access.</span></h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
-                {/* Plan 1 */}
-                <div className="p-8 md:p-10 rounded-[40px] md:rounded-[48px] bg-white/[0.03] border border-white/10 flex flex-col group hover:bg-white/[0.05] transition-all">
-                    <div className="mb-6 md:mb-8 p-3 rounded-2xl bg-white/5 w-fit">
-                        <Users className="w-6 h-6 text-white/40" />
+            <div className="max-w-xl mx-auto">
+                {/* The Alpha Pass */}
+                <div className="p-8 md:p-12 rounded-[40px] md:rounded-[48px] bg-gradient-to-br from-[#FFD700]/10 via-transparent to-transparent border border-[#FFD700]/30 flex flex-col relative overflow-hidden shadow-[0_0_80px_rgba(255,215,0,0.08)] group hover:scale-[1.02] transition-transform duration-700">
+                    <div className="absolute top-0 right-0 p-10">
+                        <Zap className="w-16 h-16 text-[#FFD700] opacity-5 group-hover:opacity-10 transition-opacity" />
                     </div>
-                    <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight text-white/90">All-Access Hub</h3>
-                    <p className="text-[10px] md:text-[12px] text-white/30 uppercase font-bold tracking-widest mb-8">Full indicator & tutorial stack.</p>
-                    <div className="flex items-baseline gap-2 mb-8 md:mb-10">
-                        <span className="text-4xl md:text-5xl font-black text-white tracking-tight">₹1999</span>
-                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/month</span>
+                    <div className="mb-8 p-4 rounded-2xl bg-[#FFD700]/10 w-fit border border-[#FFD700]/20">
+                        <Star className="w-8 h-8 text-[#FFD700]" />
                     </div>
-                    <ul className="space-y-4 mb-10 md:mb-12">
-                        {['All Indicators included', 'MT5 Strategy Backtests', 'Platform Tutorials', 'Telegram Community'].map((f, i) => (
-                            <li key={i} className="flex items-center gap-3 text-[11px] md:text-sm font-bold text-white/50 uppercase tracking-wider">
-                                <CheckCircle2 className="w-4 h-4 text-[#00E676]" />
+                    <h3 className="text-2xl md:text-3xl font-black text-white mb-3 uppercase tracking-tight">The Alpha Pass</h3>
+                    <p className="text-[12px] text-[#FFD700]/60 uppercase font-black tracking-[0.3em] mb-10 leading-relaxed">
+                        Get all <span className="text-white underline underline-offset-4 decoration-[#FFD700]/40">Coppr Official</span> strategies and bots for free. No hidden fees. Just one price for everything.
+                    </p>
+                    <div className="flex items-baseline gap-2 mb-10">
+                        <span className="text-5xl md:text-7xl font-black text-white tracking-tighter">₹999</span>
+                        <span className="text-[12px] font-black text-white/20 uppercase tracking-[0.4em]">/month</span>
+                    </div>
+                    <ul className="space-y-6 mb-12">
+                        {[
+                            'All Official Strategies Included',
+                            'Zero Setup Fees for Bots',
+                            'Simple Broker Connection',
+                            '24/7 VIP Support Channel'
+                        ].map((f, i) => (
+                            <li key={i} className="flex items-center gap-4 text-[12px] md:text-sm font-black text-white/60 uppercase tracking-widest">
+                                <CheckCircle2 className="w-5 h-5 text-[#FFD700]" />
                                 {f}
                             </li>
                         ))}
                     </ul>
-                    <Link href="/checkout" className="mt-auto py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/10 text-center transition-all">
-                        Initialize Session
-                    </Link>
-                </div>
-
-                {/* Plan 2 */}
-                <div className="p-8 md:p-10 rounded-[40px] md:rounded-[48px] bg-gradient-to-br from-[#FFD700]/10 to-transparent border border-[#FFD700]/30 flex flex-col relative overflow-hidden shadow-2xl shadow-[#FFD700]/5">
-                    <div className="absolute top-0 right-0 p-8">
-                        <Zap className="w-10 md:w-12 h-10 md:h-12 text-[#FFD700] opacity-10" />
-                    </div>
-                    <div className="mb-6 md:mb-8 p-3 rounded-2xl bg-[#FFD700]/10 w-fit border border-[#FFD700]/20">
-                        <Lock className="w-6 h-6 text-[#FFD700]" />
-                    </div>
-                    <h3 className="text-xl md:text-2xl font-black text-white mb-2 uppercase tracking-tight">Strategy Node</h3>
-                    <p className="text-[10px] md:text-[12px] text-[#FFD700]/60 uppercase font-bold tracking-widest mb-8">Automated execution license.</p>
-                    <div className="flex items-baseline gap-2 mb-8 md:mb-10">
-                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">STARTING</span>
-                        <span className="text-4xl md:text-5xl font-black text-white tracking-tight">₹999</span>
-                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/bot</span>
-                    </div>
-                    <ul className="space-y-4 mb-10 md:mb-12">
-                        {['Full Automated Execution', 'Webhook MT5 Setup', '7-Day Refund Policy', 'Creator Support Feed'].map((f, i) => (
-                            <li key={i} className="flex items-center gap-3 text-[11px] md:text-sm font-bold text-white/60 uppercase tracking-wider">
-                                <CheckCircle2 className="w-4 h-4 text-[#FFD700]" />
-                                {f}
-                            </li>
-                        ))}
-                    </ul>
-                    <Link href="/dashboard/marketplace" className="mt-auto py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-black font-black uppercase tracking-widest text-[10px] shadow-xl shadow-[#FFD700]/20 text-center hover:scale-[1.02] transition-all">
-                        Browse Marketplace
+                    <Link href="/dashboard/marketplace" className="mt-auto py-6 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-black font-black uppercase tracking-[0.4em] text-xs shadow-[0_20px_40px_rgba(255,215,0,0.2)] text-center hover:scale-[1.02] hover:shadow-[#FFD700]/40 transition-all duration-500">
+                        Claim Your Access for ₹999
                     </Link>
                 </div>
             </div>

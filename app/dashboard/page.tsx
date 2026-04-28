@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
 import { SpotlightCarousel } from '@/components/dashboard/SpotlightCarousel';
+import HighFidelityHowItWorks from '@/components/ui/HighFidelityHowItWorks';
 
 const SignalVisualizer = dynamic(() => import('@/components/dashboard/SignalVisualizer').then(m => m.SignalVisualizer), { 
     ssr: false,
@@ -46,7 +47,6 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
-// NAV GRID REFINEMENT (REFLECTIVE METALLIC SQUARES)
 const navCards = [
   { icon: Bot, t: 'EA Bots', sub: 'Hub', href: '/dashboard/bots', color: '#FFD700', glow: 'rgba(255, 215, 0, 0.25)' },
   { icon: BarChart3, t: 'Indicators', sub: 'Suite', href: '/dashboard/indicators', color: '#00E676', glow: 'rgba(0, 230, 118, 0.25)' },
@@ -88,7 +88,6 @@ export default function DashboardHome() {
 
       if (pRes.data) {
         setProfile(pRes.data);
-        // Fallback checks for various pro markers
         setIsPro(pRes.data.is_pro === true || pRes.data.tier === 'PRO' || pRes.data.account_tier === 'PRO');
         
         if (pRes.data.created_at) {
@@ -104,7 +103,6 @@ export default function DashboardHome() {
       setBotLibrary(cRes.data || []);
       setFeatured(featRes.data || []);
       
-      // FALLBACK LOGIC: If no official strategy exists, use the latest bot from content table
       if (offRes.data) {
         setOfficial(offRes.data);
       } else if (backupOffRes.data) {
@@ -112,7 +110,7 @@ export default function DashboardHome() {
           id: backupOffRes.data.id,
           name: backupOffRes.data.title,
           description: backupOffRes.data.description,
-          symbol: 'XAUUSD', // Fallback defaults
+          symbol: 'XAUUSD',
           win_rate: 73,
           is_legacy: true
         });
@@ -138,150 +136,87 @@ export default function DashboardHome() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-10 pb-20 max-w-[1600px] mx-auto"
+      className="flex flex-col space-y-16 lg:space-y-8 pb-20 max-w-[1600px] mx-auto px-4 md:px-0"
     >
-      {/* 1. INSTITUTIONAL STATUS RIBBON (TOP) */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {official ? (
-          <div className="md:col-span-2 relative p-8 bg-[#050505] border border-[#FFD700]/20 rounded-2xl overflow-hidden group shadow-[0_0_40px_rgba(255,215,0,0.05)]">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/5 to-transparent pointer-events-none" />
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#FFD700]/10 blur-[80px] rounded-full pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="px-2 py-1 bg-[#FFD700] text-black text-[9px] font-black uppercase tracking-widest rounded-sm border border-[#FFD700]">Coppr Official</span>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
-                    <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">System Verified</span>
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight uppercase leading-none">
-                    {official.name}
-                  </h1>
-                  <p className="text-[11px] font-black text-[#888888] uppercase tracking-[0.2em] font-mono mt-2 line-clamp-2 max-w-lg">
-                    {official.description || 'Institutional Grade Execution Node. Fully verified for live market propagation.'}
-                  </p>
-                </div>
+      {/* 1. TOP OPERATIONAL GRID (MOBILE SEQUENTIAL FLOW) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-0 items-start">
+        
+        {/* MOBILE ORDER 1: ACCOUNT TIER */}
+        <div className="px-2 order-1 lg:order-none lg:col-start-3 lg:row-start-1">
+          {isPro ? (
+            <div className="relative p-5 bg-gradient-to-br from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-2xl flex flex-col justify-between group overflow-hidden min-h-[140px]">
+              <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
+                <ShieldCheck className="w-24 h-24 text-[#FFD700]" />
               </div>
-              
-              <div className="flex items-center gap-6 lg:gap-8 bg-[#111111]/80 p-5 rounded-xl border border-[#FFD700]/20 backdrop-blur-md">
-                <div className="space-y-1">
-                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Win Rate</p>
-                  <p className="text-xl font-black text-[#FFD700] font-mono leading-none">{official.win_rate || '92'}%</p>
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-1">Account Tier</p>
+                <h4 className="text-lg font-black text-white uppercase leading-none">Institutional <span className="text-[#FFD700]">Pro</span></h4>
+              </div>
+              <div className="mt-4 flex items-end justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[7px] font-black text-white/20 uppercase tracking-widest leading-none underline decoration-[#FFD700]/30 underline-offset-4">Expiry</p>
+                  <p className="text-sm font-black text-white font-mono leading-none">{daysLeft} DAYS</p>
                 </div>
-                <div className="w-[1px] h-8 bg-[#FFD700]/20" />
-                <div className="space-y-1">
-                  <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Base Asset</p>
-                  <p className="text-xl font-black text-white font-mono leading-none">{official.symbol || 'SYNC'}</p>
-                </div>
-                <div className="w-[1px] h-8 bg-[#FFD700]/20 hidden sm:block" />
-                <Link href={`/dashboard/marketplace?id=${official.id}`} className="hidden sm:flex items-center justify-center p-3 bg-[#FFD700] text-black rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,215,0,0.4)]">
-                  <ChevronRight className="w-5 h-5 font-black" />
+                <Link href="/dashboard/account" className="p-1.5 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                  <ArrowUpRight className="w-3 h-3 text-white/40" />
                 </Link>
               </div>
             </div>
-            {/* Mobile Action */}
-            <Link href={`/dashboard/marketplace?id=${official.id}`} className="sm:hidden mt-6 flex items-center justify-center w-full py-3 bg-[#FFD700] text-black text-[11px] font-black uppercase tracking-widest rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.4)]">
-               Initialize Official Node
-            </Link>
-          </div>
-        ) : (
-          <div className="md:col-span-2 relative p-8 bg-[#050505] border border-[#1A1A1A] rounded-2xl overflow-hidden flex items-center justify-center min-h-[160px]">
-             <div className="flex flex-col items-center gap-3">
-               <ShieldCheck className="w-8 h-8 text-white/10" />
-               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">Awaiting Official Deployment...</p>
-             </div>
-          </div>
-        )}
-
-        {isPro ? (
-          <div className="relative p-8 bg-gradient-to-br from-[#FFD700]/5 to-transparent border border-[#FFD700]/10 rounded-2xl flex flex-col justify-between group overflow-hidden">
-            <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
-              <ShieldCheck className="w-32 h-32 text-[#FFD700]" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] mb-2">Account Tier</p>
-              <h4 className="text-2xl font-black text-white uppercase leading-none">Institutional <span className="text-[#FFD700]">Pro</span></h4>
-            </div>
-            <div className="mt-8 flex items-end justify-between">
-              <div className="space-y-1">
-                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none underline decoration-[#FFD700]/30 underline-offset-4">Handshake Expiry</p>
-                <p className="text-lg font-black text-white font-mono leading-none">{daysLeft} DAYS</p>
+          ) : (
+            <div className="relative p-5 bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.05] rounded-2xl flex flex-col justify-between group overflow-hidden min-h-[140px]">
+              <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
+                <ShieldCheck className="w-24 h-24 text-white/10" />
               </div>
-              <Link href="/dashboard/account" className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                <ArrowUpRight className="w-4 h-4 text-white/40" />
-              </Link>
+              <div className="space-y-1 z-10">
+                <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.4em] mb-1">Account Tier</p>
+                <h4 className="text-md font-black text-white uppercase leading-none text-white/60">Standard <span className="text-white/20">Access</span></h4>
+              </div>
+              <div className="mt-4 flex items-end justify-between z-10">
+                <Link href="/pricing" className="py-2 px-3 bg-[#FFD700] text-black text-[9px] font-black uppercase tracking-widest rounded-lg hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+                  Upgrade <ArrowUpRight className="w-2.5 h-2.5" />
+                </Link>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="relative p-8 bg-gradient-to-br from-white/[0.02] to-transparent border border-white/[0.05] rounded-2xl flex flex-col justify-between group overflow-hidden">
-            <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12">
-              <ShieldCheck className="w-32 h-32 text-white/10" />
-            </div>
-            <div className="space-y-1 z-10">
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] mb-2">Account Tier</p>
-              <h4 className="text-xl font-black text-white uppercase leading-none text-white/60">Standard <span className="text-white/20">Access</span></h4>
-            </div>
-            <div className="mt-8 flex items-end justify-between z-10">
-              <Link href="/pricing" className="py-2.5 px-4 bg-[#FFD700] text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
-                Upgrade to Pro <ArrowUpRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-        )}
-      </motion.div>
-
-      {/* 2. COMMAND FEED & LIVE PROPAGATION (CENTRAL) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-end px-2">
-            <div className="space-y-1">
-               <span className="text-[9px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">Live Data Matrix</span>
-               <h3 className="text-2xl font-black text-white uppercase tracking-tight [word-spacing:0.8rem] leading-none">Market <span className="text-white/30">Propagations</span></h3>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/[0.02] border border-white/[0.03]">
-               <Activity className="w-3.5 h-3.5 text-[#00E676] animate-pulse" />
-               <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-mono">Heartbeat Sync // OK</span>
-            </div>
-          </div>
-          <motion.div variants={item} className="relative rounded-2xl overflow-hidden border border-white/[0.03] shadow-2xl bg-[#050810]/50 aspect-video lg:aspect-auto lg:h-[400px]">
-             <Link href="/dashboard/bots" className="block w-full h-full relative group/chart">
-                <div className="absolute inset-x-0 bottom-0 p-6 z-20 bg-gradient-to-t from-black/80 to-transparent translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                   <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                         <p className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">Active Signal Hub</p>
-                         <p className="text-xs text-white/60 font-medium">Click to access the EA Bots terminal for full diagnostic data.</p>
-                      </div>
-                      <div className="p-3 bg-[#FFD700] text-black rounded-lg">
-                        <TrendingUp className="w-4 h-4" />
-                      </div>
-                   </div>
-                </div>
-                <SignalVisualizer symbol={official?.symbol || 'XAUUSD'} activeSymbols={[official?.symbol || 'XAUUSD']} logs={[]} />
-             </Link>
-          </motion.div>
+          )}
         </div>
 
-        <div className="space-y-6">
+        {/* MOBILE ORDER 2: ANIMATION SEQUENCE */}
+        <div className="lg:col-span-2 lg:row-span-2 space-y-4 order-2 lg:order-none">
+          <div className="px-2">
+             <div className="flex items-center gap-3 mb-1">
+                <div className="w-1 h-3 bg-[#FFD700] rounded-full" />
+                <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Mission Control</span>
+             </div>
+             <h3 className="text-xl md:text-3xl font-black text-white uppercase tracking-tighter leading-none">Trade With Your <span className="text-[#FFD700]">First Strategy</span></h3>
+          </div>
+          <div className="rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-[#050505] h-[450px] lg:h-[450px] relative">
+             <HighFidelityHowItWorks />
+          </div>
+          <Link href="/dashboard/marketplace" className="block w-full py-4 bg-[#FFD700] text-black text-center text-[11px] font-black uppercase tracking-[0.4em] rounded-2xl hover:scale-[1.01] transition-transform shadow-[0_0_30px_rgba(255,215,0,0.2)]">
+             Start Trading
+          </Link>
+        </div>
+
+        {/* MOBILE ORDER 3: QUICK LAUNCH GRID */}
+        <div className="space-y-6 flex flex-col order-3 lg:order-none lg:col-start-3 lg:row-start-2 lg:mt-6">
           <div className="px-2">
              <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Quick Launch</span>
-             <h3 className="text-2xl font-black text-white uppercase tracking-tight leading-none">Operational <span className="text-white/30">Grid</span></h3>
+             <h3 className="text-2xl font-black text-white uppercase tracking-[0.2em] leading-none">Operational <span className="text-white/30">Grid</span></h3>
           </div>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-2 px-2">
             {navCards.map((card, i) => (
               <Link key={i} href={card.href} className="group">
                 <motion.div 
                   whileHover={{ x: 5 }}
-                  className="p-5 flex items-center justify-between bg-white/[0.01] border border-white/[0.03] rounded-xl hover:bg-white/[0.03] transition-all"
+                  className="p-4 flex items-center justify-between bg-white/[0.01] border border-white/[0.03] rounded-xl hover:bg-white/[0.03] transition-all"
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
-                       <card.icon className="w-6 h-6" style={{ color: card.color }} />
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <card.icon className="w-5 h-5" style={{ color: card.color }} />
                     </div>
                     <div>
-                      <h5 className="text-[14px] font-black text-white uppercase text-sm">{card.t}</h5>
-                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">{card.sub}</p>
+                      <h5 className="text-[13px] font-black text-white uppercase tracking-widest">{card.t}</h5>
+                      <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">{card.sub}</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/40 transition-colors" />
@@ -289,36 +224,19 @@ export default function DashboardHome() {
               </Link>
             ))}
           </div>
-
-          <div className="p-6 bg-gradient-to-br from-[#00E676]/5 to-transparent border border-[#00E676]/10 rounded-2xl space-y-4">
-             <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#00E676]" />
-                <span className="text-[10px] font-black text-[#00E676] uppercase tracking-[0.3em] font-mono">AI Builder</span>
-             </div>
-             <p className="text-xs text-white/40 font-medium uppercase leading-relaxed">
-                Instantly extract Pine Script logic from any YouTube URL.
-             </p>
-             <Link href="/dashboard/creator/ai-builder" className="block w-full py-3 bg-[#00E676] text-black text-center text-[11px] font-black uppercase tracking-[0.2em] rounded-lg hover:scale-[1.02] transition-transform">
-                Initialize Build
-             </Link>
-          </div>
         </div>
       </div>
 
-      {/* 3. ALPHA SPOTLIGHTS (CINEMATIC FOCUS) */}
-      <div className="space-y-8 pt-6">
+      {/* MOBILE ORDER 4: MARKETPLACE HIGHLIGHTS */}
+      <div className="order-4 lg:order-none space-y-6 pt-4 lg:pt-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-2">
                <div className="space-y-1">
                   <div className="flex items-center gap-3">
                      <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Marketplace Highlights</span>
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight [word-spacing:0.6rem] leading-none">Top <span className="text-[#00E676]">Alpha</span> Spotlights</h3>
+                  <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight [word-spacing:0.6rem] leading-none">Top <span className="text-[#00E676]">Alpha</span> Strategies</h3>
                </div>
-           <p className="text-[11px] font-black text-white/10 uppercase tracking-[0.2em] max-w-sm text-left md:text-right leading-relaxed">
-              Nodes with the highest stability and profitability indices across the global Coppr net.
-           </p>
         </div>
-
         <motion.div variants={item} className="rounded-2xl overflow-hidden border border-white/[0.03]">
             <SpotlightCarousel items={[
                 ...(official ? [official] : []),
@@ -327,8 +245,51 @@ export default function DashboardHome() {
         </motion.div>
       </div>
 
-      {/* 4. ACTIVE LIBRARY SCAN (COMPACT) */}
-      <div className="space-y-8 pt-6">
+      {/* MOBILE ORDER 5: OFFICIAL NODE (AWAITING DEPLOYMENT) */}
+      <div className="order-5 lg:order-none md:col-span-2 pt-2 lg:pt-0">
+      {official ? (
+        <div className="md:col-span-2 relative p-8 bg-[#050505] border border-[#FFD700]/20 rounded-2xl overflow-hidden group shadow-[0_0_40px_rgba(255,215,0,0.05)] h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/5 to-transparent pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-2 py-1 bg-[#FFD700] text-black text-[9px] font-black uppercase tracking-widest rounded-sm border border-[#FFD700]">Coppr Official</span>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
+                  <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">System Verified</span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight uppercase leading-none">{official.name}</h1>
+                <p className="text-[11px] font-black text-[#888888] uppercase tracking-[0.2em] font-mono mt-2 line-clamp-2 max-w-lg">
+                  {official.description || 'Institutional Grade Execution Node.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 lg:gap-8 bg-[#111111]/80 p-5 rounded-xl border border-[#FFD700]/20 backdrop-blur-md">
+              <div className="space-y-1 text-center">
+                <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Win Rate</p>
+                <p className="text-xl font-black text-[#FFD700] font-mono leading-none">{official.win_rate || '92'}%</p>
+              </div>
+              <div className="w-[1px] h-8 bg-[#FFD700]/20" />
+              <Link href={`/dashboard/marketplace?id=${official.id}`} className="flex items-center justify-center p-3 bg-[#FFD700] text-black rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,215,0,0.4)]">
+                <ChevronRight className="w-5 h-5 font-black" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="relative p-8 bg-[#050505] border border-[#1A1A1A] rounded-2xl overflow-hidden flex items-center justify-center min-h-[160px] h-full">
+           <div className="flex flex-col items-center gap-3">
+             <ShieldCheck className="w-8 h-8 text-white/10" />
+             <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">Awaiting Official Deployment...</p>
+           </div>
+        </div>
+      )}
+      </div>
+
+      {/* MOBILE ORDER 6: ALPHA DATABASE */}
+      <div className="order-6 lg:order-none space-y-6 pt-6 lg:pt-14">
         <div className="flex justify-between items-end px-2">
            <div className="space-y-1">
               <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] font-mono">Alpha Database</span>
@@ -338,7 +299,6 @@ export default function DashboardHome() {
               Access Full Hub <ChevronRight className="w-4 h-4" />
            </Link>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {(botLibrary.length > 0 ? botLibrary : [
             { id: 'm1', name: 'Momentum Algo NSE', roi: '94%', symbol: 'NIFTY' },
@@ -347,9 +307,7 @@ export default function DashboardHome() {
             { id: 'm4', name: 'Coppr Mirror', roi: '91%', symbol: 'ETH' }
           ]).slice(0, 4).map((item: any) => (
             <Link key={item.id} href={`/dashboard/marketplace?id=${item.id}`} className="group">
-               <motion.div 
-                 className="p-6 bg-white/[0.01] border border-white/[0.03] rounded-xl group-hover:border-[#FFD700]/30 transition-all flex flex-col gap-5"
-               >
+               <motion.div className="p-6 bg-white/[0.01] border border-white/[0.03] rounded-xl group-hover:border-[#FFD700]/30 transition-all flex flex-col gap-5">
                   <div className="w-10 h-10 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
                      <Bot className="w-5 h-5 text-[#FFD700]/60" />
                   </div>
@@ -357,8 +315,6 @@ export default function DashboardHome() {
                      <h4 className="text-[14px] font-black text-white uppercase leading-none mb-3 group-hover:text-[#FFD700] transition-colors">{item.name}</h4>
                      <div className="flex items-center gap-3">
                         <span className="text-[10px] font-black text-[#00E676] font-mono">{item.roi || '99%'} ROI</span>
-                        <div className="w-[1px] h-3 bg-white/10" />
-                        <span className="text-[10px] font-black text-white/20 font-mono tracking-tight">{item.symbol || 'SYNC'}</span>
                      </div>
                   </div>
                </motion.div>
@@ -367,21 +323,49 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* FOOTER ACTION */}
-      <div className="pt-10">
-        <Link href="/dashboard/creator" className="group block relative p-10 bg-gradient-to-r from-white/[0.01] to-transparent border border-white/[0.03] rounded-2xl hover:border-[#FFD700]/20 transition-all overflow-hidden text-center md:text-left">
-           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-3">
-                 <h4 className="text-3xl md:text-5xl font-black text-white uppercase leading-none tracking-tight [word-spacing:0.6rem] opacity-80 group-hover:opacity-100 transition-opacity">Contribute <span className="text-[#FFD700]">Alpha</span></h4>
-                 <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] leading-relaxed">Share your quantitative strategies with the global network.</p>
-              </div>
-              <div className="px-10 py-4 bg-white/[0.03] border border-white/10 rounded-xl group-hover:bg-[#FFD700] group-hover:text-black transition-all font-black uppercase text-xs tracking-widest flex items-center gap-4">
-                 Join Creator Hub
-                 <ChevronRight className="w-4 h-4" />
-              </div>
-           </div>
-        </Link>
+      {/* MOBILE ORDER 7: INSTITUTIONAL AI SUITE */}
+      <div className="pt-4 lg:pt-8 order-7 lg:order-none">
+          <div className="p-8 bg-gradient-to-br from-[#00E676]/10 via-transparent to-transparent border border-[#00E676]/20 rounded-[32px] flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group shadow-[0_0_50px_rgba(0,230,118,0.03)]">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-[#00E676]/5 blur-[100px] rounded-full pointer-events-none" />
+             <div className="space-y-4 text-left flex-1 relative z-10">
+                <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 rounded-xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-[#00E676] animate-pulse" />
+                   </div>
+                   <div>
+                      <span className="text-[11px] font-black text-[#00E676] uppercase tracking-[0.4em] font-mono">Institutional AI Suite</span>
+                      <h4 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mt-1">Initialize <span className="text-[#00E676]">Alpha</span> Build</h4>
+                   </div>
+                </div>
+                <p className="text-[12px] font-black text-white/30 uppercase tracking-[0.2em] leading-relaxed max-w-2xl">
+                   Extract institutional-grade Pine Script logic from any YouTube tutorial instantly via our proprietary AI conduit.
+                </p>
+             </div>
+             <Link href="/dashboard/creator/ai-builder" className="shrink-0 px-12 py-5 bg-[#00E676] text-black text-[11px] font-black uppercase tracking-[0.4em] rounded-2xl hover:scale-[1.05] transition-transform shadow-[0_0_35px_rgba(0,230,118,0.3)] relative z-10">
+                Access Builder Hub
+             </Link>
+          </div>
       </div>
+
+      {/* MOBILE ORDER 8: CONTRIBUTOR HUB */}
+      <motion.div variants={item} className="pt-16 pb-12 order-8 lg:order-none">
+          <div className="relative p-12 bg-gradient-to-br from-[#FFD700]/10 via-transparent to-transparent border border-white/5 rounded-[32px] overflow-hidden group">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD700]/5 blur-[80px] rounded-full pointer-events-none" />
+             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                <div className="space-y-4 text-center md:text-left max-w-2xl">
+                   <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
+                      <Users className="w-6 h-6 text-[#FFD700]" />
+                      <span className="text-[11px] font-black text-[#FFD700] uppercase tracking-[0.4em] font-mono">Contributor Hub</span>
+                   </div>
+                   <h4 className="text-3xl font-black text-white uppercase leading-tight tracking-tight">Become an <span className="text-[#FFD700]">Alpha</span> Architect</h4>
+                   <p className="text-sm font-black text-white/30 uppercase tracking-[0.2em] leading-relaxed">Deploy your own strategies to the global Coppr net.</p>
+                </div>
+                <Link href="/dashboard/creator/submit" className="px-12 py-5 bg-white/5 border border-white/10 text-white font-black uppercase text-xs tracking-[0.3em] rounded-2xl hover:bg-[#FFD700] hover:text-black hover:border-[#FFD700] transition-all group-hover:scale-105">
+                   Contribute Alpha
+                </Link>
+             </div>
+          </div>
+      </motion.div>
     </motion.div>
   );
 }

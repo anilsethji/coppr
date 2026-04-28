@@ -83,7 +83,7 @@ export default function AIBuilderPage() {
                         <Cpu className="w-4 h-4 text-[#FFD700]" />
                         <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-[0.3em]">Coppr AI Engine</span>
                     </div>
-                    <h1 className="text-5xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+                    <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase leading-[1.1]">
                         Paste a Video.<br/>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-[#FDB931] to-[#FF8C00]">Get a Trading Bot.</span>
                     </h1>
@@ -140,7 +140,7 @@ export default function AIBuilderPage() {
                                                 <CheckCircle2 className="w-10 h-10 text-[#00E676]" />
                                             </div>
                                             <div>
-                                                <h3 className="text-2xl font-black text-white uppercase italic">Strategy Compiled Successfully</h3>
+                                                <h3 className="text-2xl font-black text-white uppercase">Strategy Compiled Successfully</h3>
                                                 <p className="text-sm font-bold text-white/50 uppercase tracking-widest mt-2 font-sans">Redirecting to Marketplace...</p>
                                             </div>
                                         </div>
@@ -157,7 +157,7 @@ export default function AIBuilderPage() {
                                                             <s.icon className="w-6 h-6 text-white/40" />
                                                         )}
                                                     </div>
-                                                    <span className={`text-base md:text-lg font-black uppercase tracking-widest italic ${idx === step ? 'text-[#FFD700]' : 'text-white/40'}`}>
+                                                    <span className={`text-base md:text-lg font-black uppercase tracking-widest ${idx === step ? 'text-[#FFD700]' : 'text-white/40'}`}>
                                                         {s.label}
                                                     </span>
                                                 </div>
