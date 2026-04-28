@@ -281,22 +281,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
       </AnimatePresence>
 
-      {/* MOBILE BOTTOM NAV (Terminal Style) */}
-      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] z-[100] flex justify-around p-3 rounded-2xl border border-white/5 bg-[#050810]/90 backdrop-blur-3xl shadow-2xl">
-        {[ mainLinks[0], mainLinks[1], mainLinks[2], supportLinks[2] ].map((item) => {
-          const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link key={item.name} href={item.href} className="relative p-2">
-              <Icon className={`w-6 h-6 ${isActive ? 'text-[#FFD700]' : 'text-white/20'}`} />
-              {isActive && <motion.div layoutId="m-dot" className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FFD700] shadow-[0_0_10px_#FFD700]" />}
-            </Link>
-          );
-        })}
-      </nav>
-
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-h-screen pb-24 md:pb-0 relative overflow-x-hidden bg-[#020617]">
+      <main className="flex-1 flex flex-col min-h-screen relative overflow-x-hidden bg-[#020617]">
         
         {/* COMMAND TOP BAR */}
         <header className="h-[72px] flex items-center justify-between px-6 md:px-10 border-b border-white/[0.03] fixed md:sticky top-0 left-0 w-full z-40 bg-[#020617]/80 backdrop-blur-xl">
