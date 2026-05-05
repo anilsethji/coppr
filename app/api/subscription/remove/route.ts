@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 /**
@@ -7,6 +8,11 @@ import { NextResponse } from 'next/server';
  */
 export async function DELETE(request: Request) {
     const supabase = createClient();
+    const adminSupabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -38,7 +44,7 @@ export async function DELETE(request: Request) {
                 return NextResponse.json({ error: 'Unauthorized: You do not own this node.' }, { status: 403 });
             }
 
-            const { error: deleteError } = await supabase
+            const { error: deleteError } = await adminSupabase
                 .from('strategies')
                 .delete()
                 .eq('id', strategyId);
@@ -63,13 +69,13 @@ export async function DELETE(request: Request) {
             .single();
 
         // 3. Clean up child logs FIRST (to avoid foreign key violation)
-        await supabase
+        await adminSupabase
             .from('subscription_logs')
             .delete()
             .eq('subscription_id', subscriptionId);
 
         // 4. Verify Ownership & Delete Parent Link
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await adminSupabase
             .from('user_strategies')
             .delete()
             .eq('id', subscriptionId)
@@ -82,7 +88,7 @@ export async function DELETE(request: Request) {
             const strat = (sub as any).strategies;
             if (strat.creator_id === user.id && strat.origin === 'PERSONAL') {
                 console.log(`[RECURSIVE_PURGE] Removing source strategy: ${sub.strategy_id}`);
-                await supabase.from('strategies').delete().eq('id', sub.strategy_id);
+                await adminSupabase.from('strategies').delete().eq('id', sub.strategy_id);
             }
         }
 
