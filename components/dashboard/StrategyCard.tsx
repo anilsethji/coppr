@@ -124,9 +124,7 @@ export function StrategyCard({
                                  onClick={async (e) => {
                                      e.preventDefault();
                                      e.stopPropagation();
-                                     if (!showConfirmDelete) {
-                                        setShowConfirmDelete(true);
-                                        setTimeout(() => setShowConfirmDelete(false), 3000);
+                                     if (!window.confirm("Are you sure you want to delete this node?")) {
                                         return;
                                      }
                                      setIsDeleting(true);
@@ -136,7 +134,6 @@ export function StrategyCard({
                                          console.error('Handshake error:', err);
                                      } finally {
                                          setIsDeleting(false);
-                                         setShowConfirmDelete(false);
                                      }
                                  }}
                                  className={`p-2 transition-all border ${isDeleting ? 'bg-red-500/20 border-red-500/40 text-red-500 animate-pulse' : showConfirmDelete ? 'bg-red-500 text-black border-red-500' : 'bg-[#050505] text-white/40 border-[#1A1A1A] hover:bg-black hover:text-red-500'}`}

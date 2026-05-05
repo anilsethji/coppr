@@ -158,7 +158,8 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
 
       <div className="grid grid-cols-1 gap-10">
         {strategies.map((sub) => {
-            const isLocked = allMergedStats.some(s => s.sync_active && s.id !== sub.id);
+            const activeCount = allMergedStats.filter(s => s.sync_active).length;
+            const isLocked = !sub.sync_active && activeCount >= 5;
             return (
                 <StrategyCard 
                     key={sub.id} 
