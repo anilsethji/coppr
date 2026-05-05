@@ -9,11 +9,13 @@ import {
   Target,
   Globe,
   CheckCircle2,
-  LineChart
+  LineChart,
+  Settings
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { AstralTerminalWelcome } from './AstralTerminalWelcome';
 import { IntegrationModal } from './IntegrationModal';
+import { ParameterConfigModal } from './ParameterConfigModal';
 import ManagedNodeMonitor from './ManagedNodeMonitor';
 
 const SignalVisualizer = dynamic(() => import('./SignalVisualizer').then(m => m.SignalVisualizer), {
@@ -37,12 +39,14 @@ export function StrategyCard({
   previewSymbol,
   logs,
   fetchLogs,
+  fetchVault,
   isLocked
 }: any) {
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isVisualMode, setIsVisualMode] = useState(true);
     const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
     const [isTerminalWelcomeOpen, setIsTerminalWelcomeOpen] = useState(false);
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
 
@@ -187,7 +191,7 @@ export function StrategyCard({
                         </div>
 
                         {/* Section 5 - Gateway Controls */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <button
                                 onClick={() => onManageAssets?.(sub)}
                                 className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col items-center justify-center gap-2 hover:border-white/20 transition-all font-mono"
@@ -201,6 +205,13 @@ export function StrategyCard({
                             >
                                 <Globe className="w-5 h-5 text-[#FFD700]" />
                                 <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Bridge</span>
+                            </button>
+                            <button
+                                onClick={() => setIsConfigModalOpen(true)}
+                                className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col items-center justify-center gap-2 hover:border-white/20 transition-all font-mono"
+                            >
+                                <Settings className="w-5 h-5 text-[#FFD700]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Config</span>
                             </button>
                         </div>
                     </div>
@@ -224,6 +235,15 @@ export function StrategyCard({
                 copiedText={null}
             />
             
+            <ParameterConfigModal
+                isOpen={isConfigModalOpen}
+                onClose={() => setIsConfigModalOpen(false)}
+                sub={sub}
+                onParametersUpdated={() => {
+                    if (fetchVault) fetchVault();
+                }}
+            />
+
             <AstralTerminalWelcome
                 isOpen={isTerminalWelcomeOpen}
                 onClose={() => setIsTerminalWelcomeOpen(false)}

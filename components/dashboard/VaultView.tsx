@@ -173,6 +173,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                     onManageAssets={(s: any) => { setManagingSub(s); setPreviewSymbol(s.active_assets?.[0] || 'XAUUSD'); setIsAssetDrawerOpen(true); }}
                     logs={logs[sub.id.startsWith('own-') ? sub.strategy_id : sub.id] || []}
                     fetchLogs={fetchLogs}
+                    fetchVault={fetchVault}
                 />
             );
         })}
