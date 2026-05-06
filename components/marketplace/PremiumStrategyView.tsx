@@ -344,44 +344,54 @@ export default function PremiumStrategyView({
                 </div>
 
                 <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                   {activeTestimonials.map((rev: any, i: number) => (
-                      <motion.div 
-                        key={i} 
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.05 }}
-                        className="break-inside-avoid mb-6 p-8 rounded-[32px] bg-white/[0.02] border border-white/5 space-y-6 hover:bg-white/[0.04] hover:border-[#FFD700]/20 transition-all group relative overflow-hidden"
-                      >
-                         <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                            <Quote className="w-12 h-12 text-[#FFD700]" />
-                         </div>
+                   {activeTestimonials.map((revRaw: any, i: number) => {
+                      // Normalize data keys (handles both legacy and new formats)
+                      const rev = {
+                        r: revRaw.r || revRaw.rating || 5,
+                        t: revRaw.t || revRaw.content || '',
+                        n: revRaw.n || revRaw.author?.split(',')[0] || 'Verified User',
+                        l: revRaw.l || revRaw.author?.split(',')[1]?.trim() || 'Verified Account'
+                      };
 
-                         <div className="flex items-center justify-between relative z-10">
-                            <div className="flex gap-0.5">
-                               {[...Array(5)].map((_, j) => (
-                                  <Star key={j} className={`w-3 h-3 ${j < rev.r ? 'text-[#FFD700] fill-[#FFD700]' : 'text-white/10'}`} />
-                               ))}
-                            </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00E676]/5 border border-[#00E676]/10 rounded-full">
-                               <BadgeCheck className="w-3 h-3 text-[#00E676]" />
-                               <span className="text-[9px] font-black text-[#00E676] uppercase tracking-widest">VERIFIED</span>
-                            </div>
-                         </div>
+                      return (
+                        <motion.div 
+                          key={i} 
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.05 }}
+                          className="break-inside-avoid mb-6 p-8 rounded-[32px] bg-white/[0.02] border border-white/5 space-y-6 hover:bg-white/[0.04] hover:border-[#FFD700]/20 transition-all group relative overflow-hidden"
+                        >
+                           <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                              <Quote className="w-12 h-12 text-[#FFD700]" />
+                           </div>
 
-                         <p className="text-[13px] text-white/50 font-medium italic leading-relaxed relative z-10">"{rev.t}"</p>
+                           <div className="flex items-center justify-between relative z-10">
+                              <div className="flex gap-0.5">
+                                 {[...Array(5)].map((_, j) => (
+                                    <Star key={j} className={`w-3 h-3 ${j < rev.r ? 'text-[#FFD700] fill-[#FFD700]' : 'text-white/10'}`} />
+                                 ))}
+                              </div>
+                              <div className="flex items-center gap-1.5 px-3 py-1 bg-[#00E676]/5 border border-[#00E676]/10 rounded-full">
+                                 <BadgeCheck className="w-3 h-3 text-[#00E676]" />
+                                 <span className="text-[9px] font-black text-[#00E676] uppercase tracking-widest">VERIFIED</span>
+                              </div>
+                           </div>
 
-                         <div className="pt-6 border-t border-white/5 flex items-center justify-between relative z-10">
-                            <div className="space-y-0.5">
-                               <p className="text-[12px] font-black text-white italic group-hover:text-[#FFD700] transition-colors">{rev.n}</p>
-                               <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">{rev.l}</p>
-                            </div>
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFD700]/10 to-transparent border border-white/10 flex items-center justify-center group-hover:border-[#FFD700]/30 transition-all">
-                               <span className="text-[11px] font-black text-[#FFD700]">{rev.n[0]}</span>
-                            </div>
-                         </div>
-                      </motion.div>
-                   ))}
+                           <p className="text-[13px] text-white/50 font-medium italic leading-relaxed relative z-10">"{rev.t}"</p>
+
+                           <div className="pt-6 border-t border-white/5 flex items-center justify-between relative z-10">
+                              <div className="space-y-0.5">
+                                 <p className="text-[12px] font-black text-white italic group-hover:text-[#FFD700] transition-colors">{rev.n}</p>
+                                 <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">{rev.l}</p>
+                              </div>
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FFD700]/10 to-transparent border border-white/10 flex items-center justify-center group-hover:border-[#FFD700]/30 transition-all">
+                                 <span className="text-[11px] font-black text-[#FFD700]">{(rev.n || 'V')[0]}</span>
+                              </div>
+                           </div>
+                        </motion.div>
+                      );
+                   })}
                 </div>
              </section>
 
