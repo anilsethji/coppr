@@ -33,7 +33,7 @@ export default function CreatorHandshakeTerminal({ strategyId, webhookUrl }: { s
           table: 'strategy_signals',
           filter: `strategy_id=eq.${strategyId}`
         },
-        (payload) => {
+        (payload: any) => {
           setSignals(prev => [payload.new, ...prev].slice(0, 5));
           setStatus('RECEIVED');
         }

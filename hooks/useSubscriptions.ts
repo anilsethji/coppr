@@ -24,7 +24,7 @@ export function useSubscriptions() {
         .eq('status', 'ACTIVE');
 
       if (!error && data) {
-        const ids = new Set(data.map(s => s.strategy_id));
+        const ids = new Set<string>(data.map((s: any) => s.strategy_id as string));
         setSubscriptionIds(ids);
       }
       setLoading(false);

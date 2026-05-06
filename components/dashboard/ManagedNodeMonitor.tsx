@@ -52,7 +52,7 @@ export default function ManagedNodeMonitor({ strategyId, isCreator = false }: Ma
         schema: 'public', 
         table: 'strategies',
         filter: `id=eq.${strategyId}`
-      }, (payload) => {
+      }, (payload: any) => {
         if (payload.new.managed_node_status) {
           setStatus(payload.new.managed_node_status);
         }

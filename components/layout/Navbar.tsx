@@ -15,12 +15,12 @@ export default function Navbar() {
 
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(({ data }: any) => {
       setUser(data?.user || null);
     });
 
     // Listen for auth changes to dynamically update desktop/mobile menus
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       setUser(session?.user || null);
     });
 

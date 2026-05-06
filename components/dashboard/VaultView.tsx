@@ -41,7 +41,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
   useEffect(() => {
     fetchVault();
     const supabase = createClient();
-    const channel = supabase.channel('vault-logs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'subscription_logs' }, (payload) => {
+    const channel = supabase.channel('vault-logs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'subscription_logs' }, (payload: any) => {
         const newLog = payload.new;
         setLogs(prev => {
             const subLogs = prev[newLog.subscription_id] || [];
@@ -64,8 +64,8 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
         merged.forEach(m => { if (m.strategy.creator_id === user.id || m.strategy.origin === 'PERSONAL') m.is_proprietary = true; });
 
         if (ownData) {
-            ownData.forEach(strategy => {
-                if (!merged.find(m => m.strategy_id === strategy.id)) {
+            ownData.forEach((strategy: any) => {
+                if (!merged.find((m: any) => m.strategy_id === strategy.id)) {
                     merged.push({ id: `own-${strategy.id}`, user_id: user.id, strategy_id: strategy.id, sync_active: false, engine_mode: 'MULTIPLIER', engine_value: 1.0, strategy, is_proprietary: true });
                 }
             });
