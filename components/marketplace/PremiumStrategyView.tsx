@@ -52,6 +52,21 @@ export default function PremiumStrategyView({
   const [selectedImg, setSelectedImg] = useState(0);
   const activeTestimonials = strategy.testimonials?.length > 0 ? strategy.testimonials : [];
 
+  const handleAccessStrategy = () => {
+    if (!legalAccepted) {
+      document.getElementById('legal-checkbox-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const el = document.getElementById('legal-checkbox-container');
+      if (el) {
+        el.classList.add('ring-2', 'ring-[#FFD700]', 'ring-offset-4', 'ring-offset-[#111624]', 'rounded-2xl', 'transition-all');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-[#FFD700]', 'ring-offset-4', 'ring-offset-[#111624]');
+        }, 1500);
+      }
+    } else {
+      handleSubscribe();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#06080E] text-white font-sans selection:bg-[#FFD700] selection:text-black pb-40">
       
@@ -125,11 +140,11 @@ export default function PremiumStrategyView({
                  className="flex flex-col md:flex-row items-center gap-6 md:gap-8 pt-4 md:pt-6 w-full md:w-auto"
                >
                   <button 
-                    onClick={handleSubscribe}
-                    disabled={isSubscribing || !legalAccepted}
+                    onClick={handleAccessStrategy}
+                    disabled={isSubscribing}
                     className="w-full md:w-auto px-10 py-5 bg-[#FFD700] text-black font-black uppercase text-[11px] md:text-[12px] tracking-[0.3em] md:tracking-[0.4em] rounded-[22px] shadow-2xl shadow-[#FFD700]/30 hover:scale-[1.03] transition-all italic flex items-center justify-center gap-3 md:gap-4 disabled:opacity-20"
                   >
-                     {isSubscribing ? 'PROCESSING...' : 'INITIALIZE CMD'} <ChevronRight className="w-5 h-5" />
+                     {isSubscribing ? 'PROCESSING...' : 'ACCESS THE STRATEGY'} <ChevronRight className="w-5 h-5" />
                   </button>
                   
                   <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto opacity-50 md:opacity-100">
@@ -183,9 +198,10 @@ export default function PremiumStrategyView({
                          <span className="text-[11px] font-black text-[#FFD700] uppercase tracking-[0.4em]">About this Bot</span>
                       </div>
                       <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">How <span className="text-white/40">it Works</span></h2>
-                      <p className="text-[14px] leading-relaxed text-white/50 font-medium italic">
-                         {strategy.description || 'This institutional-grade node is configured for high-precision execution across volatile sessions. It utilizes a proprietary logic chain to ensure minimal slippage and maximum operational uptime.'}
-                      </p>
+                      <div 
+                         className="text-[14px] leading-relaxed text-white/60 font-medium space-y-4 description-content"
+                         dangerouslySetInnerHTML={{ __html: strategy.description || 'This institutional-grade node is configured for high-precision execution across volatile sessions. It utilizes a proprietary logic chain to ensure minimal slippage and maximum operational uptime.' }}
+                      />
                    </div>
                    
                    <button className="shrink-0 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 hover:bg-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all group/btn">
@@ -393,11 +409,11 @@ export default function PremiumStrategyView({
                          <p className="text-5xl font-black text-white italic tracking-tighter">₹{strategy.monthly_price_inr}<span className="text-xl text-white/20 uppercase">/mo</span></p>
                       </div>
                       <button 
-                         onClick={handleSubscribe}
-                         disabled={isSubscribing || !legalAccepted}
+                         onClick={handleAccessStrategy}
+                         disabled={isSubscribing}
                          className="px-16 py-6 bg-[#FFD700] text-black font-black uppercase text-[12px] tracking-[0.4em] rounded-[24px] shadow-2xl shadow-[#FFD700]/30 hover:scale-[1.05] transition-all italic flex items-center gap-4 disabled:opacity-20"
                       >
-                         {isSubscribing ? 'PROCESSING...' : 'ACCESS THIS STRATEGY'} <ChevronRight className="w-5 h-5" />
+                         {isSubscribing ? 'PROCESSING...' : 'ACCESS THE STRATEGY'} <ChevronRight className="w-5 h-5" />
                       </button>
                    </div>
                 </div>
@@ -426,7 +442,7 @@ export default function PremiumStrategyView({
                 </div>
 
                 <div className="relative z-10 space-y-8">
-                   <div className="p-6 rounded-[24px] bg-white/[0.02] border border-white/[0.03] space-y-4">
+                   <div id="legal-checkbox-container" className="p-6 rounded-[24px] bg-white/[0.02] border border-white/[0.03] space-y-4">
                       <div className="flex items-start gap-4">
                          <div className="mt-1 relative flex items-center justify-center shrink-0">
                             <input 
@@ -439,7 +455,7 @@ export default function PremiumStrategyView({
                             <CheckCircle2 className="absolute w-3.5 h-3.5 text-black opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                          </div>
                          <label htmlFor="legal" className="text-[10px] font-bold text-white/30 uppercase leading-relaxed italic cursor-pointer hover:text-white/50 transition-colors">
-                            I accept the high-volatility activation protocol. Past performance is not indicative of future node results.
+                            I understand that algorithmic trading involves risk, and past performance does not guarantee future results.
                          </label>
                       </div>
                    </div>

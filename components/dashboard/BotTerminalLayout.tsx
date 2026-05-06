@@ -230,7 +230,7 @@ export default function BotTerminalLayout({ type, bots, initialBotId, onBotChang
                  </div>
                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
                    <p className="text-[8px] md:text-[12px] font-bold text-white/20 uppercase tracking-[0.1em] italic line-clamp-1 max-w-[200px] md:max-w-none">
-                      {activeBot.description || 'Institutional-grade node operating on H1 timeframe.'}
+                      {activeBot.description?.replace(/<[^>]*>?/gm, '') || 'Institutional-grade node operating on H1 timeframe.'}
                    </p>
                    
                    {/* NARRATIVE BEACON - ROLLING FEEDBACK */}

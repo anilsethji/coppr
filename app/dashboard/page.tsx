@@ -262,7 +262,7 @@ export default function DashboardHome() {
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight uppercase leading-none">{official.name}</h1>
                 <p className="text-[11px] font-black text-[#888888] uppercase tracking-[0.2em] font-mono mt-2 line-clamp-2 max-w-lg">
-                  {official.description || 'Institutional Grade Execution Node.'}
+                  {official.description?.replace(/<[^>]*>?/gm, '') || 'Institutional Grade Execution Node.'}
                 </p>
               </div>
             </div>
