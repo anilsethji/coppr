@@ -128,21 +128,28 @@ export function StrategyCard({
                                  onClick={async (e) => {
                                      e.preventDefault();
                                      e.stopPropagation();
-                                     if (!window.confirm("Are you sure you want to delete this node?")) {
+                                     
+                                     if (!showConfirmDelete) {
+                                        setShowConfirmDelete(true);
+                                        // Auto-reset after 3 seconds
+                                        setTimeout(() => setShowConfirmDelete(false), 3000);
                                         return;
                                      }
+
                                      setIsDeleting(true);
                                      try {
                                          await removeSubscription(sub.id);
                                      } catch (err) {
                                          console.error('Handshake error:', err);
+                                         setShowConfirmDelete(false);
                                      } finally {
                                          setIsDeleting(false);
                                      }
                                  }}
-                                 className={`p-2 transition-all border ${isDeleting ? 'bg-red-500/20 border-red-500/40 text-red-500 animate-pulse' : showConfirmDelete ? 'bg-red-500 text-black border-red-500' : 'bg-[#050505] text-white/40 border-[#1A1A1A] hover:bg-black hover:text-red-500'}`}
+                                 className={`p-2 transition-all border ${isDeleting ? 'bg-red-500/20 border-red-500/40 text-red-500 animate-pulse' : showConfirmDelete ? 'bg-red-500 text-black border-red-500 ring-4 ring-red-500/20' : 'bg-[#050505] text-white/40 border-[#1A1A1A] hover:bg-black hover:text-red-500'}`}
+                                 title={showConfirmDelete ? "Click again to confirm removal" : "Remove from Vault"}
                             >
-                                 <Trash2 className="w-4 h-4" />
+                                 <Trash2 className={`w-4 h-4 ${showConfirmDelete ? 'animate-bounce' : ''}`} />
                             </button>
                         </div>
                     </div>

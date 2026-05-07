@@ -27,13 +27,13 @@ const SUPPORTED_BROKERS = [
   { id: 'TRADINGVIEW_DEMO', name: 'TradingView Demo', region: 'GLOBAL', icon: Globe }
 ];
 
-export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK', timelineMode?: 'bots' | 'indicators' }) {
+export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: 'MT5_EA' | 'PINE_SCRIPT_WEBHOOK' | 'INDICATOR', timelineMode?: 'bots' | 'indicators' }) {
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<any[]>([]);
   const [allMergedStats, setAllMergedStats] = useState<any[]>([]);
   const [activating, setActivating] = useState(false);
   const [logs, setLogs] = useState<Record<string, any[]>>({});
-  const [activeTab, setActiveTab] = useState<'MT5_EA' | 'PINE_SCRIPT_WEBHOOK'>(typeFilter || 'MT5_EA');
+  const [activeTab, setActiveTab] = useState<'MT5_EA' | 'PINE_SCRIPT_WEBHOOK' | 'INDICATOR'>(typeFilter || 'MT5_EA');
   const [activationTarget, setActivationTarget] = useState<any>(null);
   const [isAssetDrawerOpen, setIsAssetDrawerOpen] = useState(false);
   const [managingSub, setManagingSub] = useState<any>(null);
@@ -156,7 +156,20 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
 
   return (
     <div className="space-y-12 pb-20 w-full max-w-none mx-auto">
-      {/* VAULT HEADERS PURGED FOR V3 TERMINAL BLEED */}
+      {/* VAULT TABS (DYNAMIC) */}
+      {!typeFilter && (
+        <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] rounded-2xl border border-white/5 w-fit">
+            {['MT5_EA', 'PINE_SCRIPT_WEBHOOK', 'INDICATOR'].map(tab => (
+                <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab as any)}
+                    className={`text-[9px] font-black tracking-widest uppercase px-5 py-2.5 rounded-xl transition-all ${activeTab === tab ? 'bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30' : 'text-white/20 hover:text-white/50'}`}
+                >
+                    {tab.replace('_', ' ')}
+                </button>
+            ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-10">
         {strategies.map((sub) => {
