@@ -37,6 +37,4 @@ next-env.d.ts
 /scripts
 /tmp
 /null
-*.js  
-*.ts 
 .vercel
