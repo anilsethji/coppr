@@ -37,7 +37,7 @@ export function useSubscriptions() {
     fetchSubs();
   }, []);
 
-  const isSubscribed = (strategyId: string) => isAdmin(userEmail) || subscriptionIds.has(strategyId);
+  const isSubscribed = (strategyId: string) => subscriptionIds.has(strategyId);
 
   return { isSubscribed, loading, subscriptionIds, userEmail };
 }

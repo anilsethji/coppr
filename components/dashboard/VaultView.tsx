@@ -63,28 +63,6 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
         
         let merged = [...(subData || [])];
 
-        // ADMIN OVERRIDE: Allow access to everything
-        if (isAdmin(user.email)) {
-            const { data: allStrats } = await supabase.from('strategies').select('*');
-            if (allStrats) {
-                allStrats.forEach((strategy: any) => {
-                    if (!merged.find((m: any) => m.strategy_id === strategy.id)) {
-                        merged.push({ 
-                            id: `admin-${strategy.id}`, 
-                            user_id: user.id, 
-                            strategy_id: strategy.id, 
-                            sync_active: false, 
-                            engine_mode: 'MULTIPLIER', 
-                            engine_value: 1.0, 
-                            strategy, 
-                            is_proprietary: true,
-                            is_admin_grant: true 
-                        });
-                    }
-                });
-            }
-        }
-
         merged.forEach(m => { if (m.strategy.creator_id === user.id || m.strategy.origin === 'PERSONAL') m.is_proprietary = true; });
 
         if (ownData) {

@@ -94,7 +94,7 @@ export async function GET(
         count: reviewCount,
         rating: avgRating
       },
-      isUserSubscribed: subscription?.status === 'ACTIVE' || isAdmin(user.email),
+      isUserSubscribed: subscription?.status === 'ACTIVE',
       subscriptionData: subscription || null,
       isOwner: !!isOwner || isAdmin(user.email),
       isAdmin: isAdmin(user.email)
