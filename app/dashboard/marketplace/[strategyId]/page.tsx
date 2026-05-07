@@ -33,10 +33,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import PremiumStrategyView from '@/components/marketplace/PremiumStrategyView';
 import { HandshakeSuccess } from '@/components/dashboard/HandshakeSuccess';
+import { useSubscriptions } from '@/hooks/useSubscriptions';
 
 export default function StrategyLandingPage() {
   const { strategyId } = useParams();
   const router = useRouter();
+  const { userEmail } = useSubscriptions();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -79,8 +81,8 @@ export default function StrategyLandingPage() {
         return;
     }
 
-    // 1. FREE TIER: Direct Activation
-    if (strategy.tier === 'FREE') {
+    // 1. FREE TIER or ADMIN OVERRIDE: Direct Activation
+    if (strategy.tier === 'FREE' || userEmail === 'anilava.babaun@gmail.com') {
         setIsSubscribing(true);
         try {
             const resp = await fetch(`/api/marketplace/direct-activate`, {

@@ -59,8 +59,31 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
 
         const { data: subData } = await supabase.from('user_strategies').select('*, strategy:strategies (*)').eq('user_id', user.id);
         const { data: ownData } = await supabase.from('strategies').select('*').eq('creator_id', user.id);
+        
+        let merged = [...(subData || [])];
 
-        const merged = [...(subData || [])];
+        // ADMIN OVERRIDE: Allow access to everything
+        if (user.email === 'anilava.babaun@gmail.com') {
+            const { data: allStrats } = await supabase.from('strategies').select('*');
+            if (allStrats) {
+                allStrats.forEach((strategy: any) => {
+                    if (!merged.find((m: any) => m.strategy_id === strategy.id)) {
+                        merged.push({ 
+                            id: `admin-${strategy.id}`, 
+                            user_id: user.id, 
+                            strategy_id: strategy.id, 
+                            sync_active: false, 
+                            engine_mode: 'MULTIPLIER', 
+                            engine_value: 1.0, 
+                            strategy, 
+                            is_proprietary: true,
+                            is_admin_grant: true 
+                        });
+                    }
+                });
+            }
+        }
+
         merged.forEach(m => { if (m.strategy.creator_id === user.id || m.strategy.origin === 'PERSONAL') m.is_proprietary = true; });
 
         if (ownData) {

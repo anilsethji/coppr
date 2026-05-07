@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 export function useSubscriptions() {
   const [subscriptionIds, setSubscriptionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchSubs() {
@@ -16,6 +17,8 @@ export function useSubscriptions() {
         setLoading(false);
         return;
       }
+
+      setUserEmail(user.email || null);
 
       const { data, error } = await supabase
         .from('user_strategies')
@@ -33,7 +36,7 @@ export function useSubscriptions() {
     fetchSubs();
   }, []);
 
-  const isSubscribed = (strategyId: string) => subscriptionIds.has(strategyId);
+  const isSubscribed = (strategyId: string) => userEmail === 'anilava.babaun@gmail.com' || subscriptionIds.has(strategyId);
 
-  return { isSubscribed, loading, subscriptionIds };
+  return { isSubscribed, loading, subscriptionIds, userEmail };
 }
