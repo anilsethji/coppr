@@ -8,6 +8,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { isAdmin } from '@/lib/admin';
 import TerminalLog from './TerminalLog';
 import ActivationModal from './ActivationModal';
 import AssetDiscoveryDrawer from './AssetDiscoveryDrawer';
@@ -63,7 +64,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
         let merged = [...(subData || [])];
 
         // ADMIN OVERRIDE: Allow access to everything
-        if (user.email === 'anilava.babaun@gmail.com') {
+        if (isAdmin(user.email)) {
             const { data: allStrats } = await supabase.from('strategies').select('*');
             if (allStrats) {
                 allStrats.forEach((strategy: any) => {

@@ -82,7 +82,7 @@ export default function StrategyLandingPage() {
     }
 
     // 1. FREE TIER or ADMIN OVERRIDE: Direct Activation
-    if (strategy.tier === 'FREE' || userEmail === 'anilava.babaun@gmail.com') {
+    if (strategy.tier === 'FREE' || data.isAdmin) {
         setIsSubscribing(true);
         try {
             const resp = await fetch(`/api/marketplace/direct-activate`, {

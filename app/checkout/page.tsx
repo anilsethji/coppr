@@ -28,6 +28,17 @@ function CheckoutContent() {
   const [selectedBroker, setSelectedBroker] = useState(brokers[0].id);
 
   useEffect(() => {
+    async function checkAdmin() {
+      const { createClient } = await import('@/lib/supabase/client');
+      const { isAdmin } = await import('@/lib/admin');
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && isAdmin(user.email)) {
+        router.push('/dashboard/bots');
+      }
+    }
+    checkAdmin();
+
     if (strategyId) {
       setFetching(true);
       fetch(`/api/marketplace/${strategyId}`)
@@ -41,7 +52,7 @@ function CheckoutContent() {
             setFetching(false);
         });
     }
-  }, [strategyId]);
+  }, [strategyId, router]);
 
   const handlePayment = async () => {
     try {

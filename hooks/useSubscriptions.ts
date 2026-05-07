@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { isAdmin } from '@/lib/admin';
 
 export function useSubscriptions() {
   const [subscriptionIds, setSubscriptionIds] = useState<Set<string>>(new Set());
@@ -36,7 +37,7 @@ export function useSubscriptions() {
     fetchSubs();
   }, []);
 
-  const isSubscribed = (strategyId: string) => userEmail === 'anilava.babaun@gmail.com' || subscriptionIds.has(strategyId);
+  const isSubscribed = (strategyId: string) => isAdmin(userEmail) || subscriptionIds.has(strategyId);
 
   return { isSubscribed, loading, subscriptionIds, userEmail };
 }

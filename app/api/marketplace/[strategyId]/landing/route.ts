@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { isAdmin } from '@/lib/admin';
 
 export async function GET(
   request: Request,
@@ -93,9 +94,10 @@ export async function GET(
         count: reviewCount,
         rating: avgRating
       },
-      isUserSubscribed: subscription?.status === 'ACTIVE' || user.email === 'anilava.babaun@gmail.com',
+      isUserSubscribed: subscription?.status === 'ACTIVE' || isAdmin(user.email),
       subscriptionData: subscription || null,
-      isOwner: !!isOwner || user.email === 'anilava.babaun@gmail.com'
+      isOwner: !!isOwner || isAdmin(user.email),
+      isAdmin: isAdmin(user.email)
     });
 
   } catch (error: any) {

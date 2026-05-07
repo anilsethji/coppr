@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { isAdmin } from '@/lib/admin';
 
 /**
  * DIRECT ACTIVATION HANDSHAKE
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Strategy Protocol Unavailable' }, { status: 404 });
     }
 
-    if (strat.tier !== 'FREE' && user.email !== 'anilava.babaun@gmail.com') {
+    if (strat.tier !== 'FREE' && !isAdmin(user.email)) {
         return NextResponse.json({ error: 'Checkout Required for Premium Assets' }, { status: 403 });
     }
 
