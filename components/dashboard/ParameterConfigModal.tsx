@@ -81,10 +81,10 @@ export function ParameterConfigModal({ isOpen, onClose, sub, onParametersUpdated
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-[#050505] border border-[#1A1A1A] w-full max-w-md overflow-hidden flex flex-col"
+                    className="bg-[#050505] border border-[#1A1A1A] w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
                 >
                     {/* Header */}
-                    <div className="p-6 border-b border-[#1A1A1A] flex justify-between items-center bg-[#0D0D0D]">
+                    <div className="p-6 border-b border-[#1A1A1A] flex justify-between items-center bg-[#0D0D0D] shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-black border border-[#1A1A1A] flex items-center justify-center">
                                 <Settings2 className="w-5 h-5 text-[#FFD700]" />
@@ -100,22 +100,37 @@ export function ParameterConfigModal({ isOpen, onClose, sub, onParametersUpdated
                     </div>
 
                     {/* Body */}
-                    <div className="p-6 space-y-6">
+                    <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 bg-black/20">
                         <div className="space-y-4">
                             {schema.map((field) => (
                                 <div key={field.key} className="space-y-2">
                                     <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">
                                         {field.label}
                                     </label>
-                                    <input
-                                        type={field.type === 'number' ? 'number' : 'text'}
-                                        value={params[field.key] || ''}
-                                        onChange={(e) => setParams({
-                                            ...params,
-                                            [field.key]: field.type === 'number' ? parseFloat(e.target.value) : e.target.value
-                                        })}
-                                        className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 text-white text-sm focus:border-[#FFD700] focus:outline-none transition-colors"
-                                    />
+                                    {field.type === 'select' ? (
+                                        <select
+                                            value={params[field.key] || ''}
+                                            onChange={(e) => setParams({
+                                                ...params,
+                                                [field.key]: e.target.value
+                                            })}
+                                            className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 text-white text-sm focus:border-[#FFD700] focus:outline-none transition-colors appearance-none cursor-pointer"
+                                        >
+                                            {field.options?.map((opt: any) => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type={field.type === 'number' ? 'number' : 'text'}
+                                            value={params[field.key] || ''}
+                                            onChange={(e) => setParams({
+                                                ...params,
+                                                [field.key]: field.type === 'number' ? parseFloat(e.target.value) : e.target.value
+                                            })}
+                                            className="w-full bg-[#0A0A0A] border border-[#1A1A1A] p-3 text-white text-sm focus:border-[#FFD700] focus:outline-none transition-colors"
+                                        />
+                                    )}
                                 </div>
                             ))}
                         </div>
