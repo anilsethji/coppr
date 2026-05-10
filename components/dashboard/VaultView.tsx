@@ -186,7 +186,7 @@ export default function VaultView({ typeFilter, timelineMode }: { typeFilter?: '
                     removeSubscription={removeSubscription}
                     previewSymbol={managingSub?.id === sub.id ? previewSymbol : null}
                     onManageAssets={(s: any) => { setManagingSub(s); setPreviewSymbol(s.active_assets?.[0] || 'XAUUSD'); setIsAssetDrawerOpen(true); }}
-                    logs={logs[sub.id.startsWith('own-') ? sub.strategy_id : sub.id] || []}
+                    logs={logs[(typeof sub.id === 'string' && sub.id.startsWith('own-')) ? sub.strategy_id : sub.id] || []}
                     fetchLogs={fetchLogs}
                     fetchVault={fetchVault}
                 />

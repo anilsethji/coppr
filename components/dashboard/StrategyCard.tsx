@@ -19,31 +19,20 @@ import { ParameterConfigModal } from './ParameterConfigModal';
 import { RiskManagementModal } from './RiskManagementModal';
 import ManagedNodeMonitor from './ManagedNodeMonitor';
 
-// ... (SignalVisualizer dynamic import remains same)
+const SignalVisualizer = dynamic(() => import('./SignalVisualizer').then(m => m.SignalVisualizer), {
+    ssr: false,
+    loading: () => <div className="h-full flex items-center justify-center bg-black/20 animate-pulse text-white/20">Loading Technical Terminal...</div>
+});
+
+const RETAIL_JARGON: Record<string, { label: string; tip: string }> = {
+  FIXED_QTY: { label: 'Trade Size', tip: 'Trade a fixed USD amount every time.' },
+  PCT_BALANCE: { label: 'Portfolio Risk', tip: 'Risk a fixed % of your portfolio per trade.' }
+};
 
 export function StrategyCard({
-  sub,
-  isOfficial,
-  setActivationTarget,
-  toggleSync,
-  removeSubscription,
-  onManageAssets,
-  previewSymbol,
-  logs,
-  fetchLogs,
-  fetchVault,
-  isLocked
-}: any) {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isVisualMode, setIsVisualMode] = useState(true);
-    const [isIntegrationModalOpen, setIsIntegrationModalOpen] = useState(false);
-    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-    const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
-    const [isTerminalWelcomeOpen, setIsTerminalWelcomeOpen] = useState(false);
-    const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-
-    // ... (activeSymbol and copyToClipboard logic remains same)
+// ... (props remain same)
+}) {
+    // ... (state remains same)
 
     return (
         <motion.div
@@ -67,7 +56,7 @@ export function StrategyCard({
                                 <div className="flex items-center gap-2">
                                     <Activity className="w-3 h-3 text-[#FFD700]" />
                                     <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                                        {RETAIL_JARGON[sub.engine_mode || 'MULTIPLIER']?.label}
+                                        {RETAIL_JARGON[sub?.engine_mode === 'MULTIPLIER' ? 'FIXED_QTY' : (sub?.engine_mode || 'FIXED_QTY')]?.label}
                                     </span>
                                 </div>
                             </div>
@@ -75,23 +64,72 @@ export function StrategyCard({
                                 onClick={() => setIsRiskModalOpen(true)}
                                 className="p-4 rounded-[6px] bg-[#0A0A0A] border border-[#1A1A1A] space-y-2 text-left hover:border-[#FFD700] transition-colors group/risk"
                             >
-                                <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.4em] leading-none group-hover/risk:text-[#FFD700]">Risk_Factor</p>
+                                <p className="text-[8px] font-black text-white/40 uppercase tracking-[0.4em] leading-none group-hover/risk:text-[#FFD700]">Set Leverage</p>
                                 <div className="flex items-center gap-2">
                                     <Zap className="w-3 h-3 text-[#FFD700]" />
                                     <span className="text-[10px] font-black text-[#FFD700] uppercase tracking-widest">
-                                        ⚡ {sub.engine_value || '1.0'}{sub.engine_mode === 'MULTIPLIER' ? 'X' : ''}_ALPHA
+                                        ⚡ {sub?.leverage_override || '1'}X_POWER
                                     </span>
                                 </div>
                             </button>
                         </div>
 
-                        {/* ... (ManagedNodeMonitor and Pipeline Status remains same) */}
+                        {sub?.strategy?.execution_mode === 'COPPR_MANAGED' && (
+                            <ManagedNodeMonitor strategyId={sub.strategy_id} isCreator={false} />
+                        )}
+
+                        {/* Section 3 - Pipeline Status */}
+                        <div className="p-6 border-y border-[#1A1A1A]">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${sub?.sync_active ? 'bg-[#00E676]' : 'bg-white/20'}`} />
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${sub?.sync_active ? 'text-white' : 'text-white/40'}`}>
+                                        {sub?.sync_active ? 'Online' : 'Standby'}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => toggleSync(sub.id, sub.sync_active)}
+                                    className={`relative w-10 h-5 rounded-full transition-all duration-300 ${sub?.sync_active ? 'bg-[#00E676]' : 'bg-white/10'}`}
+                                >
+                                    <div className={`absolute top-[2px] w-4 h-4 rounded-full bg-black transition-all duration-300 ${sub?.sync_active ? 'left-[22px]' : 'left-[2px]'}`} />
+                                </button>
+                            </div>
+                        </div>
 
                         {/* Section 5 - Gateway Controls */}
-                        {/* ... (Grid remains same) */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <button
+                                onClick={() => onManageAssets?.(sub)}
+                                className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col items-center justify-center gap-2 hover:border-white/20 transition-all font-mono"
+                            >
+                                <Target className="w-5 h-5 text-[#FFD700]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Targets</span>
+                            </button>
+                            <button
+                                onClick={() => setIsIntegrationModalOpen(true)}
+                                className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col items-center justify-center gap-2 hover:border-white/20 transition-all font-mono"
+                            >
+                                <Globe className="w-5 h-5 text-[#FFD700]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Bridge</span>
+                            </button>
+                            <button
+                                onClick={() => setIsConfigModalOpen(true)}
+                                className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] flex flex-col items-center justify-center gap-2 hover:border-white/20 transition-all font-mono"
+                            >
+                                <Settings className="w-5 h-5 text-[#FFD700]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Config</span>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* ... (Primary CTA remains same) */}
+                    {/* Section 4 - Primary CTA */}
+                    <button
+                        disabled={sub?.sync_active ? false : isLocked}
+                        onClick={() => sub?.sync_active ? setIsTerminalWelcomeOpen(true) : setActivationTarget(sub)}
+                        className={`w-full py-6 font-black uppercase tracking-[0.3em] text-[11px] transition-all rounded-none border-t border-[#1A1A1A] ${sub?.sync_active ? 'bg-[#1A1A1A] text-white/60 hover:text-white' : isLocked ? 'bg-[#050505] text-white/20 cursor-not-allowed' : 'bg-[#FFD700] text-black hover:bg-[#b0e600]'}`}
+                    >
+                        {sub?.sync_active ? 'LAUNCH COMMAND CONSOLE' : isLocked ? 'MIRROR SESSION LOCKED' : 'ESTABLISH BROKER LINK'}
+                    </button>
                 </div>
             </div>
 
@@ -124,7 +162,7 @@ export function StrategyCard({
             <AstralTerminalWelcome
                 isOpen={isTerminalWelcomeOpen}
                 onClose={() => setIsTerminalWelcomeOpen(false)}
-                strategyName={sub.strategy.name}
+                strategyName={sub?.strategy?.name || 'Unknown Node'}
             />
         </motion.div>
     );

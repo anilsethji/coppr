@@ -5,24 +5,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldAlert, Save, Loader2, Info, Percent, Layers, Gauge } from 'lucide-react';
 
 const MODES = [
-    { id: 'MULTIPLIER', label: 'Signal Scaler', icon: Gauge, tip: 'Multiplies the master lot size (e.g., 2.0 = double risk).' },
-    { id: 'FIXED_QTY', label: 'Static Units', icon: Layers, tip: 'Ignores master size and always trades this exact quantity.' },
-    { id: 'PCT_BALANCE', label: 'Capital %', icon: Percent, tip: 'Risks a fixed % of your current balance per trade.' }
+    { id: 'FIXED_QTY', label: 'Trade Value (USD)', icon: Layers, tip: 'Specify the USD amount to trade (before leverage).' },
+    { id: 'PCT_BALANCE', label: '% of Portfolio', icon: Percent, tip: 'Risk a fixed percentage of your total balance.' }
 ];
 
 export function RiskManagementModal({ isOpen, onClose, sub, onUpdated }: any) {
-    const [engineMode, setEngineMode] = useState(sub?.engine_mode || 'MULTIPLIER');
-    const [engineValue, setEngineValue] = useState(sub?.engine_value || 1.0);
+    const [engineMode, setEngineMode] = useState(sub?.engine_mode === 'MULTIPLIER' ? 'FIXED_QTY' : (sub?.engine_mode || 'FIXED_QTY'));
+    const [engineValue, setEngineValue] = useState(sub?.engine_value || 100);
     const [leverage, setLeverage] = useState(sub?.leverage_override || 1);
-    const [drawdown, setDrawdown] = useState(sub?.drawdown_threshold || 50.0);
+    const [drawdown, setDrawdown] = useState(sub?.drawdown_threshold || 15);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (sub) {
-            setEngineMode(sub.engine_mode || 'MULTIPLIER');
-            setEngineValue(sub.engine_value || 1.0);
+            setEngineMode(sub.engine_mode === 'MULTIPLIER' ? 'FIXED_QTY' : (sub.engine_mode || 'FIXED_QTY'));
+            setEngineValue(sub.engine_value || 100);
             setLeverage(sub.leverage_override || 1);
-            setDrawdown(sub.drawdown_threshold || 50.0);
+            setDrawdown(sub.drawdown_threshold || 15);
         }
     }, [sub, isOpen]);
 
@@ -79,8 +78,8 @@ export function RiskManagementModal({ isOpen, onClose, sub, onUpdated }: any) {
                                 <ShieldAlert className="w-5 h-5 text-[#FFD700]" />
                             </div>
                             <div>
-                                <h3 className="text-white font-black uppercase tracking-widest text-sm">Institutional Risk Protocol</h3>
-                                <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">Sub_ID: {sub?.id?.slice(0, 8)}</p>
+                                <h3 className="text-white font-black uppercase tracking-widest text-sm">Investment Power Control</h3>
+                                <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">Configuring Secure Execution Link</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 text-white/40 hover:text-white transition-colors">
@@ -88,23 +87,20 @@ export function RiskManagementModal({ isOpen, onClose, sub, onUpdated }: any) {
                         </button>
                     </div>
 
-                    <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
+                    <div className="p-8 space-y-8 overflow-y-auto max-h-[75vh] custom-scrollbar">
                         {/* Mode Selection */}
                         <div className="space-y-4">
-                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Execution Mode</label>
-                            <div className="grid grid-cols-1 gap-2">
+                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">How much to trade?</label>
+                            <div className="grid grid-cols-2 gap-3">
                                 {MODES.map((m) => (
                                     <button
                                         key={m.id}
                                         onClick={() => setEngineMode(m.id)}
-                                        className={`flex items-center justify-between p-4 border transition-all ${engineMode === m.id ? 'bg-[#FFD700] border-[#FFD700] text-black' : 'bg-black border-[#1A1A1A] text-white/40 hover:border-white/20'}`}
+                                        className={`flex flex-col items-center justify-center p-6 border transition-all gap-3 ${engineMode === m.id ? 'bg-[#FFD700] border-[#FFD700] text-black' : 'bg-black border-[#1A1A1A] text-white/40 hover:border-white/20'}`}
                                     >
-                                        <div className="flex items-center gap-3 text-left">
-                                            <m.icon className="w-4 h-4" />
-                                            <div>
-                                                <p className="text-[11px] font-black uppercase tracking-widest leading-none">{m.label}</p>
-                                                <p className={`text-[9px] mt-1 ${engineMode === m.id ? 'text-black/60' : 'text-white/20'}`}>{m.tip}</p>
-                                            </div>
+                                        <m.icon className="w-5 h-5" />
+                                        <div className="text-center">
+                                            <p className="text-[11px] font-black uppercase tracking-widest leading-none">{m.label}</p>
                                         </div>
                                     </button>
                                 ))}
@@ -112,58 +108,70 @@ export function RiskManagementModal({ isOpen, onClose, sub, onUpdated }: any) {
                         </div>
 
                         {/* Engine Value */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Execution Value</label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={engineValue}
-                                    onChange={(e) => setEngineValue(parseFloat(e.target.value))}
-                                    className="w-full bg-black border border-[#1A1A1A] p-4 text-white font-mono focus:border-[#FFD700] outline-none transition-all"
-                                />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-white/20 uppercase">Units_Scale</span>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                                <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">{engineMode === 'FIXED_QTY' ? 'Trade Amount (USD)' : 'Portfolio Risk %'}</label>
+                                <span className="text-xl font-black text-[#FFD700]">{engineValue}{engineMode === 'PCT_BALANCE' ? '%' : '$'}</span>
                             </div>
+                            <input
+                                type="range"
+                                min={engineMode === 'FIXED_QTY' ? "10" : "0.5"}
+                                max={engineMode === 'FIXED_QTY' ? "10000" : "100"}
+                                step={engineMode === 'FIXED_QTY' ? "10" : "0.5"}
+                                value={engineValue}
+                                onChange={(e) => setEngineValue(parseFloat(e.target.value))}
+                                className="w-full h-1 bg-[#1A1A1A] rounded-lg appearance-none cursor-pointer accent-[#FFD700]"
+                            />
                         </div>
 
-                        {/* Leverage & Drawdown */}
-                        <div className="grid grid-cols-2 gap-6">
-                            {isFutures && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Leverage_Multiplier</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={leverage}
-                                            min="1"
-                                            max="125"
-                                            onChange={(e) => setLeverage(parseInt(e.target.value))}
-                                            className="w-full bg-black border border-[#1A1A1A] p-4 text-[#FFD700] font-mono focus:border-[#FFD700] outline-none transition-all"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-black">X</span>
-                                    </div>
+                        {/* Leverage */}
+                        {isFutures && (
+                            <div className="space-y-4 pt-4 border-t border-[#1A1A1A]">
+                                <div className="flex justify-between items-end">
+                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Leverage Power (Multiplier)</label>
+                                    <span className="text-xl font-black text-[#FFD700]">{leverage}X</span>
                                 </div>
-                            )}
-                            <div className={isFutures ? 'space-y-2' : 'col-span-2 space-y-2'}>
-                                <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Kill_Switch (Max DD %)</label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        value={drawdown}
-                                        min="1"
-                                        max="100"
-                                        onChange={(e) => setDrawdown(parseFloat(e.target.value))}
-                                        className="w-full bg-black border border-[#1A1A1A] p-4 text-red-500 font-mono focus:border-red-500 outline-none transition-all"
-                                    />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-black">%</span>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="125"
+                                    step="1"
+                                    value={leverage}
+                                    onChange={(e) => setLeverage(parseInt(e.target.value))}
+                                    className="w-full h-1 bg-[#1A1A1A] rounded-lg appearance-none cursor-pointer accent-[#FFD700]"
+                                />
+                                <div className="flex justify-between text-[8px] text-white/20 font-black uppercase">
+                                    <span>1x (Safe)</span>
+                                    <span>50x (Medium)</span>
+                                    <span>125x (Extreme)</span>
                                 </div>
                             </div>
+                        )}
+
+                        {/* Auto Safety Stop */}
+                        <div className="space-y-4 pt-4 border-t border-[#1A1A1A]">
+                            <div className="flex justify-between items-end">
+                                <label className="text-[10px] font-black text-white/60 uppercase tracking-widest block">Auto-Safety Stop (Max Loss %)</label>
+                                <span className="text-xl font-black text-red-500">{drawdown}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="1"
+                                max="100"
+                                step="1"
+                                value={drawdown}
+                                onChange={(e) => setDrawdown(parseFloat(e.target.value))}
+                                className="w-full h-1 bg-[#1A1A1A] rounded-lg appearance-none cursor-pointer accent-red-500"
+                            />
+                            <p className="text-[9px] text-white/20 uppercase tracking-widest leading-relaxed">
+                                Strategy will auto-pause if account loss exceeds this threshold.
+                            </p>
                         </div>
 
                         <div className="p-4 bg-black border border-[#1A1A1A] flex gap-3">
                             <Info className="w-4 h-4 text-[#FFD700] shrink-0" />
                             <p className="text-[9px] text-white/40 uppercase tracking-widest leading-relaxed">
-                                <span className="text-white font-black">REGULATORY_NOTICE:</span> High leverage increases liquidaton risk. The Kill-Switch will automatically pause your strategy if account drawdown exceeds the threshold.
+                                <span className="text-white font-black">PRO TIP:</span> Higher leverage requires lower "Trade Amounts" to maintain institutional safety. Always synchronize before active trading.
                             </p>
                         </div>
                     </div>
@@ -182,7 +190,7 @@ export function RiskManagementModal({ isOpen, onClose, sub, onUpdated }: any) {
                             className="flex-2 px-10 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-black bg-[#FFD700] hover:bg-[#b0e600] transition-colors flex items-center justify-center gap-2"
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            Sync_Protocol
+                            Apply_Changes
                         </button>
                     </div>
                 </motion.div>

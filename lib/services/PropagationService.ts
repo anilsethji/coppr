@@ -231,29 +231,37 @@ export class PropagationService {
     }
 
     private static async calculateQuantity(sub: any, payload: any, adapter: any, credentials: any): Promise<number> {
-        const mode = sub.engine_mode || 'MULTIPLIER';
-        const val = sub.engine_value || 1.0;
-        const masterQty = payload.quantity || 0.01;
+        const mode = sub.engine_mode || 'FIXED_QTY';
+        const val = sub.engine_value || 100; // Default $100 if missing
+        const leverage = sub.leverage_override || 1;
+        
+        // Price detection: TradingView signals usually include 'price'. 
+        // If missing, we fallback to 1.0 (which essentially treats value as units) or fetch from adapter if available.
+        let price = parseFloat(payload.price || payload.close || 0);
+        
+        // Fallback for price-agnostic brokers (like Zerodha for some instruments) 
+        // or if TV signal doesn't provide price.
+        if (!price || price <= 0) {
+            console.warn(`[QUANT] Missing price in signal. Defaulting to 1.0 (Unit-based logic).`);
+            price = 1.0;
+        }
 
         switch (mode) {
-            case 'FIXED_QTY':
-                return val;
-            
             case 'PCT_BALANCE':
                 const balance = await adapter.getAccountBalance(credentials);
-                const price = payload.price || 1.0; 
-                // Formula: (Budget / Price) -> e.g. (10% of 1000) / 50000 price = 0.002 BTC
-                const qty = ( (val / 100) * balance ) / price;
-                return Number(qty.toFixed(4));
+                // Formula: ((% of Balance) * Leverage) / Price
+                // e.g. ((2% of 1000) * 10x) / 50000 price = $200 power / 50000 = 0.004 BTC
+                const portfolioQty = ( (val / 100) * balance * leverage ) / price;
+                return Number(portfolioQty.toFixed(4));
 
-            case 'MULTIPLIER':
+            case 'FIXED_QTY':
             default:
-                let resultQty = val * masterQty;
-                // BINANCE PRECISION GUARD (Min step size 0.001 typically for BTC)
-                if (sub.broker_accounts?.broker_type === 'BINANCE_FUTURES') {
-                    resultQty = Number(resultQty.toFixed(3)); 
-                }
-                return resultQty;
+                // Formula: (USD Base Value * Leverage) / Price
+                // e.g. ($100 * 10x) / 50000 price = $1000 power / 50000 = 0.02 BTC
+                const usdQty = ( val * leverage ) / price;
+                
+                // PRECISION GUARD (e.g. 0.01 step for Gold, 0.001 for BTC)
+                return Number(usdQty.toFixed(4));
         }
     }
 }
