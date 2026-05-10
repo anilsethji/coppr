@@ -19,7 +19,7 @@ export async function POST(
     const { data: strategy, error: sError } = await supabase
       .from('strategies')
       .select('id, origin, status')
-      .eq('master_webhook_key', signalKey)
+      .eq('master_signal_key', signalKey)
       .eq('status', 'ACTIVE')
       .single();
 
